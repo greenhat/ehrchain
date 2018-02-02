@@ -1,8 +1,6 @@
 # IDE/Editor files
 .idea
 
-project
-
 # SBT's temporary files
 .history
 
