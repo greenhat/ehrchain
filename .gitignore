@@ -1,2 +1,18 @@
-*.class
+# IDE/Editor files
+.idea
+
+project
+
+# SBT's temporary files
+.history
+
+# scala build folders
+target
+
+# dotfiles
+.dockerignore
+
+# logs
 *.log
+
+*.class
