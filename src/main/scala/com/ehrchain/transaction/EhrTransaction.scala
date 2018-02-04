@@ -34,6 +34,8 @@ class EhrTransaction(val provider: PublicKey25519Proposition,
 
   lazy val validity: Try[Unit] = Try {
     require(timestamp > 0)
+    require(record.nonEmpty)
+    // todo limit max record size (use in tests)
     // record's signature (made with provider's SK) is valid (verified with provider's PK)
     signature.isValid(provider, messageToSign)
   }

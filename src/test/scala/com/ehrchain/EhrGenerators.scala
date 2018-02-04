@@ -19,4 +19,11 @@ trait EhrGenerators extends CoreGenerators {
     patientPK <- propositionGen
     record <- genRecord(1, 1024)
   } yield EhrTransactionCompanion.generate(patientPK, providerKeys, record, timestamp)
+
+  lazy val invalidEhrTransactionGen: Gen[EhrTransaction] = for {
+    timestamp <- Gen.choose[Long](0, 0)
+    providerKeys <- key25519Gen
+    patientPK <- propositionGen
+    record <- genRecord(0, 1024)
+  } yield EhrTransactionCompanion.generate(patientPK, providerKeys, record, timestamp)
 }

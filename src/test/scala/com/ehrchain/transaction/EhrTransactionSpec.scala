@@ -22,4 +22,10 @@ class EhrTransactionSpec extends PropSpec
       b.validity.isSuccess shouldBe true
     }
   }
+
+  property("invalid EhrTransaction") {
+    forAll(invalidEhrTransactionGen) { b: EhrTransaction =>
+      b.validity.isSuccess shouldBe false
+    }
+  }
 }
