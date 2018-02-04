@@ -47,7 +47,8 @@ class EhrTransaction(val provider: PublicKey25519Proposition,
 object EhrTransactionSerializer extends Serializer[EhrTransaction] {
 
   override def toBytes(obj: EhrTransaction): Array[Byte] = {
-    Bytes.concat(Longs.toByteArray(obj.timestamp),
+    Bytes.concat(
+      Longs.toByteArray(obj.timestamp),
       obj.provider.bytes,
       obj.patient.bytes,
       obj.signature.bytes,
@@ -69,7 +70,7 @@ object EhrTransactionSerializer extends Serializer[EhrTransaction] {
     val signatureEnd = patientEnd + Curve25519.SignatureLength
     val signature = Signature25519(Signature @@ bytes.slice(signatureStart, signatureEnd))
     val recordStart = signatureEnd
-    val record = RecordType @@ bytes.slice(recordStart, bytes.length - 1)
+    val record = RecordType @@ bytes.slice(recordStart, bytes.length)
     new EhrTransaction(provider, patient, record, signature, timestamp)
   }
 }
