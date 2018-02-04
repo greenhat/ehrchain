@@ -7,14 +7,16 @@ import scorex.testkit.generators.CoreGenerators
 
 trait EhrGenerators extends CoreGenerators {
 
-  // fixme random size
-  lazy val recordTypeGen: Gen[RecordType] = Gen.listOfN(10, Arbitrary.arbitrary[Byte])
-    .map(bytes => RecordType @@ bytes.toArray)
+  def genRecord(minSize: Int, maxSize: Int): Gen[RecordType] = {
+    Gen.choose(minSize, maxSize) flatMap { sz =>
+      Gen.listOfN(sz, Arbitrary.arbitrary[Byte]).map(RecordType @@  _.toArray)
+    }
+  }
 
   lazy val ehrTransactionGen: Gen[EhrTransaction] = for {
     timestamp <- positiveLongGen
     providerKeys <- key25519Gen
     patientPK <- propositionGen
-    record <- recordTypeGen
+    record <- genRecord(1, 1024)
   } yield EhrTransactionCompanion.generate(patientPK, providerKeys, record, timestamp)
 }
