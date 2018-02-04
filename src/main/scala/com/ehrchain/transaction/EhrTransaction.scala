@@ -1,5 +1,6 @@
 package com.ehrchain.transaction
 
+import com.ehrchain.core.RecordType
 import com.google.common.primitives.{Bytes, Longs}
 import io.circe.Json
 import io.circe.syntax._
@@ -7,6 +8,7 @@ import scorex.core.serialization.Serializer
 import scorex.core.transaction.Transaction
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scorex.core.transaction.proof.Signature25519
+import scorex.core.transaction.state.{PrivateKey25519, PrivateKey25519Companion}
 import scorex.crypto.encode.Base58
 import scorex.crypto.signatures.{Curve25519, PublicKey, Signature}
 
@@ -14,7 +16,7 @@ import scala.util.Try
 
 class EhrTransaction(val provider: PublicKey25519Proposition,
                      val patient: PublicKey25519Proposition,
-                     val record: Array[Byte],
+                     val record: RecordType,
                      val signature: Signature25519,
                      val timestamp: Long) extends Transaction[PublicKey25519Proposition] {
   override type M = EhrTransaction
@@ -23,7 +25,7 @@ class EhrTransaction(val provider: PublicKey25519Proposition,
 
   override lazy val json: Json = Map(
     "id" -> Base58.encode(id).asJson,
-    // TODO add the rest
+    // fixme add the rest
   ).asJson
 
   override lazy val messageToSign: Array[Byte] = {
@@ -35,14 +37,10 @@ class EhrTransaction(val provider: PublicKey25519Proposition,
     )
   }
 
-  lazy val isValid: Try[Unit] = Try {
+  lazy val validity: Try[Unit] = Try {
     require(timestamp > 0)
     // record's signature (made with provider's SK) is valid (verified with provider's PK)
     signature.isValid(provider, messageToSign)
-    // TODO how does a patient give authorization to a provider to append an EHR?
-    // contract down the blockchain?
-    // Akin to msg = (patientPK, providerPK, terms(duration, etc.), accessType)
-    // with signature = (msg signed with patientSK)
   }
 }
 
@@ -71,8 +69,28 @@ object EhrTransactionSerializer extends Serializer[EhrTransaction] {
     val signatureEnd = patientEnd + Curve25519.SignatureLength
     val signature = Signature25519(Signature @@ bytes.slice(signatureStart, signatureEnd))
     val recordStart = signatureEnd
-    val record = bytes.slice(recordStart, bytes.length - 1)
+    val record = RecordType @@ bytes.slice(recordStart, bytes.length - 1)
     new EhrTransaction(provider, patient, record, signature, timestamp)
+  }
+}
+
+object EhrTransactionCompanion {
+
+  def generate(patientPK: PublicKey25519Proposition,
+               providerKeys: (PrivateKey25519, PublicKey25519Proposition),
+               record: RecordType,
+               timestamp: Long): EhrTransaction = {
+    val providerPK = providerKeys._2
+    val providerSK = providerKeys._1
+    // fixme DRY
+    val messageToSign = Bytes.concat(
+      Longs.toByteArray(timestamp),
+      patientPK.bytes,
+      providerPK.bytes,
+      record
+    )
+    val signature = PrivateKey25519Companion.sign(providerSK, messageToSign)
+    new EhrTransaction(providerPK, patientPK, record, signature, timestamp)
   }
 }
 
