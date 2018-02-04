@@ -19,6 +19,7 @@ class EhrTransaction(val provider: PublicKey25519Proposition,
                      val record: RecordType,
                      val signature: Signature25519,
                      val timestamp: Long) extends Transaction[PublicKey25519Proposition] {
+
   override type M = EhrTransaction
 
   override def serializer: Serializer[EhrTransaction] = EhrTransactionSerializer
@@ -28,19 +29,28 @@ class EhrTransaction(val provider: PublicKey25519Proposition,
     // fixme add the rest
   ).asJson
 
-  override lazy val messageToSign: Array[Byte] = {
+  override lazy val messageToSign: Array[Byte] =
+    EhrTransaction.generateMessageToSign(timestamp, patient, provider, record)
+
+  lazy val validity: Try[Unit] = Try {
+    require(timestamp > 0)
+    // record's signature (made with provider's SK) is valid (verified with provider's PK)
+    signature.isValid(provider, messageToSign)
+  }
+}
+
+object EhrTransaction {
+
+  def generateMessageToSign(timestamp: Long,
+                            patient: PublicKey25519Proposition,
+                            provider: PublicKey25519Proposition,
+                            record: RecordType): Array[Byte] = {
     Bytes.concat(
       Longs.toByteArray(timestamp),
       patient.bytes,
       provider.bytes,
       record
     )
-  }
-
-  lazy val validity: Try[Unit] = Try {
-    require(timestamp > 0)
-    // record's signature (made with provider's SK) is valid (verified with provider's PK)
-    signature.isValid(provider, messageToSign)
   }
 }
 
@@ -83,13 +93,7 @@ object EhrTransactionCompanion {
                timestamp: Long): EhrTransaction = {
     val providerPK = providerKeys._2
     val providerSK = providerKeys._1
-    // fixme DRY
-    val messageToSign = Bytes.concat(
-      Longs.toByteArray(timestamp),
-      patientPK.bytes,
-      providerPK.bytes,
-      record
-    )
+    val messageToSign = EhrTransaction.generateMessageToSign(timestamp, patientPK, providerPK, record)
     val signature = PrivateKey25519Companion.sign(providerSK, messageToSign)
     new EhrTransaction(providerPK, patientPK, record, signature, timestamp)
   }
