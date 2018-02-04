@@ -16,4 +16,10 @@ class EhrTransactionSpec extends PropSpec
       parsed.bytes shouldEqual b.bytes
     }
   }
+
+  property("EhrTransaction validity") {
+    forAll(ehrTransactionGen) { b: EhrTransaction =>
+      b.validity.isSuccess shouldBe true
+    }
+  }
 }
