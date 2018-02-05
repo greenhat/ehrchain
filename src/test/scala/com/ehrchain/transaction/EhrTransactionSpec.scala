@@ -4,6 +4,8 @@ import org.scalatest.{Matchers, PropSpec}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import com.ehrchain.{EhrGenerators, core}
 
+import scala.util.Success
+
 class EhrTransactionSpec extends PropSpec
   with PropertyChecks
   with GeneratorDrivenPropertyChecks
@@ -12,8 +14,7 @@ class EhrTransactionSpec extends PropSpec
 
   property("EhrTransaction serialization") {
     forAll(ehrTransactionGen) { b: EhrTransaction =>
-      val parsed = b.serializer.parseBytes(b.bytes).get
-      parsed.bytes shouldEqual b.bytes
+      b.serializer.parseBytes(b.bytes).map( _.bytes sameElements b.bytes) shouldEqual Success(true)
     }
   }
 

@@ -14,7 +14,7 @@ import scorex.crypto.signatures.{Curve25519, PublicKey, Signature}
 
 import scala.util.Try
 
-class EhrTransaction(val provider: PublicKey25519Proposition,
+final class EhrTransaction(val provider: PublicKey25519Proposition,
                      val patient: PublicKey25519Proposition,
                      val record: RecordType,
                      val signature: Signature25519,
@@ -32,7 +32,7 @@ class EhrTransaction(val provider: PublicKey25519Proposition,
   override lazy val messageToSign: Array[Byte] =
     EhrTransaction.generateMessageToSign(timestamp, patient, provider, record)
 
-  lazy val validity: Try[Unit] = Try {
+  lazy val validity: Try[Boolean] = Try {
     require(timestamp > 0)
     require(record.nonEmpty)
     require(record.length <= EhrTransaction.MaxRecordSize)
@@ -43,7 +43,7 @@ class EhrTransaction(val provider: PublicKey25519Proposition,
 
 object EhrTransaction {
 
-  val MaxRecordSize = 1024
+  val MaxRecordSize: Int = 1024
 
   def generateMessageToSign(timestamp: TimeStamp,
                             patient: PublicKey25519Proposition,
