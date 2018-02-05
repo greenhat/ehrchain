@@ -48,14 +48,13 @@ object EhrTransaction {
   def generateMessageToSign(timestamp: TimeStamp,
                             patient: PublicKey25519Proposition,
                             provider: PublicKey25519Proposition,
-                            record: RecordType): Array[Byte] = {
+                            record: RecordType): Array[Byte] =
     Bytes.concat(
       Longs.toByteArray(timestamp),
       patient.bytes,
       provider.bytes,
       record
     )
-  }
 }
 
 object EhrTransactionSerializer extends Serializer[EhrTransaction] {
