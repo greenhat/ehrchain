@@ -3,7 +3,7 @@ package com.ehrchain.block
 import com.ehrchain.core._
 import com.ehrchain.serialization._
 import com.ehrchain.transaction.EhrTransaction
-import com.google.common.primitives.Bytes
+import com.google.common.primitives.{Bytes, Longs}
 import examples.commons.Nonce
 import io.circe.Json
 import io.circe.syntax._
@@ -16,6 +16,7 @@ import scorex.core.transaction.state.{PrivateKey25519, PrivateKey25519Companion}
 import scorex.core.{ModifierId, ModifierTypeId}
 import scorex.crypto.encode.Base58
 import scorex.crypto.hash.Blake2b256
+import scorex.crypto.signatures.{Curve25519, PublicKey, Signature}
 
 import scala.util.Try
 
@@ -51,7 +52,6 @@ final class EhrBlock(
 
   override def serializer: Serializer[EhrBlock] = EhrBlockSerializer
 
-  // todo make TimeStamp unable to hold incorrect values
   lazy val validity: Try[Boolean] = Try {
     require(timestamp > 0)
     require(transactions.nonEmpty)
@@ -61,6 +61,8 @@ final class EhrBlock(
 }
 
 object EhrBlock {
+
+  val MaxBlockSize: Int = 512 * 1024  //512K
 
   def generateMessageToSign(parentId: BlockId,
                             timestamp: TimeStamp,
@@ -92,19 +94,32 @@ object EhrBlockCompanion {
   }
 }
 
-// todo test
 object EhrBlockSerializer extends Serializer[EhrBlock] {
-  override def toBytes(obj: EhrBlock): Array[Version] = {
+  override def toBytes(obj: EhrBlock): Array[Version] =
     Bytes.concat(
       obj.parentId,
       serialize(obj.timestamp),
       serialize(obj.nonce),
-      serialize(obj.transactions),
       serialize(obj.signature),
-      serialize(obj.generator)
+      serialize(obj.generator),
+      serialize(obj.transactions)
     )
-  }
 
-  // todo implement
-  override def parseBytes(bytes: Array[Version]): Try[EhrBlock] = ???
+  override def parseBytes(bytes: Array[Version]): Try[EhrBlock] = {
+    require(bytes.length <= EhrBlock.MaxBlockSize)
+    val parentIdEnd = Block.BlockIdLength
+    val parentId = ModifierId @@ bytes.slice(0, parentIdEnd)
+    val timestampEnd = parentIdEnd + 8
+    val timestamp = TimeStamp @@ Longs.fromByteArray(bytes.slice(parentIdEnd, timestampEnd))
+    val nonceEnd = timestampEnd + 8
+    val nonce = Nonce @@ Longs.fromByteArray(bytes.slice(timestampEnd, nonceEnd))
+    val signatureEnd = nonceEnd + Curve25519.SignatureLength
+    val signature = Signature25519(Signature @@ bytes.slice(nonceEnd, signatureEnd))
+    val generatorEnd = signatureEnd + Curve25519.KeyLength
+    val generatorPK = PublicKey @@ bytes.slice(signatureEnd, generatorEnd)
+    val generator = PublicKey25519Proposition(generatorPK)
+    for {
+      transactions <- transactionsSerializer.parseBytes(bytes.slice(generatorEnd, bytes.length))
+    } yield new EhrBlock(parentId, timestamp, nonce, transactions, signature, generator)
+  }
 }

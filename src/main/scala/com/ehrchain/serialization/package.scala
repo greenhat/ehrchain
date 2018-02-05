@@ -53,7 +53,7 @@ package object serialization {
           for {
             tx <- EhrTransactionSerializer.parseBytes(bytes.slice(txStart, txStart + txSize))
             txs <- loop(bytes.slice(txStart + txSize, bytes.length), txQtyLeft - 1)
-          } yield Seq(tx) ++ txs
+          } yield txs ++ Seq(tx)
       }
       loop(bytes.slice(txsQtyEnd, bytes.length), txsQty)
     }
