@@ -26,21 +26,29 @@ with ExamplesCommonGenerators {
     record <- genRecord(1, EhrTransaction.MaxRecordSize)
   } yield EhrTransactionCompanion.generate(patientPK, providerKeys, record, timestamp)
 
-  lazy val ehrTransactionsGen: Gen[List[EhrTransaction]] = for {
-    txs <- smallInt.flatMap(i => Gen.listOfN(i, ehrTransactionGen))
+  def ehrTransactionsGen(min: Int, max: Int): Gen[List[EhrTransaction]] = for {
+    txs <- Gen.choose(min, max).flatMap(i => Gen.listOfN(i, ehrTransactionGen))
   } yield txs
 
-  lazy val invalidEhrTransactionGen: Gen[EhrTransaction] = for {
-    timestamp <- Gen.choose[Long](0, 0).map(TimeStamp @@ _)
+  lazy val emptyRecordEhrTransactionGen: Gen[EhrTransaction] = for {
+    timestamp <- timestampGen
     providerKeys <- key25519Gen
     patientPK <- propositionGen
-    record <- genRecord(0, EhrTransaction.MaxRecordSize * 2)
+    record <- genRecord(0, 0)
   } yield EhrTransactionCompanion.generate(patientPK, providerKeys, record, timestamp)
 
   lazy val ehrBlockGen: Gen[EhrBlock] = for {
     timestamp <- timestampGen
     generatorKeys <- key25519Gen
-    transactions <- ehrTransactionsGen
+    transactions <- ehrTransactionsGen(1, 20)
+    nonce <- nonceGen
+    parentId <- modifierIdGen
+  } yield EhrBlockCompanion.generate(parentId, timestamp, nonce, transactions, generatorKeys)
+
+  lazy val zeroTxsEhrBlockGen: Gen[EhrBlock] = for {
+    timestamp <- timestampGen
+    generatorKeys <- key25519Gen
+    transactions <- ehrTransactionsGen(0, 0)
     nonce <- nonceGen
     parentId <- modifierIdGen
   } yield EhrBlockCompanion.generate(parentId, timestamp, nonce, transactions, generatorKeys)

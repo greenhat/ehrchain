@@ -35,15 +35,21 @@ final class EhrBlock(
   override def version: Version = 1: Byte
 
   override def json: Json = Map(
-    "id" -> Base58.encode(id).asJson
-    // fixme add the rest
+    "id" -> Base58.encode(id).asJson,
+    "parentId" -> Base58.encode(parentId).asJson,
+    "timestamp" -> timestamp.toLong.asJson,
+    "nonce" -> nonce.toLong.asJson,
+    "transactions" -> transactions.map(_.json).asJson,
+    "signature" -> Base58.encode(signature.bytes).asJson,
+    "generator" -> Base58.encode(generator.bytes).asJson
   ).asJson
+
+  override def toString: String = s"EhrBlock(${json.noSpaces}})"
 
   override def id: ModifierId =
     ModifierId @@ Blake2b256(parentId ++ serialize(timestamp) ++ generator.bytes)
 
-  // todo implement
-  override def serializer: Serializer[EhrBlock] = ???
+  override def serializer: Serializer[EhrBlock] = EhrBlockSerializer
 
   // todo make TimeStamp unable to hold incorrect values
   lazy val validity: Try[Boolean] = Try {
@@ -66,7 +72,7 @@ object EhrBlock {
       serialize(timestamp),
       serialize(nonce),
       serialize(transactions),
-      generator.bytes
+      serialize(generator)
     )
 }
 
@@ -84,4 +90,21 @@ object EhrBlockCompanion {
     val signature = PrivateKey25519Companion.sign(generatorSK, msgToSign)
     new EhrBlock(parentId, timestamp, nonce, transactions, signature, generatorPK)
   }
+}
+
+// todo test
+object EhrBlockSerializer extends Serializer[EhrBlock] {
+  override def toBytes(obj: EhrBlock): Array[Version] = {
+    Bytes.concat(
+      obj.parentId,
+      serialize(obj.timestamp),
+      serialize(obj.nonce),
+      serialize(obj.transactions),
+      serialize(obj.signature),
+      serialize(obj.generator)
+    )
+  }
+
+  // todo implement
+  override def parseBytes(bytes: Array[Version]): Try[EhrBlock] = ???
 }

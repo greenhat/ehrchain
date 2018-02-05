@@ -26,7 +26,11 @@ final class EhrTransaction(val provider: PublicKey25519Proposition,
 
   override lazy val json: Json = Map(
     "id" -> Base58.encode(id).asJson,
-    // fixme add the rest
+    "timestamp" -> timestamp.toLong.asJson,
+    "provider" -> Base58.encode(provider.bytes).asJson,
+    "patient" -> Base58.encode(patient.bytes).asJson,
+    "record" -> Base58.encode(record).asJson,
+    "signature" -> Base58.encode(signature.bytes).asJson,
   ).asJson
 
   override lazy val messageToSign: Array[Byte] =

@@ -4,7 +4,13 @@ import com.ehrchain.core.TimeStamp
 import com.ehrchain.transaction.{EhrTransaction, EhrTransactionSerializer}
 import com.google.common.primitives.{Bytes, Ints, Longs}
 import examples.commons.Nonce
+import scorex.core.ModifierId
+import scorex.core.block.Block.BlockId
 import scorex.core.serialization.Serializer
+import scorex.core.transaction.box.proposition.{PublicKey25519Proposition, PublicKey25519PropositionSerializer}
+import scorex.core.transaction.proof.Signature25519Serializer
+import scorex.core.block.Block.{BlockId, Version}
+import sun.security.provider.NativePRNG.Blocking
 
 import scala.util.Try
 
@@ -52,6 +58,10 @@ package object serialization {
       loop(bytes.slice(txsQtyEnd, bytes.length), txsQty)
     }
   }
+
+  implicit val signature25519Serializer: Signature25519Serializer.type = Signature25519Serializer
+  implicit val publicKey25519PropositionSerializer: PublicKey25519PropositionSerializer.type =
+    PublicKey25519PropositionSerializer
 
   def serialize[T](t: T)(implicit serializer: Serializer[T]): Array[Byte] = serializer.toBytes(t)
 }
