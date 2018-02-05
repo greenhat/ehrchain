@@ -1,6 +1,6 @@
 package com.ehrchain.transaction
 
-import com.ehrchain.core.RecordType
+import com.ehrchain.core.{RecordType, TimeStamp}
 import com.google.common.primitives.{Bytes, Longs}
 import io.circe.Json
 import io.circe.syntax._
@@ -18,7 +18,7 @@ class EhrTransaction(val provider: PublicKey25519Proposition,
                      val patient: PublicKey25519Proposition,
                      val record: RecordType,
                      val signature: Signature25519,
-                     val timestamp: Long) extends Transaction[PublicKey25519Proposition] {
+                     val timestamp: TimeStamp) extends Transaction[PublicKey25519Proposition] {
 
   override type M = EhrTransaction
 
@@ -45,7 +45,7 @@ object EhrTransaction {
 
   val MaxRecordSize = 1024
 
-  def generateMessageToSign(timestamp: Long,
+  def generateMessageToSign(timestamp: TimeStamp,
                             patient: PublicKey25519Proposition,
                             provider: PublicKey25519Proposition,
                             record: RecordType): Array[Byte] = {
@@ -71,7 +71,7 @@ object EhrTransactionSerializer extends Serializer[EhrTransaction] {
   }
 
   override def parseBytes(bytes: Array[Byte]): Try[EhrTransaction] = Try {
-    val timestamp = Longs.fromByteArray(bytes.slice(0, 8))
+    val timestamp = TimeStamp @@ Longs.fromByteArray(bytes.slice(0, 8))
     val providerStart = 8
     val providerEnd = providerStart + Curve25519.KeyLength
     val providerPK = PublicKey @@ bytes.slice(providerStart, providerEnd)
@@ -94,7 +94,7 @@ object EhrTransactionCompanion {
   def generate(patientPK: PublicKey25519Proposition,
                providerKeys: (PrivateKey25519, PublicKey25519Proposition),
                record: RecordType,
-               timestamp: Long): EhrTransaction = {
+               timestamp: TimeStamp): EhrTransaction = {
     val providerPK = providerKeys._2
     val providerSK = providerKeys._1
     val messageToSign = EhrTransaction.generateMessageToSign(timestamp, patientPK, providerPK, record)
