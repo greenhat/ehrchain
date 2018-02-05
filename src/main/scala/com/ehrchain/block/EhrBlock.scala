@@ -12,6 +12,7 @@ import scorex.core.block.Block.{BlockId, Version}
 import scorex.core.serialization.Serializer
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scorex.core.transaction.proof.Signature25519
+import scorex.core.transaction.state.{PrivateKey25519, PrivateKey25519Companion}
 import scorex.core.{ModifierId, ModifierTypeId}
 import scorex.crypto.encode.Base58
 import scorex.crypto.hash.Blake2b256
@@ -67,5 +68,20 @@ object EhrBlock {
       serialize(transactions),
       generator.bytes
     )
+}
 
+object EhrBlockCompanion {
+
+  // todo move to test (generators)?
+  def generate(parentId: BlockId,
+               timestamp: TimeStamp,
+               nonce: Nonce,
+               transactions: Seq[EhrTransaction],
+               generatorKeys: (PrivateKey25519, PublicKey25519Proposition)): EhrBlock = {
+    val generatorSK = generatorKeys._1
+    val generatorPK = generatorKeys._2
+    val msgToSign = EhrBlock.generateMessageToSign(parentId, timestamp, nonce, transactions, generatorPK)
+    val signature = PrivateKey25519Companion.sign(generatorSK, msgToSign)
+    new EhrBlock(parentId, timestamp, nonce, transactions, signature, generatorPK)
+  }
 }

@@ -90,6 +90,7 @@ object EhrTransactionSerializer extends Serializer[EhrTransaction] {
 
 object EhrTransactionCompanion {
 
+  // todo move to test (generators)?
   def generate(patientPK: PublicKey25519Proposition,
                providerKeys: (PrivateKey25519, PublicKey25519Proposition),
                record: RecordType,
