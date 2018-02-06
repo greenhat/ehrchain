@@ -1,7 +1,7 @@
 package com.ehrchain.history
 
 import com.ehrchain.block.EhrBlock
-import scorex.core.{ModifierId, NodeViewModifier}
+import scorex.core.{ModifierId, ModifierTypeId, NodeViewModifier}
 import scorex.core.consensus.{History, ModifierSemanticValidity}
 import scorex.core.consensus.History.{ModifierIds, ProgressInfo}
 import scorex.core.utils.ScorexLogging
@@ -17,28 +17,27 @@ with ScorexLogging {
 
   require(NodeViewModifier.ModifierIdSize == 32, "32 bytes ids assumed")
 
+  private def isGenesis(block: EhrBlock): Boolean = block.parentId.contains(1.toByte)
 
-  private def isGenesis(block: EhrBlock): Boolean = block.parentId.contains(1)
-
-  /**
-    * @return append block to history
-    */
   override def append(block: EhrBlock): Try[(EhrHistory, History.ProgressInfo[EhrBlock])] = {
     log.debug(s"Trying to append block ${Base58.encode(block.id)} to history")
     block.validity.map { _ =>
       (new EhrHistory(),
         ProgressInfo(branchPoint = None,
-          toRemove = Seq(),
+          toRemove = Seq[EhrBlock](),
           toApply = Some(block),
-          toDownload = Seq())
+          toDownload = Seq[(ModifierTypeId, ModifierId)]())
       )
     }
+    // todo store the block
   }
 
-  /**
-    * Report that modifier is valid from other nodeViewHolder components point of view
-    */
-  override def reportSemanticValidity(modifier: EhrBlock, valid: Boolean, lastApplied: ModifierId): (EhrHistory, History.ProgressInfo[EhrBlock]) = ???
+  override def reportSemanticValidity(modifier: EhrBlock,
+                                      valid: Boolean,
+                                      lastApplied: ModifierId): (EhrHistory, History.ProgressInfo[EhrBlock]) = this -> ProgressInfo(branchPoint = None,
+      toRemove = Seq[EhrBlock](),
+      toApply = None,
+      toDownload = Seq[(ModifierTypeId, ModifierId)]())
 
   /**
     * Is there's no history, even genesis block
