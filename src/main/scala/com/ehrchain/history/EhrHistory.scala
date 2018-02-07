@@ -9,9 +9,8 @@ import scorex.crypto.encode.Base58
 
 import scala.util.{Failure, Try}
 
-class EhrHistory
-extends History[EhrBlock, EhrSyncInfo, EhrHistory]
-with ScorexLogging {
+class EhrHistory(val storage: EhrHistoryStorage)
+  extends History[EhrBlock, EhrSyncInfo, EhrHistory] with ScorexLogging {
 
   override type NVCT = this.type
 
@@ -22,7 +21,7 @@ with ScorexLogging {
   override def append(block: EhrBlock): Try[(EhrHistory, History.ProgressInfo[EhrBlock])] = {
     log.debug(s"Trying to append block ${Base58.encode(block.id)} to history")
     block.validity.map { _ =>
-      (new EhrHistory(),
+      (new EhrHistory(storage),
         ProgressInfo(branchPoint = None,
           toRemove = Seq[EhrBlock](),
           toApply = Some(block),
