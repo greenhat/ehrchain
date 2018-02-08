@@ -34,7 +34,7 @@ final class EhrBlock(
 
   override type M = EhrBlock
 
-  override lazy val modifierTypeId: ModifierTypeId = ModifierTypeId @@ 200.toByte
+  override lazy val modifierTypeId: ModifierTypeId = ModifierTypeId @@ 1.toByte
 
   override def version: Version = 1: Byte
 

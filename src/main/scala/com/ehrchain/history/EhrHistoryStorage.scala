@@ -11,10 +11,12 @@ class EhrHistoryStorage(settings: EhrMiningSettings) {
   private val heightStore: scala.collection.mutable.Map[ModifierId, Long] = scala.collection.mutable.Map()
   private var bestBlockIdValue: ModifierId = settings.GenesisParentId
 
+  // fixme always zero
   def height: Long = heightOf(bestBlockId).getOrElse(0L)
 
   def modifierById(blockId: ModifierId): Option[EhrBlock] = store.get(blockId)
 
+  // todo cover with tests
   def update(b: EhrBlock): Unit = {
     store(b.id) = b
     heightStore(b.id) = parentHeight(b) + 1
