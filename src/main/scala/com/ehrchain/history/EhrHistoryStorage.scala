@@ -9,7 +9,7 @@ class EhrHistoryStorage(settings: EhrMiningSettings) {
 
   private val store: scala.collection.mutable.Map[ModifierId, EhrBlock] = scala.collection.mutable.Map()
   private val heightStore: scala.collection.mutable.Map[ModifierId, Long] = scala.collection.mutable.Map()
-  private var bestBlockId: ModifierId = settings.GenesisParentId
+  private var bestBlockIdValue: ModifierId = settings.GenesisParentId
 
   def height: Long = heightOf(bestBlockId).getOrElse(0L)
 
@@ -18,11 +18,13 @@ class EhrHistoryStorage(settings: EhrMiningSettings) {
   def update(b: EhrBlock): Unit = {
     store(b.id) = b
     heightStore(b.id) = parentHeight(b) + 1
-    if (height == parentHeight(b)) bestBlockId = b.id
+    if (height == parentHeight(b)) bestBlockIdValue = b.id
   }
 
   def heightOf(blockId: ModifierId): Option[Long] = heightStore.get(blockId)
 
   def parentHeight(block: EhrBlock): Long = heightOf(block.parentId).getOrElse(0L)
+
+  def bestBlockId: ModifierId = bestBlockIdValue
 
 }
