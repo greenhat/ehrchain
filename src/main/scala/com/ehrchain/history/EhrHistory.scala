@@ -45,7 +45,10 @@ class EhrHistory(val storage: EhrHistoryStorage)
 
   override def modifierById(modifierId: ModifierId): Option[EhrBlock] = storage.modifierById(modifierId)
 
-  override def isSemanticallyValid(modifierId: ModifierId): ModifierSemanticValidity.Value = ???
+  override def isSemanticallyValid(modifierId: ModifierId): ModifierSemanticValidity.Value =
+    modifierById(modifierId).map { _ =>
+      ModifierSemanticValidity.Valid
+    }.getOrElse(ModifierSemanticValidity.Absent)
 
   override def openSurfaceIds(): Seq[ModifierId] = ???
 
