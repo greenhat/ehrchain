@@ -21,6 +21,7 @@ class EhrHistory(val storage: EhrHistoryStorage)
   override def append(block: EhrBlock): Try[(EhrHistory, History.ProgressInfo[EhrBlock])] = {
     log.debug(s"Trying to append block ${Base58.encode(block.id)} to history")
     block.validity.map { _ =>
+      storage.update(block)
       (new EhrHistory(storage),
         ProgressInfo(branchPoint = None,
           toRemove = Seq[EhrBlock](),
@@ -28,7 +29,6 @@ class EhrHistory(val storage: EhrHistoryStorage)
           toDownload = Seq[(ModifierTypeId, ModifierId)]())
       )
     }
-    // todo store the block
   }
 
   override def reportSemanticValidity(modifier: EhrBlock,
@@ -43,20 +43,8 @@ class EhrHistory(val storage: EhrHistoryStorage)
     */
   override def isEmpty: Boolean = ???
 
-  /**
-    * Return modifier of type PM with id == modifierId
-    *
-    * @param modifierId - modifier id to get from history
-    * @return
-    */
-  override def modifierById(modifierId: ModifierId): Option[EhrBlock] = ???
+  override def modifierById(modifierId: ModifierId): Option[EhrBlock] = storage.modifierById(modifierId)
 
-  /**
-    * Return semantic validity status of modifier with id == modifierId
-    *
-    * @param modifierId - modifier id to check
-    * @return
-    */
   override def isSemanticallyValid(modifierId: ModifierId): ModifierSemanticValidity.Value = ???
 
   override def openSurfaceIds(): Seq[ModifierId] = ???
