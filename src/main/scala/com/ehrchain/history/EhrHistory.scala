@@ -1,6 +1,7 @@
 package com.ehrchain.history
 
 import com.ehrchain.block.EhrBlock
+import com.ehrchain.mining.EhrMiningSettings
 import scorex.core.{ModifierId, ModifierTypeId, NodeViewModifier}
 import scorex.core.consensus.{History, ModifierSemanticValidity}
 import scorex.core.consensus.History.{ModifierIds, ProgressInfo}
@@ -9,20 +10,22 @@ import scorex.crypto.encode.Base58
 
 import scala.util.{Failure, Try}
 
-class EhrHistory(val storage: EhrHistoryStorage)
+class EhrHistory(val storage: EhrHistoryStorage,
+                 settings: EhrMiningSettings)
   extends History[EhrBlock, EhrSyncInfo, EhrHistory] with ScorexLogging {
 
   override type NVCT = this.type
 
   require(NodeViewModifier.ModifierIdSize == 32, "32 bytes ids assumed")
 
-  private def isGenesis(block: EhrBlock): Boolean = block.parentId.contains(1.toByte)
+  //noinspection CorrespondsUnsorted
+//  private def isGenesis(block: EhrBlock): Boolean = block.parentId sameElements GenesisParentId
 
   override def append(block: EhrBlock): Try[(EhrHistory, History.ProgressInfo[EhrBlock])] = {
     log.debug(s"Trying to append block ${Base58.encode(block.id)} to history")
     block.validity.map { _ =>
       storage.update(block)
-      (new EhrHistory(storage),
+      (new EhrHistory(storage, settings),
         ProgressInfo(branchPoint = None,
           toRemove = Seq[EhrBlock](),
           toApply = Some(block),
@@ -41,7 +44,7 @@ class EhrHistory(val storage: EhrHistoryStorage)
   /**
     * Is there's no history, even genesis block
     */
-  override def isEmpty: Boolean = ???
+  override def isEmpty: Boolean = storage.height <= 0
 
   override def modifierById(modifierId: ModifierId): Option[EhrBlock] = storage.modifierById(modifierId)
 
