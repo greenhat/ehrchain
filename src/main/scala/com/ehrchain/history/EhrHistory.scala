@@ -21,17 +21,20 @@ class EhrHistory(val storage: EhrHistoryStorage,
   //noinspection CorrespondsUnsorted
 //  private def isGenesis(block: EhrBlock): Boolean = block.parentId sameElements GenesisParentId
 
+  @SuppressWarnings(Array("org.wartremover.warts.Nothing"))
   override def append(block: EhrBlock): Try[(EhrHistory, History.ProgressInfo[EhrBlock])] = {
     log.debug(s"Trying to append block ${Base58.encode(block.id)} to history")
-    block.validity.map { _ =>
+    if (block.validity) {
       storage.update(block)
-      (new EhrHistory(storage, settings),
-        ProgressInfo(branchPoint = None,
-          toRemove = Seq[EhrBlock](),
-          toApply = Some(block),
-          toDownload = Seq[(ModifierTypeId, ModifierId)]())
-      )
-    }
+      Try {
+        (new EhrHistory(storage, settings),
+          ProgressInfo(branchPoint = None,
+            toRemove = Seq[EhrBlock](),
+            toApply = Some(block),
+            toDownload = Seq[(ModifierTypeId, ModifierId)]())
+        )
+      }
+    } else Failure(new Exception("block is not valid"))
   }
 
   override def reportSemanticValidity(modifier: EhrBlock,

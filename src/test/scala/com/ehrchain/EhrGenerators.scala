@@ -41,15 +41,13 @@ with ExamplesCommonGenerators {
     timestamp <- timestampGen
     generatorKeys <- key25519Gen
     transactions <- ehrTransactionsGen(1, 20)
-    nonce <- nonceGen
     parentId <- modifierIdGen
-  } yield EhrBlockCompanion.generate(parentId, timestamp, nonce, transactions, generatorKeys)
+  } yield EhrBlockCompanion.generate(parentId, timestamp,transactions, generatorKeys)
 
   lazy val zeroTxsEhrBlockGen: Gen[EhrBlock] = for {
     timestamp <- timestampGen
     generatorKeys <- key25519Gen
     transactions <- ehrTransactionsGen(0, 0)
-    nonce <- nonceGen
     parentId <- modifierIdGen
-  } yield EhrBlockCompanion.generate(parentId, timestamp, nonce, transactions, generatorKeys)
+  } yield EhrBlockCompanion.generate(parentId, timestamp, transactions, generatorKeys)
 }

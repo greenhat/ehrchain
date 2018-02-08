@@ -14,13 +14,7 @@ class EhrBlockSpec extends PropSpec
 
   property("EhrBlock validity") {
     forAll(ehrBlockGen) { b: EhrBlock =>
-      b.validity.isSuccess shouldBe true
-    }
-  }
-
-  property("invalid EhrBlock(empty txs)") {
-    forAll(zeroTxsEhrBlockGen) { b: EhrBlock =>
-      b.validity.isSuccess shouldBe false
+      b.validity shouldBe true
     }
   }
 

@@ -18,7 +18,8 @@ import scorex.crypto.encode.Base58
 import scorex.crypto.hash.Blake2b256
 import scorex.crypto.signatures.{Curve25519, PublicKey, Signature}
 
-import scala.util.Try
+import scala.annotation.tailrec
+import scala.util.{Random, Try}
 
 final class EhrBlock(
               val parentId: BlockId,
@@ -28,6 +29,8 @@ final class EhrBlock(
               val signature: Signature25519,
               val generator: PublicKey25519Proposition
               ) extends Block[PublicKey25519Proposition, EhrTransaction] {
+
+  require(transactions.nonEmpty)
 
   override type M = EhrBlock
 
@@ -52,12 +55,13 @@ final class EhrBlock(
 
   override def serializer: Serializer[EhrBlock] = EhrBlockSerializer
 
-  lazy val validity: Try[Boolean] = Try {
-    require(timestamp > 0)
-    require(transactions.nonEmpty)
-    signature.isValid(generator,
-      EhrBlock.generateMessageToSign(parentId, timestamp, nonce, transactions, generator))
-  }
+  lazy val validity: Boolean =
+    timestamp > 0 &&
+      transactions.nonEmpty &&
+      signature.isValid(generator, EhrBlock.generateMessageToSign(parentId, timestamp, nonce, transactions, generator)) &&
+      powValidity
+
+  lazy val powValidity: Boolean = Blake2b256(bytes).startsWith(Array[Byte](0))
 }
 
 object EhrBlock {
@@ -81,16 +85,19 @@ object EhrBlock {
 object EhrBlockCompanion {
 
   // todo move to test (generators)?
+  @tailrec
   def generate(parentId: BlockId,
                timestamp: TimeStamp,
-               nonce: Nonce,
                transactions: Seq[EhrTransaction],
                generatorKeys: (PrivateKey25519, PublicKey25519Proposition)): EhrBlock = {
     val generatorSK = generatorKeys._1
     val generatorPK = generatorKeys._2
+    val nonce = Nonce @@ Random.nextLong()
     val msgToSign = EhrBlock.generateMessageToSign(parentId, timestamp, nonce, transactions, generatorPK)
     val signature = PrivateKey25519Companion.sign(generatorSK, msgToSign)
-    new EhrBlock(parentId, timestamp, nonce, transactions, signature, generatorPK)
+    val block = new EhrBlock(parentId, timestamp, nonce, transactions, signature, generatorPK)
+    if (block.validity) block
+    else generate(parentId, timestamp, transactions, generatorKeys)
   }
 }
 
