@@ -59,8 +59,8 @@ class EhrHistory(val storage: EhrHistoryStorage,
     }.getOrElse(ModifierSemanticValidity.Absent)
 
   override def openSurfaceIds(): Seq[ModifierId] =
-    if (isEmpty) Seq(settings.GenesisParentId)
-    else Seq(storage.bestBlockId)
+    if (isEmpty) Seq[ModifierId]()
+    else storage.bestBlockId.map(Seq(_)).getOrElse(Seq[ModifierId]())
 
   /**
     * Ids of modifiers, that node with info should download and apply to synchronize

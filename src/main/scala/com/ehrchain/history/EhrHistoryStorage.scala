@@ -7,26 +7,25 @@ import scorex.core.ModifierId
 @SuppressWarnings(Array("org.wartremover.warts.MutableDataStructures", "org.wartremover.warts.Var"))
 class EhrHistoryStorage(settings: EhrMiningSettings) {
 
-  private val store: scala.collection.mutable.Map[ModifierId, EhrBlock] = scala.collection.mutable.Map()
-  private val heightStore: scala.collection.mutable.Map[ModifierId, Long] = scala.collection.mutable.Map()
-  private var bestBlockIdValue: ModifierId = settings.GenesisParentId
+  private val store: scala.collection.mutable.Map[String, EhrBlock] = scala.collection.mutable.Map()
+  private val heightStore: scala.collection.mutable.Map[String, Long] = scala.collection.mutable.Map()
+  private var bestBlockIdValue: Option[ModifierId] = None
 
-  // fixme always zero
-  def height: Long = heightOf(bestBlockId).getOrElse(0L)
+  def height: Long = bestBlockId.flatMap(heightOf).getOrElse(0L)
 
-  def modifierById(blockId: ModifierId): Option[EhrBlock] = store.get(blockId)
+  def modifierById(blockId: ModifierId): Option[EhrBlock] = store.get(blockId.mkString)
 
   // todo cover with tests
   def update(b: EhrBlock): Unit = {
-    store(b.id) = b
-    heightStore(b.id) = parentHeight(b) + 1
-    if (height == parentHeight(b)) bestBlockIdValue = b.id
+    store(b.id.mkString) = b
+    heightStore(b.id.mkString) = parentHeight(b) + 1
+    if (height == parentHeight(b)) bestBlockIdValue = Some(b.id)
   }
 
-  def heightOf(blockId: ModifierId): Option[Long] = heightStore.get(blockId)
+  def heightOf(blockId: ModifierId): Option[Long] = heightStore.get(blockId.mkString)
 
   def parentHeight(block: EhrBlock): Long = heightOf(block.parentId).getOrElse(0L)
 
-  def bestBlockId: ModifierId = bestBlockIdValue
+  def bestBlockId: Option[ModifierId] = bestBlockIdValue
 
 }
