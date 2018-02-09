@@ -54,4 +54,13 @@ class EhrHistoryStorageSpec extends FlatSpec
     storage.append(block)
     storage.modifierById(block.id).map(_.bytes) shouldEqual Some(block.bytes)
   }
+
+  it should "have bestBlockId after added block" in {
+    val storage = newStorage
+    val genesisBlock = generateGenesisBlock
+    storage.append(genesisBlock)
+    val block = generateBlock(genesisBlock.id)
+    storage.append(block)
+    storage.bestBlockId.map(_.mkString) shouldEqual Some(block.id.mkString)
+  }
 }
