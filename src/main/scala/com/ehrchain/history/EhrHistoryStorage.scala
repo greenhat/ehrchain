@@ -15,11 +15,10 @@ class EhrHistoryStorage(settings: EhrMiningSettings) {
 
   def modifierById(blockId: ModifierId): Option[EhrBlock] = store.get(blockId.mkString)
 
-  // todo cover with tests
-  def update(b: EhrBlock): Unit = {
+  def append(b: EhrBlock): Unit = {
     store(b.id.mkString) = b
     heightStore(b.id.mkString) = parentHeight(b) + 1
-    if (height == parentHeight(b)) bestBlockIdValue = Some(b.id)
+    bestBlockIdValue = Some(b.id)
   }
 
   def heightOf(blockId: ModifierId): Option[Long] = heightStore.get(blockId.mkString)

@@ -18,14 +18,31 @@ class EhrHistoryStorageSpec extends FlatSpec
   it should "have heightOf after genesis block" in {
     val storage = newStorage
     val genesisBlock = generateGenesisBlock
-    storage.update(genesisBlock)
+    storage.append(genesisBlock)
     storage.heightOf(genesisBlock.id) shouldEqual Some(1)
   }
 
   it should "have height after genesis block" in {
     val storage = newStorage
-    storage.update(generateGenesisBlock)
+    storage.append(generateGenesisBlock)
     storage.height shouldEqual 1
   }
 
+  it should "have heightOf after adding a block" in {
+    val storage = newStorage
+    val genesisBlock = generateGenesisBlock
+    storage.append(genesisBlock)
+    val block = generateBlock(genesisBlock.id)
+    storage.append(block)
+    storage.heightOf(block.id) shouldEqual Some(2)
+  }
+
+  it should "have height after adding a block" in {
+    val storage = newStorage
+    val genesisBlock = generateGenesisBlock
+    storage.append(genesisBlock)
+    val block = generateBlock(genesisBlock.id)
+    storage.append(block)
+    storage.height shouldEqual 2
+  }
 }

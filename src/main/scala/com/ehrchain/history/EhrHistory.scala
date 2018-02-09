@@ -27,7 +27,7 @@ class EhrHistory(val storage: EhrHistoryStorage,
   override def append(block: EhrBlock): Try[(EhrHistory, History.ProgressInfo[EhrBlock])] = {
     log.debug(s"Trying to append block ${Base58.encode(block.id)} to history")
     if (block.validity) {
-      storage.update(block)
+      storage.append(block)
       Try {
         (new EhrHistory(storage, settings),
           ProgressInfo(branchPoint = None,
