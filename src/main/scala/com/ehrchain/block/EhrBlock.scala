@@ -34,7 +34,7 @@ final class EhrBlock(
 
   override type M = EhrBlock
 
-  override lazy val modifierTypeId: ModifierTypeId = ModifierTypeId @@ 1.toByte
+  override lazy val modifierTypeId: ModifierTypeId = EhrBlock.ModifierType
 
   override def version: Version = 1: Byte
 
@@ -67,6 +67,7 @@ final class EhrBlock(
 object EhrBlock {
 
   val MaxBlockSize: Int = 512 * 1024  //512K
+  val ModifierType: ModifierTypeId = ModifierTypeId @@ 1.toByte
 
   def generateMessageToSign(parentId: BlockId,
                             timestamp: TimeStamp,

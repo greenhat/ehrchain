@@ -8,13 +8,18 @@ import scorex.core.consensus.History.{ModifierIds, ProgressInfo}
 import scorex.core.utils.ScorexLogging
 import scorex.crypto.encode.Base58
 
+import scala.annotation.tailrec
 import scala.util.{Failure, Try}
 
 class EhrHistory(val storage: EhrHistoryStorage,
                  settings: EhrMiningSettings)
   extends History[EhrBlock, EhrSyncInfo, EhrHistory] with ScorexLogging {
 
+  import EhrHistory._
+
   override type NVCT = this.type
+
+  private val blockchain = loadBlockChain(storage)
 
   require(NodeViewModifier.ModifierIdSize == 32, "32 bytes ids assumed")
 
@@ -82,5 +87,23 @@ class EhrHistory(val storage: EhrHistoryStorage,
     * @return Equal if nodes have the same history, Younger if another node is behind, Older if a new node is ahead
     */
   override def compare(other: EhrSyncInfo): History.HistoryComparisonResult.Value = ???
+
+}
+
+object EhrHistory {
+
+import EhrBlockStream._
+
+  @SuppressWarnings(Array("org.wartremover.warts.Recursion", "org.wartremover.warts.OptionPartial", "org.wartremover.warts.ImplicitParameter"))
+  def loadBlockChain(implicit storage: EhrHistoryStorage): EhrBlockStream = {
+    def loop(blockId: () => ModifierId): EhrBlockStream = {
+      val blockClosure = { () =>
+        storage.modifierById(blockId()).get
+      }
+      Cons(blockClosure, {() => loop({ () => storage.modifierById(blockId()).get.parentId }) }) }
+    storage.bestBlockId.map( blockId =>
+      loop(() => blockId)
+    ).getOrElse(empty)
+  }
 
 }
