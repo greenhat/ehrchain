@@ -10,7 +10,7 @@ class EhrHistorySpec extends FlatSpec
   with Matchers
   with EhrGenerators {
 
-  ignore should "have height" in {
+  "generated history" should "have height" in {
       generateHistory(2).height shouldEqual 2
   }
 
