@@ -45,4 +45,13 @@ class EhrHistoryStorageSpec extends FlatSpec
     storage.append(block)
     storage.height shouldEqual 2
   }
+
+  it should "return added block" in {
+    val storage = newStorage
+    val genesisBlock = generateGenesisBlock
+    storage.append(genesisBlock)
+    val block = generateBlock(genesisBlock.id)
+    storage.append(block)
+    storage.modifierById(block.id).map(_.bytes) shouldEqual Some(block.bytes)
+  }
 }
