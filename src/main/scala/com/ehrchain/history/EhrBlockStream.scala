@@ -18,50 +18,28 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
 
   override type NVCT = this.type
 
-  /**
-    * Report that modifier is valid from other nodeViewHolder components point of view
-    */
-  override def reportSemanticValidity(modifier: EhrBlock, valid: Boolean, lastApplied: ModifierId): (EhrBlockStream, History.ProgressInfo[EhrBlock]) = ???
+  def height: Long = ???
 
-  /**
-    * Return modifier of type PM with id == modifierId
-    *
-    * @param modifierId - modifier id to get from history
-    * @return
-    */
+  override def reportSemanticValidity(modifier: EhrBlock, valid: Boolean, lastApplied: ModifierId): (EhrBlockStream, History.ProgressInfo[EhrBlock]) =
+    this -> ProgressInfo(branchPoint = None,
+      toRemove = Seq[EhrBlock](),
+      toApply = None,
+      toDownload = Seq[(ModifierTypeId, ModifierId)]())
+
   override def modifierById(modifierId: ModifierId): Option[EhrBlock] = ???
 
-  /**
-    * Return semantic validity status of modifier with id == modifierId
-    *
-    * @param modifierId - modifier id to check
-    * @return
-    */
-  override def isSemanticallyValid(modifierId: ModifierId): ModifierSemanticValidity.Value = ???
+  override def isSemanticallyValid(modifierId: ModifierId): ModifierSemanticValidity.Value =
+    modifierById(modifierId).map { _ =>
+      ModifierSemanticValidity.Valid
+    }.getOrElse(ModifierSemanticValidity.Absent)
 
   override def openSurfaceIds(): Seq[ModifierId] = ???
 
-  /**
-    * Ids of modifiers, that node with info should download and apply to synchronize
-    */
   override def continuationIds(info: EhrSyncInfo, size: Int): Option[ModifierIds] = ???
 
-  /**
-    * Information about our node synchronization status. Other node should be able to compare it's view with ours by
-    * this syncInfo message and calculate modifiers missed by our node.
-    *
-    * @return
-    */
   override def syncInfo: EhrSyncInfo = ???
 
-  /**
-    * Whether another's node syncinfo shows that another node is ahead or behind ours
-    *
-    * @param other other's node sync info
-    * @return Equal if nodes have the same history, Younger if another node is behind, Older if a new node is ahead
-    */
   override def compare(other: EhrSyncInfo): History.HistoryComparisonResult.Value = ???
-
 }
 
 case object Nil extends EhrBlockStream {
