@@ -18,7 +18,7 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
 
   override type NVCT = this.type
 
-  def height: Long = ???
+  def height: Long = headOption.map(_.height).getOrElse(0L)
 
   override def reportSemanticValidity(modifier: EhrBlock, valid: Boolean, lastApplied: ModifierId): (EhrBlockStream, History.ProgressInfo[EhrBlock]) =
     this -> ProgressInfo(branchPoint = None,
@@ -38,6 +38,11 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
   override def syncInfo: EhrSyncInfo = ???
 
   override def compare(other: EhrSyncInfo): History.HistoryComparisonResult.Value = ???
+
+  def headOption: Option[EhrBlockStreamElement] = this match {
+    case Cons(h, _) => Some(h())
+    case Nil => None
+  }
 }
 
 case object Nil extends EhrBlockStream {
