@@ -19,8 +19,6 @@ class EhrHistory(val storage: EhrHistoryStorage,
 
   override type NVCT = this.type
 
-  private val blockchain = loadBlockChain(storage)
-
   require(NodeViewModifier.ModifierIdSize == 32, "32 bytes ids assumed")
 
   //noinspection CorrespondsUnsorted
@@ -91,22 +89,5 @@ class EhrHistory(val storage: EhrHistoryStorage,
 }
 
 object EhrHistory {
-
-import EhrBlockStream._
-
-  @SuppressWarnings(Array("org.wartremover.warts.Recursion", "org.wartremover.warts.OptionPartial", "org.wartremover.warts.ImplicitParameter"))
-  def loadBlockChain(implicit storage: EhrHistoryStorage): EhrBlockStream = {
-    def loop(blockId: () => ModifierId, height: Long): EhrBlockStream = {
-      val blockClosure = () => EhrBlockStreamElement(storage.modifierById(blockId()).get, height)
-      if (height > 0)
-        Cons(blockClosure, () => loop(() => storage.modifierById(blockId()).get.parentId, height - 1))
-      else
-        Cons(blockClosure, () => empty)
-    }
-
-    storage.bestBlockId.map( blockId =>
-      loop(() => blockId, storage.height)
-    ).getOrElse(empty)
-  }
 
 }

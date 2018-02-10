@@ -70,7 +70,7 @@ final case class Cons(h: () => EhrBlockStreamElement, t: () => EhrBlockStream)(i
 
   @SuppressWarnings(Array("org.wartremover.warts.Nothing"))
   override def append(block: EhrBlock): Try[(EhrBlockStream, History.ProgressInfo[EhrBlock])] = {
-    require(height == storage.height, "append can be called on full stream")
+    require(height == storage.height, "append must be called on full stream")
     log.debug(s"Trying to append block ${Base58.encode(block.id)} to history")
     if (block.validity) {
       storage.append(block)
@@ -97,4 +97,18 @@ object EhrBlockStream {
   }
 
   def empty: EhrBlockStream = Nil
+
+  @SuppressWarnings(Array("org.wartremover.warts.Recursion", "org.wartremover.warts.OptionPartial", "org.wartremover.warts.ImplicitParameter"))
+  def load(implicit storage: EhrHistoryStorage): EhrBlockStream = {
+    def loop(blockId: () => ModifierId, height: Long): EhrBlockStream = {
+      val blockClosure = () => EhrBlockStreamElement(storage.modifierById(blockId()).get, height)
+      if (height > 0)
+        Cons(blockClosure, () => loop(() => storage.modifierById(blockId()).get.parentId, height - 1))
+      else
+        Cons(blockClosure, () => empty)
+    }
+    storage.bestBlockId.map( blockId =>
+      loop(() => blockId, storage.height)
+    ).getOrElse(empty)
+  }
 }
