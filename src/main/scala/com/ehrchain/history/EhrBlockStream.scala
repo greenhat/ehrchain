@@ -26,8 +26,6 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
       toApply = None,
       toDownload = Seq[(ModifierTypeId, ModifierId)]())
 
-  override def modifierById(modifierId: ModifierId): Option[EhrBlock] = ???
-
   override def isSemanticallyValid(modifierId: ModifierId): ModifierSemanticValidity.Value =
     modifierById(modifierId).map { _ =>
       ModifierSemanticValidity.Valid
@@ -46,6 +44,10 @@ case object Nil extends EhrBlockStream {
 
   override def isEmpty: Boolean = true
 
+  override def height: Long = 0
+
+  override def modifierById(modifierId: ModifierId): Option[EhrBlock] = None
+
   @SuppressWarnings(Array("org.wartremover.warts.Nothing"))
   override def append(modifier: EhrBlock): Try[(EhrBlockStream, ProgressInfo[EhrBlock])] =
     Failure(new Exception("unexpected append call for Nil"))
@@ -56,6 +58,8 @@ final case class Cons(h: () => EhrBlock, t: () => EhrBlockStream)(implicit stora
   import EhrBlockStream._
 
   override def isEmpty: Boolean = false
+
+  override def modifierById(modifierId: ModifierId): Option[EhrBlock] = storage.modifierById(modifierId)
 
   @SuppressWarnings(Array("org.wartremover.warts.Nothing"))
   override def append(block: EhrBlock): Try[(EhrBlockStream, History.ProgressInfo[EhrBlock])] = {
