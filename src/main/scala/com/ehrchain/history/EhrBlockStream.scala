@@ -31,7 +31,9 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
       ModifierSemanticValidity.Valid
     }.getOrElse(ModifierSemanticValidity.Absent)
 
-  override def openSurfaceIds(): Seq[ModifierId] = ???
+  override def openSurfaceIds(): Seq[ModifierId] =
+    if (isEmpty) Seq[ModifierId]()
+    else headOption.map(e => Seq(e.block.id)).getOrElse(Seq[ModifierId]())
 
   override def continuationIds(info: EhrSyncInfo, size: Int): Option[ModifierIds] = ???
 
@@ -68,6 +70,7 @@ final case class Cons(h: () => EhrBlockStreamElement, t: () => EhrBlockStream)(i
 
   @SuppressWarnings(Array("org.wartremover.warts.Nothing"))
   override def append(block: EhrBlock): Try[(EhrBlockStream, History.ProgressInfo[EhrBlock])] = {
+    require(height == storage.height, "append can be called on full stream")
     log.debug(s"Trying to append block ${Base58.encode(block.id)} to history")
     if (block.validity) {
       storage.append(block)
