@@ -96,13 +96,16 @@ import EhrBlockStream._
 
   @SuppressWarnings(Array("org.wartremover.warts.Recursion", "org.wartremover.warts.OptionPartial", "org.wartremover.warts.ImplicitParameter"))
   def loadBlockChain(implicit storage: EhrHistoryStorage): EhrBlockStream = {
-    def loop(blockId: () => ModifierId): EhrBlockStream = {
-      val blockClosure = { () =>
-        storage.modifierById(blockId()).get
-      }
-      Cons(blockClosure, {() => loop({ () => storage.modifierById(blockId()).get.parentId }) }) }
+    def loop(blockId: () => ModifierId, height: Long): EhrBlockStream = {
+      val blockClosure = () => EhrBlockStreamElement(storage.modifierById(blockId()).get, height)
+      if (height > 0)
+        Cons(blockClosure, () => loop(() => storage.modifierById(blockId()).get.parentId, height - 1))
+      else
+        Cons(blockClosure, () => empty)
+    }
+
     storage.bestBlockId.map( blockId =>
-      loop(() => blockId)
+      loop(() => blockId, storage.height)
     ).getOrElse(empty)
   }
 

@@ -54,7 +54,7 @@ case object Nil extends EhrBlockStream {
 }
 
 @SuppressWarnings(Array("org.wartremover.warts.ImplicitParameter"))
-final case class Cons(h: () => EhrBlock, t: () => EhrBlockStream)(implicit storage: EhrHistoryStorage) extends EhrBlockStream {
+final case class Cons(h: () => EhrBlockStreamElement, t: () => EhrBlockStream)(implicit storage: EhrHistoryStorage) extends EhrBlockStream {
   import EhrBlockStream._
 
   override def isEmpty: Boolean = false
@@ -67,7 +67,7 @@ final case class Cons(h: () => EhrBlock, t: () => EhrBlockStream)(implicit stora
     if (block.validity) {
       storage.append(block)
       Try {
-        (cons(block, this),
+        (cons(EhrBlockStreamElement(block, storage.height), this),
           ProgressInfo(branchPoint = None,
             toRemove = Seq[EhrBlock](),
             toApply = Some(block),
@@ -78,20 +78,15 @@ final case class Cons(h: () => EhrBlock, t: () => EhrBlockStream)(implicit stora
   }
 }
 
+final case class EhrBlockStreamElement(block: EhrBlock, height: Long)
+
 object EhrBlockStream {
   @SuppressWarnings(Array("org.wartremover.warts.ImplicitParameter"))
-  def cons(hd: => EhrBlock, tl: => EhrBlockStream)(implicit storage: EhrHistoryStorage): EhrBlockStream = {
+  def cons(hd: => EhrBlockStreamElement, tl: => EhrBlockStream)(implicit storage: EhrHistoryStorage): EhrBlockStream = {
     lazy val head = hd
     lazy val tail = tl
     Cons(() => head, () => tail)
   }
 
   def empty: EhrBlockStream = Nil
-
-  // fixme make stack safe (trampolines?)
-//  @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
-//  def unfold[S](z: () => S)(f:(() => S) => Option[(() => EhrBlock, () => S)]): EhrBlockStream =
-//    f(z).map {
-//      case (a, s) => cons(a(), unfold(s)(f))
-//    }.getOrElse(empty)
 }
