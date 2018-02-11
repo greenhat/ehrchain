@@ -101,11 +101,11 @@ object EhrBlockStream {
   @SuppressWarnings(Array("org.wartremover.warts.Recursion", "org.wartremover.warts.OptionPartial", "org.wartremover.warts.ImplicitParameter"))
   def load(implicit storage: EhrHistoryStorage): EhrBlockStream = {
     def loop(blockId: () => ModifierId, height: Long): EhrBlockStream = {
-      val blockClosure = () => EhrBlockStreamElement(storage.modifierById(blockId()).get, height)
       if (height > 0)
-        Cons(blockClosure, () => loop(() => storage.modifierById(blockId()).get.parentId, height - 1))
+        cons(EhrBlockStreamElement(storage.modifierById(blockId()).get, height),
+          loop(() => storage.modifierById(blockId()).get.parentId, height - 1))
       else
-        Cons(blockClosure, () => empty)
+        cons(EhrBlockStreamElement(storage.modifierById(blockId()).get, height), empty)
     }
     storage.bestBlockId.map( blockId =>
       loop(() => blockId, storage.height)
