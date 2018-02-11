@@ -3,7 +3,7 @@ package com.ehrchain
 import com.ehrchain.block.{EhrBlock, EhrBlockCompanion}
 import com.ehrchain.core.{RecordType, TimeStamp}
 import com.ehrchain.history.EhrBlockStream._
-import com.ehrchain.history.{EhrBlockStream, EhrBlockStreamElement, EhrHistory, EhrHistoryStorage}
+import com.ehrchain.history.{EhrBlockStream, EhrBlockStreamElement, EhrHistoryStorage}
 import com.ehrchain.mining.EhrMiningSettings
 import com.ehrchain.transaction.{EhrTransaction, EhrTransactionCompanion}
 import commons.ExamplesCommonGenerators
@@ -73,19 +73,6 @@ with ExamplesCommonGenerators {
       timestampGen.sample.get,
       ehrTransactionsGen(1, MaxTransactionQtyInBlock).sample.get,
       key25519Gen.sample.get)
-
-  def generateHistory(height: Int): EhrHistory = {
-    val settings = new EhrMiningSettings()
-    val storage = new EhrHistoryStorage(settings)
-    val h = new EhrHistory(storage, settings)
-    def addBlock(block: EhrBlock, history: EhrHistory): EhrHistory = {
-      h.append(block).map{ case (history, progressInfo) =>
-        if (history.height < height) (addBlock(generateBlock(block.id), history), progressInfo)
-        else (history, progressInfo)
-      }.get._1
-    }
-    addBlock(generateGenesisBlock, h)
-  }
 
   def generateBlockStream(height: Int): EhrBlockStream = {
     val storage = new EhrHistoryStorage(new EhrMiningSettings())
