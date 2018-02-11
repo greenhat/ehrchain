@@ -45,6 +45,13 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
     case Cons(h, _) => Some(h())
     case Nil => None
   }
+
+  def takeN(n: Long): EhrBlockStream = this match {
+    case Nil => Nil
+    case Cons(_, _) if n == 0 => Nil
+    case Cons(h, t) => cons(h(), t().take(n - 1))
+  }
+
 }
 
 case object Nil extends EhrBlockStream {

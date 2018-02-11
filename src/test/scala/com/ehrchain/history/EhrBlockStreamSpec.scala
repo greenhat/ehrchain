@@ -7,7 +7,7 @@ import scorex.core.{ModifierId, ModifierTypeId}
 
 import scala.annotation.tailrec
 
-class EhrHistorySpec extends FlatSpec
+class EhrBlockStreamSpec extends FlatSpec
   with PropertyChecks
   with GeneratorDrivenPropertyChecks
   with Matchers
