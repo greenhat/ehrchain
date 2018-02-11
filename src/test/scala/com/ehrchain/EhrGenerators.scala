@@ -76,14 +76,14 @@ with ExamplesCommonGenerators {
 
   def generateBlockStream(height: Int): EhrBlockStream = {
     val storage = new EhrHistoryStorage(new EhrMiningSettings())
-    def appendBlock(element: EhrBlockStreamElement, elements: List[EhrBlockStreamElement]): List[EhrBlockStreamElement] = {
+    def blockList(element: EhrBlockStreamElement, elements: List[EhrBlockStreamElement]): List[EhrBlockStreamElement] = {
       if (elements.lengthCompare(height) < 0)
-        appendBlock(EhrBlockStreamElement(generateBlock(element.block.id), element.height + 1), elements :+ element)
+        blockList(EhrBlockStreamElement(generateBlock(element.block.id), element.height + 1), elements :+ element)
       else
         elements
     }
-    val elements = appendBlock(EhrBlockStreamElement(generateGenesisBlock, 1), List())
-    blockStreamFromElements(elements.reverse)(storage)
+    val reversedBlockList = blockList(EhrBlockStreamElement(generateGenesisBlock, 1), List())
+    blockStreamFromElements(reversedBlockList.reverse)(storage)
   }
 
   @SuppressWarnings(Array("org.wartremover.warts.ImplicitParameter"))
