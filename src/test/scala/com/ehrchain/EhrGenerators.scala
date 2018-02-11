@@ -2,15 +2,14 @@ package com.ehrchain
 
 import com.ehrchain.block.{EhrBlock, EhrBlockCompanion}
 import com.ehrchain.core.{RecordType, TimeStamp}
-import com.ehrchain.history.{EhrHistory, EhrHistoryStorage}
+import com.ehrchain.history.EhrBlockStream._
+import com.ehrchain.history.{EhrBlockStream, EhrBlockStreamElement, EhrHistory, EhrHistoryStorage}
+import com.ehrchain.mining.EhrMiningSettings
 import com.ehrchain.transaction.{EhrTransaction, EhrTransactionCompanion}
 import commons.ExamplesCommonGenerators
 import org.scalacheck.{Arbitrary, Gen}
-import scorex.testkit.generators.CoreGenerators
-import com.ehrchain.mining.EhrMiningSettings
 import scorex.core.block.Block.BlockId
-
-import scala.annotation.tailrec
+import scorex.testkit.generators.CoreGenerators
 
 
 @SuppressWarnings(Array("org.wartremover.warts.OptionPartial", "org.wartremover.warts.TryPartial", "org.wartremover.warts.Recursion"))
@@ -86,5 +85,28 @@ with ExamplesCommonGenerators {
       }.get._1
     }
     addBlock(generateGenesisBlock, h)
+  }
+
+  def generateBlockStream(height: Int): EhrBlockStream = {
+    val settings = new EhrMiningSettings()
+    val storage = new EhrHistoryStorage(settings)
+    val h = new EhrHistory(storage, settings)
+    def appendBlock(element: EhrBlockStreamElement, elements: List[EhrBlockStreamElement]): List[EhrBlockStreamElement] = {
+      if (elements.lengthCompare(height) < 0)
+        appendBlock(EhrBlockStreamElement(generateBlock(element.block.id), elements.length), elements :+ element)
+      else
+        elements
+    }
+    val elements = appendBlock(EhrBlockStreamElement(generateGenesisBlock, 1), List())
+    blockStreamFromElements(elements.reverse)(storage)
+  }
+
+  @SuppressWarnings(Array("org.wartremover.warts.ImplicitParameter"))
+  def blockStreamFromElements(elements: List[EhrBlockStreamElement])(implicit storage: EhrHistoryStorage): EhrBlockStream = {
+    def loop(rest: List[EhrBlockStreamElement]): EhrBlockStream = rest match {
+      case h :: t => cons(h, loop(t))
+      case _ => empty
+    }
+    loop(elements)
   }
 }
