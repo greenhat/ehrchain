@@ -88,12 +88,10 @@ with ExamplesCommonGenerators {
   }
 
   def generateBlockStream(height: Int): EhrBlockStream = {
-    val settings = new EhrMiningSettings()
-    val storage = new EhrHistoryStorage(settings)
-    val h = new EhrHistory(storage, settings)
+    val storage = new EhrHistoryStorage(new EhrMiningSettings())
     def appendBlock(element: EhrBlockStreamElement, elements: List[EhrBlockStreamElement]): List[EhrBlockStreamElement] = {
       if (elements.lengthCompare(height) < 0)
-        appendBlock(EhrBlockStreamElement(generateBlock(element.block.id), elements.length), elements :+ element)
+        appendBlock(EhrBlockStreamElement(generateBlock(element.block.id), element.height + 1), elements :+ element)
       else
         elements
     }

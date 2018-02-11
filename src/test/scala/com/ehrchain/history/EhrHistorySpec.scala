@@ -22,11 +22,11 @@ class EhrHistorySpec extends FlatSpec
     }
 
   "generated history" should "have height" in {
-      generateHistory(2).height shouldEqual 2
+      generateBlockStream(2).height shouldEqual 2
   }
 
   it should "have openSurfaceIds" in {
-    val history = generateHistory(2)
+    val history = generateBlockStream(2)
     history.openSurfaceIds().nonEmpty shouldEqual true
   }
 
