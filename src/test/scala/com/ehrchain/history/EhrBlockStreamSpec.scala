@@ -29,12 +29,19 @@ class EhrBlockStreamSpec extends FlatSpec
       .reverse
       .headOption
       .map(e =>
-      stream.continuationIds(new EhrSyncInfo(e.block.id), 1).map ( ids => {
+      stream.continuationIds(new EhrSyncInfo(Some(e.block.id)), 1).map ( ids => {
         require(ids.lengthCompare(1) == 0)
         for {
           (_, blockId) <- ids.headOption
         } yield blockId.mkString shouldEqual e.block.id.mkString
       }) should not be None
     ) should not be None
+  }
+
+  it should "have syncInfo" in {
+    val stream = generateBlockStream(2)
+    stream.syncInfo.startingPoints.headOption.map { case (_, blockId) =>
+      stream.headOption.map(_.block.id shouldEqual blockId)
+    } should not be None
   }
 }

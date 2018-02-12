@@ -69,7 +69,7 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
         .flatMap(e => Seq((typeId, e.block.id)))
     }
 
-  override def syncInfo: EhrSyncInfo = ???
+  override def syncInfo: EhrSyncInfo = new EhrSyncInfo(headOption.map(_.block.id))
 
   override def compare(other: EhrSyncInfo): History.HistoryComparisonResult.Value = ???
 
