@@ -74,6 +74,15 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
 
   override def compare(other: EhrSyncInfo): History.HistoryComparisonResult.Value = ???
 
+  @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
+  def foldRight[B](z: => B)(f: (EhrBlockStreamElement, => B) => B): B = {
+    def loop(z: => B)(rest: EhrBlockStream, f: (EhrBlockStreamElement, => B) => B): TailRec[B] = rest match {
+      case Cons(h,t) => loop(z)(t(), f).map( f(h(), _))
+      case _ => done(z)
+    }
+    loop(z)(this, f).result
+  }
+
   def headOption: Option[EhrBlockStreamElement] = this match {
     case Cons(h, _) => Some(h())
     case Nil => None
@@ -85,21 +94,13 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
     case Cons(_, t) => t().lastOption
   }
 
-  // fixme trampolines?
-  @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
-  def take(n: Long): EhrBlockStream = this match {
-    case Nil => Nil
-    case Cons(_, _) if n == 0 => Nil
-    case Cons(h, t) => cons(h(), t().take(n - 1))
-  }
+  def take(n: Long): EhrBlockStream =
+    foldRight((empty, 0L)) { case (a, (b, taken)) =>
+      if (taken < n) (cons(a, b), taken - 1) else (empty, 0)
+    }._1
 
-  // fixme trampolines?
-  @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
-  def takeWhile(p: EhrBlockStreamElement => Boolean): EhrBlockStream = this match {
-    case Nil => Nil
-    case Cons(h, t) if p(h()) => cons(h(), t().takeWhile(p))
-    case _ => Nil
-  }
+  def takeWhile(p: EhrBlockStreamElement => Boolean): EhrBlockStream =
+    foldRight(empty)((a, b) => if (p(a)) cons(a, b) else empty)
 
   @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
   def toList: List[EhrBlockStreamElement] = {
