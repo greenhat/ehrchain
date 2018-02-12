@@ -101,11 +101,13 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
     case _ => Nil
   }
 
-  // fixme trampolines?
   @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
-  def toList: List[EhrBlockStreamElement] = this match {
-    case Nil => List()
-    case Cons(h, t) => h() :: t().toList
+  def toList: List[EhrBlockStreamElement] = {
+    def loop(rest: EhrBlockStream): TailRec[List[EhrBlockStreamElement]] = rest match {
+      case Nil => done(List[EhrBlockStreamElement]())
+      case Cons(h, t) => loop(t()).map(h() :: _)
+    }
+    loop(this).result
   }
 }
 
