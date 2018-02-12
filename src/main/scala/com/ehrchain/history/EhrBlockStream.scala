@@ -61,9 +61,13 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
     if (isEmpty) Seq[ModifierId]()
     else headOption.map(e => Seq(e.block.id)).getOrElse(Seq[ModifierId]())
 
-  override def continuationIds(info: EhrSyncInfo, size: Int): Option[ModifierIds] = {
-    Some(Seq[(ModifierTypeId, ModifierId)]())
-  }
+  override def continuationIds(info: EhrSyncInfo, size: Int): Option[ModifierIds] =
+    info.startingPoints.headOption.map { case (typeId, blockId) =>
+      this.takeWhile(e => e.block.id != blockId).toList
+        .reverse
+        .take(size)
+        .flatMap(e => Seq((typeId, e.block.id)))
+    }
 
   override def syncInfo: EhrSyncInfo = ???
 
@@ -80,11 +84,27 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
     case Cons(_, t) => t().lastOption
   }
 
+  // fixme trampolines?
   @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
   def take(n: Long): EhrBlockStream = this match {
     case Nil => Nil
     case Cons(_, _) if n == 0 => Nil
     case Cons(h, t) => cons(h(), t().take(n - 1))
+  }
+
+  // fixme trampolines?
+  @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
+  def takeWhile(p: EhrBlockStreamElement => Boolean): EhrBlockStream = this match {
+    case Nil => Nil
+    case Cons(h, t) if p(h()) => cons(h(), t().takeWhile(p))
+    case _ => Nil
+  }
+
+  // fixme trampolines?
+  @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
+  def toList: List[EhrBlockStreamElement] = this match {
+    case Nil => List()
+    case Cons(h, t) => h() :: t().toList
   }
 }
 
