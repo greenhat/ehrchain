@@ -61,7 +61,9 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
     if (isEmpty) Seq[ModifierId]()
     else headOption.map(e => Seq(e.block.id)).getOrElse(Seq[ModifierId]())
 
-  override def continuationIds(info: EhrSyncInfo, size: Int): Option[ModifierIds] = ???
+  override def continuationIds(info: EhrSyncInfo, size: Int): Option[ModifierIds] = {
+    Some(Seq[(ModifierTypeId, ModifierId)]())
+  }
 
   override def syncInfo: EhrSyncInfo = ???
 

@@ -25,7 +25,9 @@ class EhrBlockStreamSpec extends FlatSpec
   it should "have continuationIds" in {
     val stream = generateBlockStream(2)
     stream.take(1).lastOption.map(e =>
-      stream.continuationIds(new EhrSyncInfo(e.block.id), 1)
-    ) should not be None
+      stream.continuationIds(new EhrSyncInfo(e.block.id), 1).map ( ids =>
+        ids.nonEmpty shouldEqual true
+      ) should not be None
+    )
   }
 }
