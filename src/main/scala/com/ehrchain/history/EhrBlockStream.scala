@@ -73,19 +73,21 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
 
   override def compare(other: EhrSyncInfo): History.HistoryComparisonResult.Value = ???
 
+  /**
+    * Not stack-safe. Eagerness controlled by binary operator `f`.
+    *
+    * @param z - the start value
+    * @param f - the binary operator
+    * @tparam B - the result type of the binary operator `f`
+    */
   @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
-  def foldRight[B](z: => B)(f: (EhrBlockStreamElement, => B) => B): B = {
-    def loop(z: => B)(rest: EhrBlockStream, f: (EhrBlockStreamElement, => B) => B): TailRec[B] = rest match {
-      case Cons(h,t) => loop(z)(t(), f).map( f(h(), _))
-      case _ => done(z)
+  def foldRight[B](z: => B)(f: (EhrBlockStreamElement, => B) => B): B = this match {
+      case Cons(h,t) => f(h(), t().foldRight(z)(f))
+      case _ => z
     }
-    loop(z)(this, f).result
-  }
 
-  def headOption: Option[EhrBlockStreamElement] = this match {
-    case Cons(h, _) => Some(h())
-    case Nil => None
-  }
+  def headOption: Option[EhrBlockStreamElement] =
+    foldRight[Option[EhrBlockStreamElement]](None)((a, _) => Some(a))
 
   @tailrec
   final def lastOption: Option[EhrBlockStreamElement] = this match {
@@ -93,16 +95,37 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
     case Cons(_, t) => t().lastOption
   }
 
-  def take(n: Long): EhrBlockStream =
-    foldRight((empty, 0L)) { case (a, (b, taken)) =>
-      if (taken < n) (cons(a, b), taken - 1) else (empty, 0)
-    }._1
+  /**
+    * Not stack-safe
+    *
+    * @param n - number of elements
+    * @return - new stream with first `n` elements taken
+    */
+  @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
+  def take(n: Long): EhrBlockStream = this match {
+    case Nil => Nil
+    case Cons(_, _) if n == 0 => Nil
+    case Cons(h, t) => cons(h(), t().take(n - 1))
+  }
 
   def takeWhile(p: EhrBlockStreamElement => Boolean): EhrBlockStream =
     foldRight(empty)((a, b) => if (p(a)) cons(a, b) else empty)
 
   def toList: List[EhrBlockStreamElement] =
     foldRight(List[EhrBlockStreamElement]())((a, b) => a :: b)
+
+  /**
+    * Not stack-safe
+    *
+    * @param n - number of elements
+    * @return - new stream with first `n` element skipped
+    */
+  @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
+  def drop(n: Long): EhrBlockStream = this match {
+    case Nil => Nil
+    case Cons(h, t) if n == 0 => cons(h(), t())
+    case Cons(_, t) => t().drop(n - 1)
+  }
 }
 
 case object Nil extends EhrBlockStream
@@ -111,6 +134,7 @@ final case class Cons(h: () => EhrBlockStreamElement, t: () => EhrBlockStream)(i
   override def storage: EhrHistoryStorage = store
 }
 
+// todo use closure returning EhrBlock?
 final case class EhrBlockStreamElement(block: EhrBlock, height: Long)
 
 object EhrBlockStream {
