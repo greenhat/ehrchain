@@ -35,6 +35,6 @@ class EhrBlockStreamSpec extends FlatSpec
           (_, blockId) <- ids.headOption
         } yield blockId.mkString shouldEqual e.block.id.mkString
       }) should not be None
-    )
+    ) should not be None
   }
 }
