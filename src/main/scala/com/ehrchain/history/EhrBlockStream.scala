@@ -30,7 +30,6 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
 
   override def modifierById(modifierId: ModifierId): Option[EhrBlock] = storage.modifierById(modifierId)
 
-  @SuppressWarnings(Array("org.wartremover.warts.Nothing"))
   override def append(block: EhrBlock): Try[(EhrBlockStream, History.ProgressInfo[EhrBlock])] = {
     require(height == storage.height, "append must be called on full stream")
     log.debug(s"Trying to append block ${Base58.encode(block.id)} to history")
@@ -44,7 +43,7 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
             toDownload = Seq[(ModifierTypeId, ModifierId)]())
         )
       }
-    } else Failure(new Exception("block is not valid"))
+    } else Failure[(EhrBlockStream, History.ProgressInfo[EhrBlock])](new Exception("block is not valid"))
   }
 
   override def reportSemanticValidity(modifier: EhrBlock, valid: Boolean, lastApplied: ModifierId): (EhrBlockStream, History.ProgressInfo[EhrBlock]) =
