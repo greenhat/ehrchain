@@ -8,6 +8,7 @@ import scorex.core.utils.ScorexLogging
 import scorex.crypto.encode.Base58
 
 import scala.annotation.tailrec
+import scala.util.control.TailCalls.{ TailRec, done, tailcall }
 import scala.util.{Failure, Try}
 
 trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
@@ -128,15 +129,18 @@ object EhrBlockStream {
 
   @SuppressWarnings(Array("org.wartremover.warts.Recursion", "org.wartremover.warts.OptionPartial"))
   def load(implicit storage: EhrHistoryStorage): EhrBlockStream = {
-    def loop(blockId: () => ModifierId, height: Long): EhrBlockStream = {
+    def loop(blockId: () => ModifierId, height: Long): TailRec[EhrBlockStream] = {
       if (height > 0)
-        cons(EhrBlockStreamElement(storage.modifierById(blockId()).get, height),
-          loop(() => storage.modifierById(blockId()).get.parentId, height - 1))
+        tailcall(loop(() => storage.modifierById(blockId()).get.parentId, height - 1)
+          .map( rest =>
+            cons(EhrBlockStreamElement(storage.modifierById(blockId()).get, height), rest)
+          )
+        )
       else
-        cons(EhrBlockStreamElement(storage.modifierById(blockId()).get, height), empty)
+        done(cons(EhrBlockStreamElement(storage.modifierById(blockId()).get, height), empty))
     }
     storage.bestBlockId.map( blockId =>
-      loop(() => blockId, storage.height)
+      loop(() => blockId, storage.height).result
     ).getOrElse(empty)
   }
 }
