@@ -79,10 +79,10 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
   }
 
   @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
-  def takeN(n: Long): EhrBlockStream = this match {
+  def take(n: Long): EhrBlockStream = this match {
     case Nil => Nil
     case Cons(_, _) if n == 0 => Nil
-    case Cons(h, t) => cons(h(), t().takeN(n - 1))
+    case Cons(h, t) => cons(h(), t().take(n - 1))
   }
 }
 
