@@ -11,6 +11,11 @@ import scala.annotation.tailrec
 import scala.util.control.TailCalls.{TailRec, done, tailcall}
 import scala.util.{Failure, Try}
 
+/**
+  * Lazy evaluated list of the blocks presenting a blockchain.
+  * Blocks are not evaluated(loaded from the storage) until absolutely need to.
+  * Once evaluated(loaded) blocks remain cached for subsequent access.
+  */
 trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
   with ScorexLogging {
 
@@ -30,10 +35,24 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
 
   import EhrBlockStream._
 
+  /**
+    * Is there's no history, even genesis block
+    */
   override def isEmpty: Boolean = headBlockHeight == 0
 
+  /**
+    * Return modifier(block) of type PM with id == modifierId
+    *
+    * @param modifierId - modifier id to get from history
+    * @return
+    */
   override def modifierById(modifierId: ModifierId): Option[EhrBlock] = storage.modifierById(modifierId)
 
+  /**
+    * Appends (prepends) a modifier/block to the stream(history)
+    *
+    * @return stream with appended block, and the description of the action;
+    */
   override def append(block: EhrBlock): Try[(EhrBlockStream, History.ProgressInfo[EhrBlock])] = {
     log.debug(s"Trying to append block ${Base58.encode(block.id)} to history")
     if (block.validity) {
@@ -49,12 +68,21 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
     } else Failure[(EhrBlockStream, History.ProgressInfo[EhrBlock])](new Exception("block is not valid"))
   }
 
+  /**
+    * Report that modifier is valid from other nodeViewHolder components point of view
+    */
   override def reportSemanticValidity(modifier: EhrBlock, valid: Boolean, lastApplied: ModifierId): (EhrBlockStream, History.ProgressInfo[EhrBlock]) =
     this -> ProgressInfo(branchPoint = None,
       toRemove = Seq[EhrBlock](),
       toApply = None,
       toDownload = Seq[(ModifierTypeId, ModifierId)]())
 
+  /**
+    * Return semantic validity status of modifier with id == modifierId
+    *
+    * @param modifierId - modifier id to check
+    * @return - Valid if found, Absent otherwise
+    */
   override def isSemanticallyValid(modifierId: ModifierId): ModifierSemanticValidity.Value =
     modifierById(modifierId).map { _ =>
       ModifierSemanticValidity.Valid
@@ -64,6 +92,9 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
     if (isEmpty) Seq[ModifierId]()
     else headOption.map(e => Seq(e.block.id)).getOrElse(Seq[ModifierId]())
 
+  /**
+    * Ids of modifiers, that node with given info should download and apply to synchronize
+    */
   override def continuationIds(info: EhrSyncInfo, size: Int): Option[ModifierIds] =
     info.startingPoints.headOption.map { case (typeId, blockId) =>
       takeWhile(e => e.block.id != blockId).toList
@@ -72,8 +103,19 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
         .flatMap(e => Seq((typeId, e.block.id)))
     }
 
+  /**
+    * Information about our node synchronization status. Other node should be able to compare it's view with ours by
+    * this syncInfo message and calculate modifiers missed by our node.
+    */
   override def syncInfo: EhrSyncInfo = new EhrSyncInfo(headOption.map(_.block.id))
 
+  /**
+    * Given `other` node sync info compares it with ours and returns whether other node's position
+    * on the blockchain comparing to ours (behind, ahead or equal)
+    *
+    * @param other other's node sync info
+    * @return Equal if nodes have the same history, Younger if another node is behind, Older if a new node is ahead
+    */
   override def compare(other: EhrSyncInfo): History.HistoryComparisonResult.Value = {
     other.startingPoints.headOption.map{ case (_, blockId) =>
       find(_.block.id.mkString == blockId.mkString) match {
@@ -84,11 +126,17 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
     }.getOrElse(History.HistoryComparisonResult.Nonsense)
   }
 
+  /**
+    * @return - head of the stream (last/best block on the blockchain)
+    */
   def headOption: Option[EhrBlockStreamElement] = this match {
     case Nil => None
     case Cons(h, _) => Some(h())
   }
 
+  /**
+    * @return - last element in the stream
+    */
   @tailrec
   final def lastOption: Option[EhrBlockStreamElement] = this match {
     case Cons(h, t) if t() == empty => Some(h())
@@ -110,6 +158,12 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
     loop(this, empty, 0)
   }
 
+  /**
+    * New stream with elements taken from this stream while predicate holds true
+    *
+    * @param p - predicate
+    * @return - new stream
+    */
   def takeWhile(p: EhrBlockStreamElement => Boolean): EhrBlockStream = {
     @tailrec
     def loop(rest: EhrBlockStream, taken: EhrBlockStream): EhrBlockStream = rest match {
@@ -119,6 +173,11 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
     loop(this, empty)
   }
 
+  /**
+    * @return - List with all the elements in the stream
+    *
+    * @note - evaluates (loads) blocks from the underlying storage
+    */
   def toList: List[EhrBlockStreamElement] = {
     @tailrec
     def loop(rest: EhrBlockStream, list: List[EhrBlockStreamElement]): List[EhrBlockStreamElement] = rest match {
@@ -141,6 +200,11 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
     case Cons(_, t) => t().drop(n - 1)
   }
 
+  /**
+    * Finds the first element passing the given `p` predicate
+    * @param p - predicate to apply to every element
+    * @return - first element passing the `p` predicate
+    */
   @tailrec
   final def find(p: EhrBlockStreamElement => Boolean): Option[EhrBlockStreamElement] = this match {
     case Nil => None
@@ -159,6 +223,13 @@ final case class EhrBlockStreamElement(block: EhrBlock, blockHeight: Long)
 
 object EhrBlockStream {
 
+  /**
+    * "Smart" constructor, caches the elements being evaluated
+    * @param hd - head element, lazy (passed by name)
+    * @param tl - the rest of the stream, lazy (passed by name);
+    * @param storage - underlying persistent storage for stream elements
+    * @return - stream
+    */
   def cons(hd: => EhrBlockStreamElement, tl: => EhrBlockStream)(implicit storage: EhrHistoryStorage): EhrBlockStream = {
     lazy val head = hd
     lazy val tail = tl
@@ -167,6 +238,12 @@ object EhrBlockStream {
 
   def empty: EhrBlockStream = Nil
 
+  /**
+    * Loads and constructs the stream from the underlying persistent storage. Stack safe.
+    *
+    * @param storage - persistent storage
+    * @return - stream
+    */
   @SuppressWarnings(Array("org.wartremover.warts.Recursion", "org.wartremover.warts.OptionPartial"))
   def load(implicit storage: EhrHistoryStorage): EhrBlockStream = {
     def loop(blockId: () => ModifierId, height: Long): TailRec[EhrBlockStream] = {
