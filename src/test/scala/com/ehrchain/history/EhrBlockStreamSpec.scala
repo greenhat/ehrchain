@@ -16,6 +16,12 @@ class EhrBlockStreamSpec extends FlatSpec
       generateBlockStream(2).headBlockHeight shouldEqual 2
   }
 
+  it should "have toList in order" in {
+    val stream = generateBlockStream(2)
+    val list = stream.toList
+    stream.headOption shouldEqual list.headOption
+  }
+
   it should "have openSurfaceIds" in {
     val stream = generateBlockStream(2)
     stream.openSurfaceIds().nonEmpty shouldEqual true
@@ -30,9 +36,7 @@ class EhrBlockStreamSpec extends FlatSpec
       .map(e =>
       stream.continuationIds(new EhrSyncInfo(Some(e.block.id)), 1).map ( ids => {
         require(ids.lengthCompare(1) == 0)
-        for {
-          (_, blockId) <- ids.headOption
-        } yield blockId.mkString shouldEqual e.block.id.mkString
+        ids.headOption.map(_._2.mkString) shouldEqual stream.headOption.map(_.block.id.mkString)
       }) should not be None
     ) should not be None
   }
@@ -60,8 +64,8 @@ class EhrBlockStreamSpec extends FlatSpec
   }
 
   it should "have takeWhile equivalence with List" in {
-    val stream = generateBlockStream(2)
-    stream.takeWhile(_.blockHeight != 1).toList shouldEqual stream.toList.takeWhile(_.blockHeight != 1)
+    val stream = generateBlockStream(3)
+    stream.takeWhile(_.blockHeight < 3).toList shouldEqual stream.toList.takeWhile(_.blockHeight < 3)
   }
 
   it should "have takeWhile headBlockHeight" in {

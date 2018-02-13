@@ -115,8 +115,17 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
     case Cons(h, t) => cons(h(), t().take(n - 1))
   }
 
-  def takeWhile(p: EhrBlockStreamElement => Boolean): EhrBlockStream =
+  def takeWhileFoldRight(p: EhrBlockStreamElement => Boolean): EhrBlockStream =
     foldRight(empty)((a, b) => if (p(a)) cons(a, b) else empty)
+
+  def takeWhile(p: EhrBlockStreamElement => Boolean): EhrBlockStream = {
+    @tailrec
+    def loop(rest: EhrBlockStream, taken: EhrBlockStream): EhrBlockStream = rest match {
+      case Nil => taken
+      case Cons(h, t) => if (p(h())) loop(t(), cons(h(), taken)) else taken
+    }
+    loop(this, empty)
+  }
 
   def toList: List[EhrBlockStreamElement] = {
     @tailrec
