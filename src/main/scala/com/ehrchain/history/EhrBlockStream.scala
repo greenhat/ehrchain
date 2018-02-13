@@ -3,12 +3,12 @@ package com.ehrchain.history
 import com.ehrchain.block.EhrBlock
 import scorex.core.{ModifierId, ModifierTypeId, NodeViewModifier}
 import scorex.core.consensus.{History, ModifierSemanticValidity}
-import scorex.core.consensus.History.{ModifierIds, ProgressInfo}
+import scorex.core.consensus.History.{HistoryComparisonResult, ModifierIds, ProgressInfo}
 import scorex.core.utils.ScorexLogging
 import scorex.crypto.encode.Base58
 
 import scala.annotation.tailrec
-import scala.util.control.TailCalls.{ TailRec, done, tailcall }
+import scala.util.control.TailCalls.{TailRec, done, tailcall}
 import scala.util.{Failure, Try}
 
 trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
@@ -22,16 +22,15 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
 
   implicit def storage: EhrHistoryStorage = ???
 
-  def height: Long = headOption.map(_.height).getOrElse(0L)
+  def headBlockHeight: Long = headOption.map(_.blockHeight).getOrElse(0L)
 
   import EhrBlockStream._
 
-  override def isEmpty: Boolean = height == 0
+  override def isEmpty: Boolean = headBlockHeight == 0
 
   override def modifierById(modifierId: ModifierId): Option[EhrBlock] = storage.modifierById(modifierId)
 
   override def append(block: EhrBlock): Try[(EhrBlockStream, History.ProgressInfo[EhrBlock])] = {
-    require(height == storage.height, "append must be called on full stream")
     log.debug(s"Trying to append block ${Base58.encode(block.id)} to history")
     if (block.validity) {
       storage.append(block)
@@ -71,7 +70,15 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
 
   override def syncInfo: EhrSyncInfo = new EhrSyncInfo(headOption.map(_.block.id))
 
-  override def compare(other: EhrSyncInfo): History.HistoryComparisonResult.Value = ???
+  override def compare(other: EhrSyncInfo): History.HistoryComparisonResult.Value = {
+    other.startingPoints.headOption.map{ case (_, blockId) =>
+      find(_.block.id.mkString == blockId.mkString) match {
+        case None => HistoryComparisonResult.Older
+        case Some(element) if element.blockHeight == headBlockHeight => HistoryComparisonResult.Equal
+        case _ => HistoryComparisonResult.Younger
+      }
+    }.getOrElse(History.HistoryComparisonResult.Nonsense)
+  }
 
   /**
     * Not stack-safe. Eagerness controlled by binary operator `f`.
@@ -115,16 +122,22 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
     foldRight(List[EhrBlockStreamElement]())((a, b) => a :: b)
 
   /**
-    * Not stack-safe
+    * Stream with first `n` elements skipped
     *
     * @param n - number of elements
     * @return - new stream with first `n` element skipped
     */
-  @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
-  def drop(n: Long): EhrBlockStream = this match {
+  @tailrec
+  final def drop(n: Long): EhrBlockStream = this match {
     case Nil => Nil
     case Cons(h, t) if n == 0 => cons(h(), t())
     case Cons(_, t) => t().drop(n - 1)
+  }
+
+  @tailrec
+  final def find(p: EhrBlockStreamElement => Boolean): Option[EhrBlockStreamElement] = this match {
+    case Nil => None
+    case Cons(h, t) => if (p(h())) Some(h()) else t().find(p)
   }
 }
 
@@ -135,7 +148,7 @@ final case class Cons(h: () => EhrBlockStreamElement, t: () => EhrBlockStream)(i
 }
 
 // todo use closure returning EhrBlock?
-final case class EhrBlockStreamElement(block: EhrBlock, height: Long)
+final case class EhrBlockStreamElement(block: EhrBlock, blockHeight: Long)
 
 object EhrBlockStream {
 

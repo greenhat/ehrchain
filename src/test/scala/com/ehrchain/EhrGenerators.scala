@@ -78,7 +78,7 @@ with ExamplesCommonGenerators {
     val storage = new EhrHistoryStorage(new EhrMiningSettings())
     def blockList(element: EhrBlockStreamElement, elements: List[EhrBlockStreamElement]): List[EhrBlockStreamElement] = {
       if (elements.lengthCompare(height) < 0)
-        blockList(EhrBlockStreamElement(generateBlock(element.block.id), element.height + 1), elements :+ element)
+        blockList(EhrBlockStreamElement(generateBlock(element.block.id), element.blockHeight + 1), elements :+ element)
       else
         elements
     }

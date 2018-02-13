@@ -4,10 +4,8 @@ import com.ehrchain.EhrGenerators
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{FlatSpec, Matchers}
 import scorex.core.consensus.History.HistoryComparisonResult
-import scorex.core.{ModifierId, ModifierTypeId}
 
-import scala.annotation.tailrec
-
+@SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
 class EhrBlockStreamSpec extends FlatSpec
   with PropertyChecks
   with GeneratorDrivenPropertyChecks
@@ -15,7 +13,7 @@ class EhrBlockStreamSpec extends FlatSpec
   with EhrGenerators {
 
   "generated history" should "have height" in {
-      generateBlockStream(2).height shouldEqual 2
+      generateBlockStream(2).headBlockHeight shouldEqual 2
   }
 
   it should "have openSurfaceIds" in {
@@ -63,12 +61,24 @@ class EhrBlockStreamSpec extends FlatSpec
 
   it should "have takeWhile equivalence with List" in {
     val stream = generateBlockStream(2)
-    stream.takeWhile(_.height == 2).toList shouldEqual stream.toList.takeWhile(_.height == 2)
+    stream.takeWhile(_.blockHeight != 1).toList shouldEqual stream.toList.takeWhile(_.blockHeight != 1)
+  }
+
+  it should "have takeWhile headBlockHeight" in {
+    val stream = generateBlockStream(2)
+    val streamSlice = stream.takeWhile(_.blockHeight != 1)
+    streamSlice.toList.length shouldEqual 1
+    streamSlice.headBlockHeight shouldEqual 2
   }
 
   it should "have drop equivalence with List" in {
     val stream = generateBlockStream(2)
     stream.drop(1).toList shouldEqual stream.toList.drop(1)
+  }
+
+  it should "have find equivalence with List" in {
+    val stream = generateBlockStream(2)
+    stream.find(_.blockHeight == 1) shouldEqual stream.toList.find(_.blockHeight == 1)
   }
 
   it should "have compare Younger" in {
@@ -85,7 +95,6 @@ class EhrBlockStreamSpec extends FlatSpec
 
   it should "have compare the same" in {
     val fullStream = generateBlockStream(3)
-    val subStream = fullStream.drop(1)
     fullStream.compare(fullStream.syncInfo) shouldEqual HistoryComparisonResult.Equal
   }
 }
