@@ -62,7 +62,7 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
 
   override def continuationIds(info: EhrSyncInfo, size: Int): Option[ModifierIds] =
     info.startingPoints.headOption.map { case (typeId, blockId) =>
-      this.takeWhile(e => e.block.id != blockId).toList
+      takeWhile(e => e.block.id != blockId).toList
         .reverse
         .take(size)
         .flatMap(e => Seq((typeId, e.block.id)))
@@ -118,8 +118,14 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
   def takeWhile(p: EhrBlockStreamElement => Boolean): EhrBlockStream =
     foldRight(empty)((a, b) => if (p(a)) cons(a, b) else empty)
 
-  def toList: List[EhrBlockStreamElement] =
-    foldRight(List[EhrBlockStreamElement]())((a, b) => a :: b)
+  def toList: List[EhrBlockStreamElement] = {
+    @tailrec
+    def loop(rest: EhrBlockStream, list: List[EhrBlockStreamElement]): List[EhrBlockStreamElement] = rest match {
+      case Nil => list
+      case Cons(h, t) => loop(t(), h() +: list)
+    }
+    loop(this, List()).reverse
+  }
 
   /**
     * Stream with first `n` elements skipped
