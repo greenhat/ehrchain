@@ -20,6 +20,10 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
 
   override type NVCT = this.type
 
+  /**
+    * @note - must be overridden in case class
+    * @return - underlying persistent storage for the block stream elements
+    */
   implicit def storage: EhrHistoryStorage = ???
 
   def headBlockHeight: Long = headOption.map(_.blockHeight).getOrElse(0L)
