@@ -84,21 +84,10 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
     }.getOrElse(History.HistoryComparisonResult.Nonsense)
   }
 
-  /**
-    * Not stack-safe. Eagerness controlled by binary operator `f`.
-    *
-    * @param z - the start value
-    * @param f - the binary operator
-    * @tparam B - the result type of the binary operator `f`
-    */
-  @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
-  def foldRight[B](z: => B)(f: (EhrBlockStreamElement, => B) => B): B = this match {
-      case Cons(h,t) => f(h(), t().foldRight(z)(f))
-      case _ => z
-    }
-
-  def headOption: Option[EhrBlockStreamElement] =
-    foldRight[Option[EhrBlockStreamElement]](None)((a, _) => Some(a))
+  def headOption: Option[EhrBlockStreamElement] = this match {
+    case Nil => None
+    case Cons(h, _) => Some(h())
+  }
 
   @tailrec
   final def lastOption: Option[EhrBlockStreamElement] = this match {
