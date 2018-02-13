@@ -103,16 +103,18 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
   }
 
   /**
-    * Not stack-safe
+    * New stream with first `n` elements from the original stream
     *
     * @param n - number of elements
     * @return - new stream with first `n` elements taken
     */
-  @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
-  def take(n: Long): EhrBlockStream = this match {
-    case Nil => Nil
-    case Cons(_, _) if n == 0 => Nil
-    case Cons(h, t) => cons(h(), t().take(n - 1))
+  def take(n: Long): EhrBlockStream = {
+    @tailrec
+    def loop(rest: EhrBlockStream, taken: EhrBlockStream, takenElements: Long): EhrBlockStream = rest match {
+      case Nil => taken
+      case Cons(h, t) => if (takenElements < n) loop(t(), cons(h(), taken), takenElements + 1) else taken
+    }
+    loop(this, empty, 0)
   }
 
   def takeWhile(p: EhrBlockStreamElement => Boolean): EhrBlockStream = {
