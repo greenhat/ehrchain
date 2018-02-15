@@ -3,7 +3,7 @@ package com.ehrchain.block
 import com.ehrchain.core._
 import com.ehrchain.serialization._
 import com.ehrchain.transaction.EhrTransaction
-import com.google.common.primitives.{Bytes, Longs}
+import com.google.common.primitives.{Bytes, Ints, Longs}
 import examples.commons.Nonce
 import io.circe.Json
 import io.circe.syntax._
@@ -27,7 +27,8 @@ final class EhrBlock(
               val nonce: Nonce,
               val transactions: Seq[EhrTransaction],
               val signature: Signature25519,
-              val generator: PublicKey25519Proposition
+              val generator: PublicKey25519Proposition,
+              val difficulty: Int
               ) extends Block[PublicKey25519Proposition, EhrTransaction] {
 
   require(transactions.nonEmpty)
@@ -58,10 +59,12 @@ final class EhrBlock(
   lazy val validity: Boolean =
     timestamp > 0 &&
       transactions.nonEmpty &&
-      signature.isValid(generator, EhrBlock.generateMessageToSign(parentId, timestamp, nonce, transactions, generator)) &&
+      signature.isValid(generator, EhrBlock.generateMessageToSign(parentId, timestamp, nonce, transactions, generator, difficulty)) &&
       powValidity
 
-  lazy val powValidity: Boolean = Blake2b256(bytes).startsWith(Array[Byte](0))
+  lazy val powValidity: Boolean = {
+    (difficulty == 0) || Blake2b256(bytes).startsWith(Array.fill[Byte](difficulty)(0))
+  }
 }
 
 object EhrBlock {
@@ -73,13 +76,15 @@ object EhrBlock {
                             timestamp: TimeStamp,
                             nonce: Nonce,
                             transactions: Seq[EhrTransaction],
-                            generator: PublicKey25519Proposition): Array[Byte] =
+                            generator: PublicKey25519Proposition,
+                            difficulty: Int): Array[Byte] =
     Bytes.concat(
       parentId,
       serialize(timestamp),
       serialize(nonce),
       serialize(transactions),
-      serialize(generator)
+      serialize(generator),
+      Ints.toByteArray(difficulty),
     )
 }
 
@@ -90,30 +95,33 @@ object EhrBlockCompanion {
   def generate(parentId: BlockId,
                timestamp: TimeStamp,
                transactions: Seq[EhrTransaction],
-               generatorKeys: (PrivateKey25519, PublicKey25519Proposition)): EhrBlock = {
+               generatorKeys: (PrivateKey25519, PublicKey25519Proposition),
+               difficulty: Int): EhrBlock = {
     val generatorSK = generatorKeys._1
     val generatorPK = generatorKeys._2
     val nonce = Nonce @@ Random.nextLong()
-    val msgToSign = EhrBlock.generateMessageToSign(parentId, timestamp, nonce, transactions, generatorPK)
+    val msgToSign = EhrBlock.generateMessageToSign(parentId, timestamp, nonce, transactions,
+      generatorPK, difficulty)
     val signature = PrivateKey25519Companion.sign(generatorSK, msgToSign)
-    val block = new EhrBlock(parentId, timestamp, nonce, transactions, signature, generatorPK)
+    val block = new EhrBlock(parentId, timestamp, nonce, transactions, signature, generatorPK, difficulty)
     if (block.validity) block
-    else generate(parentId, timestamp, transactions, generatorKeys)
+    else generate(parentId, timestamp, transactions, generatorKeys, difficulty)
   }
 }
 
 object EhrBlockSerializer extends Serializer[EhrBlock] {
-  override def toBytes(obj: EhrBlock): Array[Version] =
+  override def toBytes(obj: EhrBlock): Array[Byte] =
     Bytes.concat(
       obj.parentId,
       serialize(obj.timestamp),
       serialize(obj.nonce),
       serialize(obj.signature),
       serialize(obj.generator),
+      Ints.toByteArray(obj.difficulty),
       serialize(obj.transactions)
     )
 
-  override def parseBytes(bytes: Array[Version]): Try[EhrBlock] = {
+  override def parseBytes(bytes: Array[Byte]): Try[EhrBlock] = {
     require(bytes.length <= EhrBlock.MaxBlockSize)
     val parentIdEnd = Block.BlockIdLength
     val parentId = ModifierId @@ bytes.slice(0, parentIdEnd)
@@ -126,8 +134,10 @@ object EhrBlockSerializer extends Serializer[EhrBlock] {
     val generatorEnd = signatureEnd + Curve25519.KeyLength
     val generatorPK = PublicKey @@ bytes.slice(signatureEnd, generatorEnd)
     val generator = PublicKey25519Proposition(generatorPK)
+    val difficultyEnd = generatorEnd + 4
+    val difficulty = Ints.fromByteArray(bytes.slice(generatorEnd, difficultyEnd))
     for {
-      transactions <- transactionsSerializer.parseBytes(bytes.slice(generatorEnd, bytes.length))
-    } yield new EhrBlock(parentId, timestamp, nonce, transactions, signature, generator)
+      transactions <- transactionsSerializer.parseBytes(bytes.slice(difficultyEnd, bytes.length))
+    } yield new EhrBlock(parentId, timestamp, nonce, transactions, signature, generator, difficulty)
   }
 }

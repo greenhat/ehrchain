@@ -18,6 +18,8 @@ with ExamplesCommonGenerators {
 
   val MaxTransactionQtyInBlock: Int = 20
 
+  val MiningDifficulty: Int = 0
+
   def genRecord(minSize: Int, maxSize: Int): Gen[RecordType] = {
     Gen.choose(minSize, maxSize) flatMap { sz =>
       Gen.listOfN(sz, Arbitrary.arbitrary[Byte]).map(RecordType @@  _.toArray)
@@ -49,14 +51,14 @@ with ExamplesCommonGenerators {
     generatorKeys <- key25519Gen
     transactions <- ehrTransactionsGen(1, MaxTransactionQtyInBlock)
     parentId <- modifierIdGen
-  } yield EhrBlockCompanion.generate(parentId, timestamp,transactions, generatorKeys)
+  } yield EhrBlockCompanion.generate(parentId, timestamp,transactions, generatorKeys, MiningDifficulty)
 
   lazy val zeroTxsEhrBlockGen: Gen[EhrBlock] = for {
     timestamp <- timestampGen
     generatorKeys <- key25519Gen
     transactions <- ehrTransactionsGen(0, 0)
     parentId <- modifierIdGen
-  } yield EhrBlockCompanion.generate(parentId, timestamp, transactions, generatorKeys)
+  } yield EhrBlockCompanion.generate(parentId, timestamp, transactions, generatorKeys, MiningDifficulty)
 
   def generateGenesisBlock: EhrBlock = {
     val settings = new EhrMiningSettings()
@@ -64,7 +66,7 @@ with ExamplesCommonGenerators {
       settings.GenesisParentId,
       timestampGen.sample.get,
       ehrTransactionsGen(1, MaxTransactionQtyInBlock).sample.get,
-      key25519Gen.sample.get)
+      key25519Gen.sample.get, MiningDifficulty)
   }
 
   def generateBlock(parentId: BlockId): EhrBlock =
@@ -72,7 +74,7 @@ with ExamplesCommonGenerators {
       parentId,
       timestampGen.sample.get,
       ehrTransactionsGen(1, MaxTransactionQtyInBlock).sample.get,
-      key25519Gen.sample.get)
+      key25519Gen.sample.get, MiningDifficulty)
 
   def generateBlockStream(height: Int): EhrBlockStream = {
     val storage = new EhrHistoryStorage(new EhrMiningSettings())
