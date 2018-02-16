@@ -61,9 +61,8 @@ with ExamplesCommonGenerators {
   } yield EhrBlockCompanion.generate(parentId, timestamp, transactions, generatorKeys, MiningDifficulty)
 
   def generateGenesisBlock: EhrBlock = {
-    val settings = new EhrMiningSettings()
     EhrBlockCompanion.generate(
-      settings.GenesisParentId,
+      EhrBlockStream.GenesisParentId,
       timestampGen.sample.get,
       ehrTransactionsGen(1, MaxTransactionQtyInBlock).sample.get,
       key25519Gen.sample.get, MiningDifficulty)

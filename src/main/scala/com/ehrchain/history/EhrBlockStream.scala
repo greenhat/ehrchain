@@ -226,6 +226,8 @@ final case class EhrBlockStreamElement(block: EhrBlock, blockHeight: Long)
 
 object EhrBlockStream {
 
+  val GenesisParentId: ModifierId = ModifierId @@ Array.fill(32)(1: Byte)
+
   /**
     * "Smart" constructor, caches the elements being evaluated
     * @param hd - head element, lazy (passed by name)
