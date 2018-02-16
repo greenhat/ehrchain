@@ -9,7 +9,7 @@ import scorex.core.utils.ScorexLogging
 
 import scala.util.Try
 
-case class EhrWallet() extends Vault[PublicKey25519Proposition, EhrTransaction, EhrBlock, EhrWallet]
+final case class EhrWallet() extends Vault[PublicKey25519Proposition, EhrTransaction, EhrBlock, EhrWallet]
   with ScorexLogging {
 
   override type NVCT = this.type
