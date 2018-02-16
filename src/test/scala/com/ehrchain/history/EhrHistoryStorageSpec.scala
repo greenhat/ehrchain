@@ -8,7 +8,7 @@ class EhrHistoryStorageSpec extends FlatSpec
   with Matchers
   with EhrGenerators {
 
-  private def newStorage: EhrHistoryStorage = new EhrHistoryStorage(new EhrMiningSettings())
+  private def newStorage: EhrHistoryStorage = new EhrHistoryStorage()
 
   "new storage" should "be empty" in {
     val storage = newStorage

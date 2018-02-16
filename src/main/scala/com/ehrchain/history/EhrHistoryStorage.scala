@@ -5,7 +5,7 @@ import com.ehrchain.mining.EhrMiningSettings
 import scorex.core.ModifierId
 
 @SuppressWarnings(Array("org.wartremover.warts.MutableDataStructures", "org.wartremover.warts.Var"))
-class EhrHistoryStorage(settings: EhrMiningSettings) {
+class EhrHistoryStorage {
 
   private val store: scala.collection.mutable.Map[String, EhrBlock] = scala.collection.mutable.Map()
   private val heightStore: scala.collection.mutable.Map[String, Long] = scala.collection.mutable.Map()

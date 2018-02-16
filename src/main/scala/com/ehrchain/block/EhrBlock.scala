@@ -86,11 +86,7 @@ object EhrBlock {
       serialize(generator),
       Ints.toByteArray(difficulty),
     )
-}
 
-object EhrBlockCompanion {
-
-  // todo move to test (generators)?
   @tailrec
   def generate(parentId: BlockId,
                timestamp: TimeStamp,

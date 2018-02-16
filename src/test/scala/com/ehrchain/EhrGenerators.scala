@@ -1,6 +1,6 @@
 package com.ehrchain
 
-import com.ehrchain.block.{EhrBlock, EhrBlockCompanion}
+import com.ehrchain.block.{EhrBlock}
 import com.ehrchain.core.{RecordType, TimeStamp}
 import com.ehrchain.history.EhrBlockStream._
 import com.ehrchain.history.{EhrBlockStream, EhrBlockStreamElement, EhrHistoryStorage}
@@ -51,17 +51,17 @@ with ExamplesCommonGenerators {
     generatorKeys <- key25519Gen
     transactions <- ehrTransactionsGen(1, MaxTransactionQtyInBlock)
     parentId <- modifierIdGen
-  } yield EhrBlockCompanion.generate(parentId, timestamp,transactions, generatorKeys, MiningDifficulty)
+  } yield EhrBlock.generate(parentId, timestamp,transactions, generatorKeys, MiningDifficulty)
 
   lazy val zeroTxsEhrBlockGen: Gen[EhrBlock] = for {
     timestamp <- timestampGen
     generatorKeys <- key25519Gen
     transactions <- ehrTransactionsGen(0, 0)
     parentId <- modifierIdGen
-  } yield EhrBlockCompanion.generate(parentId, timestamp, transactions, generatorKeys, MiningDifficulty)
+  } yield EhrBlock.generate(parentId, timestamp, transactions, generatorKeys, MiningDifficulty)
 
   def generateGenesisBlock: EhrBlock = {
-    EhrBlockCompanion.generate(
+    EhrBlock.generate(
       EhrBlockStream.GenesisParentId,
       timestampGen.sample.get,
       ehrTransactionsGen(1, MaxTransactionQtyInBlock).sample.get,
@@ -69,14 +69,13 @@ with ExamplesCommonGenerators {
   }
 
   def generateBlock(parentId: BlockId): EhrBlock =
-    EhrBlockCompanion.generate(
+    EhrBlock.generate(
       parentId,
       timestampGen.sample.get,
       ehrTransactionsGen(1, MaxTransactionQtyInBlock).sample.get,
       key25519Gen.sample.get, MiningDifficulty)
 
   def generateBlockStream(height: Int): EhrBlockStream = {
-    val storage = new EhrHistoryStorage(new EhrMiningSettings())
     def blockList(element: EhrBlockStreamElement, elements: List[EhrBlockStreamElement]): List[EhrBlockStreamElement] = {
       if (elements.lengthCompare(height) < 0)
         blockList(EhrBlockStreamElement(generateBlock(element.block.id), element.blockHeight + 1), elements :+ element)
@@ -84,7 +83,7 @@ with ExamplesCommonGenerators {
         elements
     }
     val reversedBlockList = blockList(EhrBlockStreamElement(generateGenesisBlock, 1), List())
-    blockStreamFromElements(reversedBlockList.reverse)(storage)
+    blockStreamFromElements(reversedBlockList.reverse)(new EhrHistoryStorage())
   }
 
   @SuppressWarnings(Array("org.wartremover.warts.ImplicitParameter"))
