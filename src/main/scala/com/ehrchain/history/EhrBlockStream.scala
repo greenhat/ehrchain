@@ -88,6 +88,9 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
       ModifierSemanticValidity.Valid
     }.getOrElse(ModifierSemanticValidity.Absent)
 
+  /**
+    * @return - last/best block id
+    */
   override def openSurfaceIds(): Seq[ModifierId] =
     if (isEmpty) Seq[ModifierId]()
     else headOption.map(e => Seq(e.block.id)).getOrElse(Seq[ModifierId]())
