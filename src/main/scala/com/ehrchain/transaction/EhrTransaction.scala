@@ -36,13 +36,10 @@ final class EhrTransaction(val provider: PublicKey25519Proposition,
   override lazy val messageToSign: Array[Byte] =
     EhrTransaction.generateMessageToSign(timestamp, patient, provider, record)
 
-  lazy val validity: Try[Boolean] = Try {
-    require(timestamp > 0)
-    require(record.nonEmpty)
-    require(record.length <= EhrTransaction.MaxRecordSize)
+  lazy val validity: Boolean =
+    timestamp > 0 && record.nonEmpty && record.length <= EhrTransaction.MaxRecordSize &&
     // record's signature (made with provider's SK) is valid (verified with provider's PK)
     signature.isValid(provider, messageToSign)
-  }
 }
 
 object EhrTransaction {

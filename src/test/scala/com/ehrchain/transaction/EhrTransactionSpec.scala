@@ -20,13 +20,13 @@ class EhrTransactionSpec extends PropSpec
 
   property("EhrTransaction validity") {
     forAll(ehrTransactionGen) { b: EhrTransaction =>
-      b.validity.isSuccess shouldBe true
+      b.validity shouldBe true
     }
   }
 
   property("invalid EhrTransaction(empty record)") {
     forAll(emptyRecordEhrTransactionGen) { b: EhrTransaction =>
-      b.validity.isSuccess shouldBe false
+      b.validity shouldBe false
     }
   }
 
