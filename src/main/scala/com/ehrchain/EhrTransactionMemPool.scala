@@ -16,7 +16,6 @@ final case class EhrTransactionMemPool(unconfirmed: TrieMap[ByteArrayWrapper, Eh
 
   private def key(id: Array[Byte]): ByteArrayWrapper = ByteArrayWrapper(id)
 
-  //getters
   override def getById(id: ModifierId): Option[EhrTransaction] =
     unconfirmed.get(key(id))
 
@@ -24,13 +23,11 @@ final case class EhrTransactionMemPool(unconfirmed: TrieMap[ByteArrayWrapper, Eh
 
   override def getAll(ids: Seq[ModifierId]): Seq[EhrTransaction] = ids.flatMap(getById(_).toList)
 
-  //modifiers
   override def put(tx: EhrTransaction): Try[EhrTransactionMemPool] = Success {
     val _ = unconfirmed.put(key(tx.id), tx)
     this
   }
 
-  //todo
   override def put(txs: Iterable[EhrTransaction]): Try[EhrTransactionMemPool] = Success(putWithoutCheck(txs))
 
   override def putWithoutCheck(txs: Iterable[EhrTransaction]): EhrTransactionMemPool = {
