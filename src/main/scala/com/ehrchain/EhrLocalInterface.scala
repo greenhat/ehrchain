@@ -2,10 +2,12 @@ package com.ehrchain
 
 import akka.actor.ActorRef
 import com.ehrchain.block.EhrBlock
+import com.ehrchain.mining.EhrMiner.{MineBlock, StartMining, StopMining}
 import com.ehrchain.transaction.EhrTransaction
 import scorex.core.{LocalInterface, ModifierId}
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 
+@SuppressWarnings(Array("org.wartremover.warts.Var"))
 class EhrLocalInterface(override val viewHolderRef: ActorRef,
                         minerRef: ActorRef)
   extends LocalInterface[PublicKey25519Proposition, EhrTransaction, EhrBlock] {
@@ -33,17 +35,17 @@ class EhrLocalInterface(override val viewHolderRef: ActorRef,
 
   override protected def onSemanticallySuccessfulModification(mod: EhrBlock): Unit = {
     if (!isBlocked) {
-//          minerRef ! MineBlock
+          minerRef ! MineBlock
     }
   }
 
   override protected def onNoBetterNeighbour(): Unit = {
-//    minerRef ! StartMining
+    minerRef ! StartMining
     isBlocked = false
   }
 
   override protected def onBetterNeighbourAppeared(): Unit = {
-//    minerRef ! StopMining
+    minerRef ! StopMining
     isBlocked = true
   }
 }

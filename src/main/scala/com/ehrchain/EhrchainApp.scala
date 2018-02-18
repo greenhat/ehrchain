@@ -3,14 +3,18 @@ package com.ehrchain
 import akka.actor.{ActorRef, Props}
 import com.ehrchain.block.EhrBlock
 import com.ehrchain.history.{EhrBlockStream, EhrSyncInfo, EhrSyncInfoMessageSpec}
+import com.ehrchain.mining.EhrMiner
+import com.ehrchain.settings.EhrAppSettings
 import com.ehrchain.transaction.EhrTransaction
-import examples.hybrid.mining.HybridSettings
 import scorex.core.api.http.{ApiRoute, NodeViewApiRoute, PeersApiRoute, UtilsApiRoute}
 import scorex.core.app.Application
 import scorex.core.network.NodeViewSynchronizer
 import scorex.core.network.message.MessageSpec
+import scorex.core.settings.ScorexSettings
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scorex.core.utils.ScorexLogging
+
+import scala.io.Source
 
 class EhrchainApp(val settingsFilename: String) extends Application {
 
@@ -19,26 +23,27 @@ class EhrchainApp(val settingsFilename: String) extends Application {
   override type PMOD = EhrBlock
   override type NVHT = EhrNodeViewHolder
 
-//  private val hybridSettings = HybridSettings.read(Some(settingsFilename))
-//  implicit override lazy val settings: ScorexSettings = HybridSettings.read(Some(settingsFilename)).scorexSettings
+  private val ehrAppSettings = EhrAppSettings.read(Some(settingsFilename))
+  implicit override val settings: ScorexSettings = ehrAppSettings.scorexSettings
 
-//  log.debug(s"Starting application with settings \n$settings")
+  log.debug(s"Starting application with settings \n$settings")
 
   override protected lazy val additionalMessageSpecs: Seq[MessageSpec[_]] = Seq(EhrSyncInfoMessageSpec)
 
   // todo use props
   override val nodeViewHolderRef: ActorRef = actorSystem.actorOf(Props(new EhrNodeViewHolder()))
 
-  override val apiRoutes: Seq[ApiRoute] = Seq(
+  override val apiRoutes: Seq[ApiRoute] = Seq[ApiRoute](
     UtilsApiRoute(settings.restApi),
     NodeViewApiRoute[P, TX](settings.restApi, nodeViewHolderRef),
     PeersApiRoute(peerManagerRef, networkControllerRef, settings.restApi)
   )
 
-//  override val swaggerConfig: String = Source.fromResource("api/testApi.yaml").getLines.mkString("\n")
-//
-//  val miner = actorSystem.actorOf(Props(new PowMiner(nodeViewHolderRef, hybridSettings.mining)))
-//
+  // todo generate
+  override val swaggerConfig: String = Source.fromResource("api/testApi.yaml").getLines.mkString("\n")
+
+  val miner: ActorRef = actorSystem.actorOf(Props(new EhrMiner(nodeViewHolderRef)))
+
   // todo use props
   override val localInterface: ActorRef = actorSystem.actorOf(Props(new EhrLocalInterface(nodeViewHolderRef, miner)))
 
@@ -46,11 +51,6 @@ class EhrchainApp(val settingsFilename: String) extends Application {
     actorSystem.actorOf(Props(
       new NodeViewSynchronizer[P, TX, EhrSyncInfo, EhrSyncInfoMessageSpec.type, PMOD, EhrBlockStream, EhrTransactionMemPool]
     (networkControllerRef, nodeViewHolderRef, localInterface, EhrSyncInfoMessageSpec, settings.network, timeProvider)))
-
-  //touching lazy vals
-  miner
-  localInterface
-  nodeViewSynchronizer
 
 //  if (settings.network.nodeName.startsWith("generatorNode")) {
 //    log.info("Starting transactions generation")
