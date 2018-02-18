@@ -1,6 +1,6 @@
 package com.ehrchain.mining
 
-import akka.actor.{Actor, ActorRef}
+import akka.actor.{Actor, ActorRef, Props}
 import scorex.core.utils.ScorexLogging
 
 class EhrMiner(viewHolderRef: ActorRef) extends Actor with ScorexLogging {
@@ -25,6 +25,8 @@ class EhrMiner(viewHolderRef: ActorRef) extends Actor with ScorexLogging {
 }
 
 object EhrMiner extends App {
+
+  def props(nodeViewHolderRef: ActorRef): Props = Props(new EhrMiner(nodeViewHolderRef))
 
   case object StartMining
 

@@ -41,7 +41,7 @@ class EhrApp(val settingsFilename: String) extends Application {
   // todo generate
   override val swaggerConfig: String = Source.fromResource("api/testApi.yaml").getLines.mkString("\n")
 
-  val miner: ActorRef = actorSystem.actorOf(Props(new EhrMiner(nodeViewHolderRef)))
+  val miner: ActorRef = actorSystem.actorOf(EhrMiner.props(nodeViewHolderRef))
 
   override val localInterface: ActorRef =
     actorSystem.actorOf(EhrLocalInterface.props(nodeViewHolderRef, miner))
