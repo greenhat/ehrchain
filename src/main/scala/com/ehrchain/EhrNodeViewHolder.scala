@@ -1,5 +1,6 @@
 package com.ehrchain
 
+import akka.actor.Props
 import com.ehrchain.block.{EhrBlock, EhrBlockSerializer}
 import com.ehrchain.core.{RecordType, TimeStamp}
 import com.ehrchain.history.{EhrBlockStream, EhrHistoryStorage, EhrSyncInfo}
@@ -42,6 +43,9 @@ class EhrNodeViewHolder extends NodeViewHolder[PublicKey25519Proposition, EhrTra
 }
 
 object EhrNodeViewHolder {
+
+  def props: Props = Props(new EhrNodeViewHolder)
+
   @SuppressWarnings(Array("org.wartremover.warts.TryPartial"))
   def generateGenesisState: (EhrBlockStream, EhrMinimalState, EhrWallet, EhrTransactionMemPool) = {
     val genesisBlockAccount = PrivateKey25519Companion.generateKeys("genesis block".getBytes)

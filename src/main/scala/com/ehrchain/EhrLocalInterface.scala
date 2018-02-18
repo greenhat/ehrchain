@@ -1,6 +1,6 @@
 package com.ehrchain
 
-import akka.actor.ActorRef
+import akka.actor.{ActorRef, Props}
 import com.ehrchain.block.EhrBlock
 import com.ehrchain.mining.EhrMiner.{MineBlock, StartMining, StopMining}
 import com.ehrchain.transaction.EhrTransaction
@@ -48,4 +48,10 @@ class EhrLocalInterface(override val viewHolderRef: ActorRef,
     minerRef ! StopMining
     isBlocked = true
   }
+}
+
+object EhrLocalInterface {
+
+  def props(nodeViewHolderRef: ActorRef, minerRef: ActorRef) : Props =
+    Props(new EhrLocalInterface(nodeViewHolderRef, minerRef))
 }

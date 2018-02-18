@@ -30,8 +30,7 @@ class EhrApp(val settingsFilename: String) extends Application {
 
   override protected lazy val additionalMessageSpecs: Seq[MessageSpec[_]] = Seq(EhrSyncInfoMessageSpec)
 
-  // todo use props
-  override val nodeViewHolderRef: ActorRef = actorSystem.actorOf(Props(new EhrNodeViewHolder()))
+  override val nodeViewHolderRef: ActorRef = actorSystem.actorOf(EhrNodeViewHolder.props)
 
   override val apiRoutes: Seq[ApiRoute] = Seq[ApiRoute](
     UtilsApiRoute(settings.restApi),
@@ -44,8 +43,8 @@ class EhrApp(val settingsFilename: String) extends Application {
 
   val miner: ActorRef = actorSystem.actorOf(Props(new EhrMiner(nodeViewHolderRef)))
 
-  // todo use props
-  override val localInterface: ActorRef = actorSystem.actorOf(Props(new EhrLocalInterface(nodeViewHolderRef, miner)))
+  override val localInterface: ActorRef =
+    actorSystem.actorOf(EhrLocalInterface.props(nodeViewHolderRef, miner))
 
   override val nodeViewSynchronizer: ActorRef =
     actorSystem.actorOf(Props(
