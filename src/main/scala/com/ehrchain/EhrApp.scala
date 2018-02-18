@@ -16,7 +16,7 @@ import scorex.core.utils.ScorexLogging
 
 import scala.io.Source
 
-class EhrchainApp(val settingsFilename: String) extends Application {
+class EhrApp(val settingsFilename: String) extends Application {
 
   override type P = PublicKey25519Proposition
   override type TX = EhrTransaction
@@ -59,8 +59,8 @@ class EhrchainApp(val settingsFilename: String) extends Application {
 //  }
 }
 
-object EhrchainApp extends App {
+object EhrApp extends App {
   val settingsFilename: String = args.headOption.getOrElse("settings.conf")
-  new EhrchainApp(settingsFilename).run()
+  new EhrApp(settingsFilename).run()
 }
 
