@@ -133,7 +133,7 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
     * @return - head of the stream (last/best block on the blockchain)
     */
   def headOption: Option[EhrBlockStreamElement] = this match {
-    case Nil => None
+    case Nil() => None
     case Cons(h, _) => Some(h())
   }
 
@@ -155,7 +155,7 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
   def take(n: Long): EhrBlockStream = {
     @tailrec
     def loop(rest: EhrBlockStream, taken: EhrBlockStream, takenElements: Long): EhrBlockStream = rest match {
-      case Nil => taken
+      case Nil() => taken
       case Cons(h, t) => if (takenElements < n) loop(t(), cons(h(), taken), takenElements + 1) else taken
     }
     loop(this, empty, 0)
@@ -170,7 +170,7 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
   def takeWhile(p: EhrBlockStreamElement => Boolean): EhrBlockStream = {
     @tailrec
     def loop(rest: EhrBlockStream, taken: EhrBlockStream): EhrBlockStream = rest match {
-      case Nil => taken
+      case Nil() => taken
       case Cons(h, t) => if (p(h())) loop(t(), cons(h(), taken)) else taken
     }
     loop(this, empty)
@@ -184,7 +184,7 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
   def toList: List[EhrBlockStreamElement] = {
     @tailrec
     def loop(rest: EhrBlockStream, list: List[EhrBlockStreamElement]): List[EhrBlockStreamElement] = rest match {
-      case Nil => list
+      case Nil() => list
       case Cons(h, t) => loop(t(), h() +: list)
     }
     loop(this, List()).reverse
@@ -198,7 +198,7 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
     */
   @tailrec
   final def drop(n: Long): EhrBlockStream = this match {
-    case Nil => Nil
+    case Nil() => Nil()
     case Cons(h, t) if n == 0 => cons(h(), t())
     case Cons(_, t) => t().drop(n - 1)
   }
@@ -210,12 +210,14 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
     */
   @tailrec
   final def find(p: EhrBlockStreamElement => Boolean): Option[EhrBlockStreamElement] = this match {
-    case Nil => None
+    case Nil() => None
     case Cons(h, t) => if (p(h())) Some(h()) else t().find(p)
   }
 }
 
-case object Nil extends EhrBlockStream
+final case class Nil(implicit store: EhrHistoryStorage) extends EhrBlockStream {
+  override def storage: EhrHistoryStorage = store
+}
 
 final case class Cons(h: () => EhrBlockStreamElement, t: () => EhrBlockStream)(implicit store: EhrHistoryStorage) extends EhrBlockStream {
   override def storage: EhrHistoryStorage = store
@@ -241,7 +243,7 @@ object EhrBlockStream {
     Cons(() => head, () => tail)
   }
 
-  def empty: EhrBlockStream = Nil
+  def empty(implicit storage: EhrHistoryStorage): EhrBlockStream = Nil()
 
   /**
     * Loads and constructs the stream from the underlying persistent storage. Stack safe.
@@ -263,6 +265,6 @@ object EhrBlockStream {
     }
     storage.bestBlockId.map( blockId =>
       loop(() => blockId, storage.height).result
-    ).getOrElse(empty)
+    ).getOrElse(empty(storage))
   }
 }

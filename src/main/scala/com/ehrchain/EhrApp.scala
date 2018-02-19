@@ -6,6 +6,8 @@ import com.ehrchain.history.{EhrBlockStream, EhrSyncInfo, EhrSyncInfoMessageSpec
 import com.ehrchain.mining.EhrMiner
 import com.ehrchain.settings.EhrAppSettings
 import com.ehrchain.transaction.EhrTransaction
+import com.ehrchain.wallet.EhrTransactionGenerator
+import com.ehrchain.wallet.EhrTransactionGenerator.StartGeneration
 import scorex.core.api.http.{ApiRoute, NodeViewApiRoute, PeersApiRoute, UtilsApiRoute}
 import scorex.core.app.Application
 import scorex.core.network.NodeViewSynchronizer
@@ -15,6 +17,7 @@ import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scorex.core.utils.ScorexLogging
 
 import scala.io.Source
+import scala.concurrent.duration._
 
 class EhrApp(val settingsFilename: String) extends Application {
 
@@ -23,8 +26,8 @@ class EhrApp(val settingsFilename: String) extends Application {
   override type PMOD = EhrBlock
   override type NVHT = EhrNodeViewHolder
 
-  private val ehrAppSettings = EhrAppSettings.read(Some(settingsFilename))
-  implicit override val settings: ScorexSettings = ehrAppSettings.scorexSettings
+  implicit override lazy val settings: ScorexSettings =
+    EhrAppSettings.read(Some(settingsFilename)).scorexSettings
 
   log.debug(s"Starting application with settings \n$settings")
 
@@ -51,11 +54,9 @@ class EhrApp(val settingsFilename: String) extends Application {
       new NodeViewSynchronizer[P, TX, EhrSyncInfo, EhrSyncInfoMessageSpec.type, PMOD, EhrBlockStream, EhrTransactionMemPool]
     (networkControllerRef, nodeViewHolderRef, localInterface, EhrSyncInfoMessageSpec, settings.network, timeProvider)))
 
-//  if (settings.network.nodeName.startsWith("generatorNode")) {
-//    log.info("Starting transactions generation")
-//    val generator: ActorRef = actorSystem.actorOf(Props(new SimpleBoxTransactionGenerator(nodeViewHolderRef)))
-//    generator ! StartGeneration(10 seconds)
-//  }
+  log.info("Starting transactions generation")
+  val transactionGenerator: ActorRef = actorSystem.actorOf(EhrTransactionGenerator.props(nodeViewHolderRef))
+  transactionGenerator ! StartGeneration(10 seconds)
 }
 
 object EhrApp extends App {

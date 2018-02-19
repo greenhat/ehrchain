@@ -39,8 +39,6 @@ class EhrTransactionGenerator(viewHolderRef: ActorRef) extends Actor {
     case GenerateTransaction(wallet) =>
       viewHolderRef ! LocallyGeneratedTransaction[PublicKey25519Proposition, EhrTransaction](generateTx(wallet))
   }
-
-
 }
 
 object EhrTransactionGenerator {
