@@ -61,7 +61,9 @@ object EhrMiner extends App {
 
   final case class CreateBlock(wallet: EhrWallet, memPool: EhrTransactionMemPool, bestBlock: EhrBlock)
 
-  def generateBlock(wallet: EhrWallet, memPool: EhrTransactionMemPool, bestBlock: EhrBlock): Either[Throwable, EhrBlock] =
+  def generateBlock(wallet: EhrWallet,
+                    memPool: EhrTransactionMemPool,
+                    bestBlock: EhrBlock): Either[Throwable, EhrBlock] =
     memPool.take(10).filter(_.validity) match {
       case Nil => Left[Throwable, EhrBlock](new Exception("no valid transactions found"))
       case ref@ _ =>
