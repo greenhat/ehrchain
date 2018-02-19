@@ -11,6 +11,7 @@ import com.ehrchain.state.EhrMinimalState
 import com.ehrchain.wallet.EhrWallet
 import scorex.core.LocalInterface.LocallyGeneratedModifier
 import scorex.core.NodeViewHolder.GetDataFromCurrentView
+import scorex.core.block.Block.BlockId
 import scorex.core.utils.ScorexLogging
 
 class EhrMiner(viewHolderRef: ActorRef) extends Actor with ScorexLogging {
@@ -23,7 +24,10 @@ class EhrMiner(viewHolderRef: ActorRef) extends Actor with ScorexLogging {
     EhrTransactionMemPool,
     CreateBlock]
     {  view: NodeViewHolderCurrentView =>
-      CreateBlock(view.vault, view.pool, view.history.headOption.get.block)
+      CreateBlock(
+        view.vault,
+        view.pool,
+        view.history.headOption.map(_.block.id).getOrElse(EhrBlockStream.GenesisParentId))
     }
 
   override def receive: Receive = stopped
@@ -34,8 +38,8 @@ class EhrMiner(viewHolderRef: ActorRef) extends Actor with ScorexLogging {
       context.become(stopped)
     case MineBlock =>
       viewHolderRef ! getRequiredData
-    case CreateBlock(wallet, pool, bestBlock) =>
-      generateBlock(wallet, pool, bestBlock) match {
+    case CreateBlock(wallet, pool, bestBlockId) =>
+      generateBlock(wallet, pool, bestBlockId) match {
         case Left(error) => log.error(s"error mining block: $error")
         case Right(block) => viewHolderRef ! LocallyGeneratedModifier[EhrBlock](block)
       }
@@ -59,20 +63,20 @@ object EhrMiner extends App {
 
   case object MineBlock
 
-  final case class CreateBlock(wallet: EhrWallet, memPool: EhrTransactionMemPool, bestBlock: EhrBlock)
+  final case class CreateBlock(wallet: EhrWallet, memPool: EhrTransactionMemPool, bestBlockId: BlockId)
 
   def generateBlock(wallet: EhrWallet,
                     memPool: EhrTransactionMemPool,
-                    bestBlock: EhrBlock): Either[Throwable, EhrBlock] =
+                    bestBlockId: BlockId): Either[Throwable, EhrBlock] =
     memPool.take(10).filter(_.validity) match {
       case Nil => Left[Throwable, EhrBlock](new Exception("no valid transactions found"))
       case ref@ _ =>
         Right[Throwable, EhrBlock](EhrBlock.generate(
-          bestBlock.id,
+          bestBlockId,
           TimeStamp @@ Instant.now.getEpochSecond,
           ref.toSeq,
           wallet.blockGeneratorKeyPair,
           // todo difficulty = blockchain.height / X ?
-          0))
+          1))
     }
 }
