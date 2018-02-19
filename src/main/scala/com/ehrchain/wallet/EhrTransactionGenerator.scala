@@ -4,17 +4,16 @@ import java.time.Instant
 
 import akka.actor.{Actor, ActorRef, Props}
 import com.ehrchain.EhrTransactionMemPool
-import com.ehrchain.core.{RecordType, TimeStamp}
+import com.ehrchain.core.{NodeViewHolderCurrentView, RecordType, TimeStamp}
 import com.ehrchain.history.EhrBlockStream
 import com.ehrchain.state.EhrMinimalState
 import com.ehrchain.transaction.{EhrTransaction, EhrTransactionCompanion}
-import com.ehrchain.core.NodeViewHolderCurrentView
 import scorex.core.LocalInterface.LocallyGeneratedTransaction
-import scorex.core.NodeViewHolder.{CurrentView, GetDataFromCurrentView}
+import scorex.core.NodeViewHolder.GetDataFromCurrentView
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 
-import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.FiniteDuration
 
 class EhrTransactionGenerator(viewHolderRef: ActorRef) extends Actor {
 

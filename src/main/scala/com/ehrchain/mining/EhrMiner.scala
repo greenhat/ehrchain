@@ -1,14 +1,19 @@
 package com.ehrchain.mining
 
+import java.time.Instant
+
 import akka.actor.{Actor, ActorRef, Props}
 import com.ehrchain.EhrTransactionMemPool
+import com.ehrchain.block.EhrBlock
 import com.ehrchain.history.EhrBlockStream
 import com.ehrchain.state.EhrMinimalState
 import com.ehrchain.transaction.EhrTransaction
 import com.ehrchain.wallet.EhrWallet
 import scorex.core.NodeViewHolder.{CurrentView, GetDataFromCurrentView}
 import scorex.core.utils.ScorexLogging
-import com.ehrchain.core.NodeViewHolderCurrentView
+import com.ehrchain.core.{NodeViewHolderCurrentView, TimeStamp}
+import examples.trimchain.simulation.OneMinerSimulation.Height
+import scorex.core.LocalInterface.LocallyGeneratedModifier
 
 class EhrMiner(viewHolderRef: ActorRef) extends Actor with ScorexLogging {
   import com.ehrchain.mining.EhrMiner._
@@ -20,7 +25,7 @@ class EhrMiner(viewHolderRef: ActorRef) extends Actor with ScorexLogging {
     EhrTransactionMemPool,
     CreateBlock]
     {  view: NodeViewHolderCurrentView =>
-      CreateBlock(view.vault, view.pool)
+      CreateBlock(view.vault, view.pool, view.history.headOption.get.block)
     }
 
   override def receive: Receive = stopped
@@ -31,10 +36,11 @@ class EhrMiner(viewHolderRef: ActorRef) extends Actor with ScorexLogging {
       context.become(stopped)
     case MineBlock =>
       viewHolderRef ! getRequiredData
-    case CreateBlock(wallet, pool) =>
-      // todo make a block and send it to the view holder
-//      viewHolderRef ! LocallyGeneratedModifier[EhrBlock](block)
-
+    case CreateBlock(wallet, pool, bestBlock) =>
+      generateBlock(wallet, pool, bestBlock) match {
+        case Left(error) => log.error(s"error mining block: $error")
+        case Right(block) => viewHolderRef ! LocallyGeneratedModifier[EhrBlock](block)
+      }
   }
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
@@ -55,5 +61,18 @@ object EhrMiner extends App {
 
   case object MineBlock
 
-  final case class CreateBlock(wallet: EhrWallet, memPool: EhrTransactionMemPool)
+  final case class CreateBlock(wallet: EhrWallet, memPool: EhrTransactionMemPool, bestBlock: EhrBlock)
+
+  def generateBlock(wallet: EhrWallet, memPool: EhrTransactionMemPool, bestBlock: EhrBlock): Either[Throwable, EhrBlock] =
+    memPool.take(10).filter(_.validity) match {
+      case Nil => Left[Throwable, EhrBlock](new Exception("no valid transactions found"))
+      case ref@ _ =>
+        Right[Throwable, EhrBlock](EhrBlock.generate(
+          bestBlock.id,
+          TimeStamp @@ Instant.now.getEpochSecond,
+          ref.toSeq,
+          wallet.blockGeneratorKeyPair,
+          // todo difficulty = blockchain.height / X ?
+          0))
+    }
 }

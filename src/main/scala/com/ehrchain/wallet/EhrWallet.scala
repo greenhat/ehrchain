@@ -29,4 +29,7 @@ final case class EhrWallet() extends Vault[PublicKey25519Proposition, EhrTransac
 
   val providerKeyPair: Curve25519KeyPair =
     PrivateKey25519Companion.generateKeys("provider key".getBytes)
+
+  val blockGeneratorKeyPair: Curve25519KeyPair =
+    PrivateKey25519Companion.generateKeys("block generator key".getBytes)
 }
