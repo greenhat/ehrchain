@@ -8,6 +8,7 @@ import com.ehrchain.core.{RecordType, TimeStamp}
 import com.ehrchain.history.EhrBlockStream
 import com.ehrchain.state.EhrMinimalState
 import com.ehrchain.transaction.{EhrTransaction, EhrTransactionCompanion}
+import com.ehrchain.core.NodeViewHolderCurrentView
 import scorex.core.LocalInterface.LocallyGeneratedTransaction
 import scorex.core.NodeViewHolder.{CurrentView, GetDataFromCurrentView}
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
@@ -19,17 +20,15 @@ class EhrTransactionGenerator(viewHolderRef: ActorRef) extends Actor {
 
   import EhrTransactionGenerator._
 
-  type CurrentViewType = CurrentView[EhrBlockStream, EhrMinimalState, EhrWallet, EhrTransactionMemPool]
-
   private val getRequiredData = GetDataFromCurrentView[
     EhrBlockStream,
     EhrMinimalState,
     EhrWallet,
     EhrTransactionMemPool,
     GenerateTransaction]
-    {  view: CurrentViewType =>
-    EhrTransactionGenerator.GenerateTransaction(view.vault)
-  }
+    {  view: NodeViewHolderCurrentView =>
+      EhrTransactionGenerator.GenerateTransaction(view.vault)
+    }
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   override def receive: Receive = {

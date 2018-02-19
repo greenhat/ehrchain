@@ -1,10 +1,27 @@
 package com.ehrchain.mining
 
 import akka.actor.{Actor, ActorRef, Props}
+import com.ehrchain.EhrTransactionMemPool
+import com.ehrchain.history.EhrBlockStream
+import com.ehrchain.state.EhrMinimalState
+import com.ehrchain.transaction.EhrTransaction
+import com.ehrchain.wallet.EhrWallet
+import scorex.core.NodeViewHolder.{CurrentView, GetDataFromCurrentView}
 import scorex.core.utils.ScorexLogging
+import com.ehrchain.core.NodeViewHolderCurrentView
 
 class EhrMiner(viewHolderRef: ActorRef) extends Actor with ScorexLogging {
   import com.ehrchain.mining.EhrMiner._
+
+  private val getRequiredData = GetDataFromCurrentView[
+    EhrBlockStream,
+    EhrMinimalState,
+    EhrWallet,
+    EhrTransactionMemPool,
+    CreateBlock]
+    {  view: NodeViewHolderCurrentView =>
+      CreateBlock(view.vault, view.pool)
+    }
 
   override def receive: Receive = stopped
 
@@ -13,7 +30,11 @@ class EhrMiner(viewHolderRef: ActorRef) extends Actor with ScorexLogging {
     case StopMining =>
       context.become(stopped)
     case MineBlock =>
-      // todo pack txs from the mem pool into a block and "mine" it
+      viewHolderRef ! getRequiredData
+    case CreateBlock(wallet, pool) =>
+      // todo make a block and send it to the view holder
+//      viewHolderRef ! LocallyGeneratedModifier[EhrBlock](block)
+
   }
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
@@ -33,4 +54,6 @@ object EhrMiner extends App {
   case object StopMining
 
   case object MineBlock
+
+  final case class CreateBlock(wallet: EhrWallet, memPool: EhrTransactionMemPool)
 }
