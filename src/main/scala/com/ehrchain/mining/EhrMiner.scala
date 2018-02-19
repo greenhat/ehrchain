@@ -30,7 +30,7 @@ class EhrMiner(viewHolderRef: ActorRef) extends Actor with ScorexLogging {
         view.history.headOption.map(_.block.id).getOrElse(EhrBlockStream.GenesisParentId))
     }
 
-  override def receive: Receive = stopped
+  override def receive: Receive = mining
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   def mining: Receive = {

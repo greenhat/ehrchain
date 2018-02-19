@@ -12,10 +12,9 @@ class EhrLocalInterface(override val viewHolderRef: ActorRef,
                         minerRef: ActorRef)
   extends LocalInterface[PublicKey25519Proposition, EhrTransaction, EhrBlock] {
 
-  //noinspection ActorMutableStateInspection
-  private var isBlocked: Boolean = false
-
-  override protected def onSuccessfulTransaction(tx: EhrTransaction): Unit = {}
+  override protected def onSuccessfulTransaction(tx: EhrTransaction): Unit = {
+    minerRef ! MineBlock
+  }
 
   override protected def onFailedTransaction(tx: EhrTransaction): Unit = {}
 
@@ -33,20 +32,14 @@ class EhrLocalInterface(override val viewHolderRef: ActorRef,
     log.error("rollback failed")
   }
 
-  override protected def onSemanticallySuccessfulModification(mod: EhrBlock): Unit = {
-    if (!isBlocked) {
-          minerRef ! MineBlock
-    }
-  }
+  override protected def onSemanticallySuccessfulModification(mod: EhrBlock): Unit = {}
 
   override protected def onNoBetterNeighbour(): Unit = {
-    minerRef ! StartMining
-    isBlocked = false
+    log.debug("onNoBetterNeighbour")
   }
 
   override protected def onBetterNeighbourAppeared(): Unit = {
-    minerRef ! StopMining
-    isBlocked = true
+    log.debug("onBetterNeighbourAppeared")
   }
 }
 
