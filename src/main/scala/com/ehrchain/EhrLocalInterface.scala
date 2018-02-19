@@ -35,11 +35,11 @@ class EhrLocalInterface(override val viewHolderRef: ActorRef,
   override protected def onSemanticallySuccessfulModification(mod: EhrBlock): Unit = {}
 
   override protected def onNoBetterNeighbour(): Unit = {
-    log.debug("onNoBetterNeighbour")
+    minerRef ! StartMining
   }
 
   override protected def onBetterNeighbourAppeared(): Unit = {
-    log.debug("onBetterNeighbourAppeared")
+    minerRef ! StopMining
   }
 }
 
