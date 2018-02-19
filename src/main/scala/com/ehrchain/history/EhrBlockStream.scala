@@ -215,7 +215,7 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
   }
 }
 
-final case class Nil(implicit store: EhrHistoryStorage) extends EhrBlockStream {
+final case class Nil()(implicit store: EhrHistoryStorage) extends EhrBlockStream {
   override def storage: EhrHistoryStorage = store
 }
 

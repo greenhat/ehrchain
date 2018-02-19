@@ -54,9 +54,9 @@ class EhrApp(val settingsFilename: String) extends Application {
       new NodeViewSynchronizer[P, TX, EhrSyncInfo, EhrSyncInfoMessageSpec.type, PMOD, EhrBlockStream, EhrTransactionMemPool]
     (networkControllerRef, nodeViewHolderRef, localInterface, EhrSyncInfoMessageSpec, settings.network, timeProvider)))
 
-  log.info("Starting transactions generation")
+  log.debug("Starting transactions generation")
   val transactionGenerator: ActorRef = actorSystem.actorOf(EhrTransactionGenerator.props(nodeViewHolderRef))
-  transactionGenerator ! StartGeneration(10 seconds)
+  transactionGenerator ! StartGeneration(2 seconds)
 }
 
 object EhrApp extends App {
