@@ -5,15 +5,13 @@ import java.time.Instant
 import akka.actor.{Actor, ActorRef, Props}
 import com.ehrchain.EhrTransactionMemPool
 import com.ehrchain.block.EhrBlock
+import com.ehrchain.core.{NodeViewHolderCurrentView, TimeStamp}
 import com.ehrchain.history.EhrBlockStream
 import com.ehrchain.state.EhrMinimalState
-import com.ehrchain.transaction.EhrTransaction
 import com.ehrchain.wallet.EhrWallet
-import scorex.core.NodeViewHolder.{CurrentView, GetDataFromCurrentView}
-import scorex.core.utils.ScorexLogging
-import com.ehrchain.core.{NodeViewHolderCurrentView, TimeStamp}
-import examples.trimchain.simulation.OneMinerSimulation.Height
 import scorex.core.LocalInterface.LocallyGeneratedModifier
+import scorex.core.NodeViewHolder.GetDataFromCurrentView
+import scorex.core.utils.ScorexLogging
 
 class EhrMiner(viewHolderRef: ActorRef) extends Actor with ScorexLogging {
   import com.ehrchain.mining.EhrMiner._
