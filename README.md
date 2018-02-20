@@ -66,8 +66,9 @@ Patient creates a transaction(append-only contract) where puts one of their seco
 Provider using the patient's public key decrypted with it's own private key from provided in the contract encrypts the appended record and signs the transaction with it's private key.   
 
 ## Patient grants read access to their records to a provider
-Patient creates a transaction(read-only contract) with their secondary private keys(encrypted with provider's public key) from corresponding secondary public keys given to providers in the past and used to encrypt appended records. Most likely patient should give all their secondary private keys in case it's desirable for the provider to have access to future patient's records.
+Patient creates a transaction(read-only contract) with their secondary key pairs (encrypted with provider's public key) from corresponding secondary public keys given to providers in the past and used to encrypt appended records. Most likely patient should give all their secondary private keys in case it's desirable for the provider to have access to future patient's records.
 
 ## Read access to patient's records
-Select transactions with all the patient's public keys. Check the transaction's signatures to be signed by patient authorized (through contracts) providers. Use corresponding patient private keys to decrypt the records. 
+Find a read-only contracts(transaction) with provider's public key. For the sake of anonymity provider have to go through all of them decrypting patient's private keys and fetching all patients records and then selecting the one. 
+For a found read-only contract select transactions with all the patient's public keys. Check the transaction's signatures to be signed by authorized (through append-only contracts) providers. Use corresponding patient private keys to decrypt the records. 
 
