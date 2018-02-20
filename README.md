@@ -34,7 +34,6 @@ Store EHR (Electronic Health Records) in the public blockchain. The patients are
 - [ ] provider reads patient's medical records;
 
 ### v 6.0
-- [ ] patient revokes read access to the provider(contract);
 - [ ] patient revokes append access to the provider(contract);
 
 ### v 7.0 
@@ -60,20 +59,19 @@ Using the hierarchical deterministic wallet (BIP-0032 https://github.com/bitcoin
 Provider starts with master key pair generation. 
 
 ## Patient grants append access to the provider
-Patient creates a transaction(append-only contract) where puts one of their secondary public key encrypted with a provider's public key, a provider public key and a statement for the access (term, etc.).
+Patient creates a transaction(append-only contract) where puts one of their secondary public key encrypted with a provider's public key, a provider public key and a statement for the access (term, etc.). Patient signs the transaction with with the secondary private key counterpart.
 
 ## Provider appends a record for the patient
 Provider creates a transaction using the patient's public key decrypted with it's own private key from provided in the contract to encrypt the record and signs the transaction with it's private key. Aforementioned append-only contract is referenced in this transaction. 
 Transaction is valid only if referenced append-only contract for this patient's public key exists in the blockchain and is active. Contract is active if it's terms are valid and there is no revocation contract further in the blockchain that cancels it. Must be checked by a node mining a block as a part of transaction validity check.
 
 ## Patient grants read access to their records to a provider
-Patient creates a transaction(read-only contract) with their secondary key pairs (encrypted with provider's public key) from corresponding secondary public keys given to providers in the past and used to encrypt appended records. Most likely patient should give all their secondary private keys in case it's desirable for the provider to have access to future patient's records.
+Patient creates a transaction(read-only contract) with their secondary key pairs (encrypted with provider's public key) from corresponding secondary public keys given to providers in the past and used to encrypt appended records. Most likely patient should give all their secondary private keys in case it's desirable for the provider to have access to future patient's records. Patient sign the transaction with one of the included secondary private key.
 
 ## Provider reads patient's records
 Find a read-only contracts(transaction) with provider's public key. For the sake of anonymity provider have to go through all of them decrypting patient's private keys and fetching all patients records and then selecting the one. 
 For a found read-only contract select transactions with all the patient's public keys. Check the transaction's signatures to be signed by authorized (through append-only contracts) providers. Use corresponding patient private keys to decrypt the records. 
 
 ## Patient revokes append-only contract
-Patient creates a transaction referencing an append-only contract (by transaction id) signed with the same secondary public key that was used in append-only contract.
+Patient creates a transaction referencing an append-only contract (by transaction id) signed with the same secondary private key that was used in append-only contract.
 
-## Patient revokes read-only contract
