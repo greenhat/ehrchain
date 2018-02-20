@@ -46,7 +46,7 @@ Store EHR (Electronic Health Records) in the public blockchain. The patients are
 - [ ] provider should be able to share their access to the patient's records with another provider;
 
 ### v 10.0
-- [ ] some EHR should not be accessible by the patient (psychotherapy notes, IP, etc.);
+- [ ] some patient's records should not be accessible by the patient (psychotherapy notes, IP, etc.);
 
 ### v 11.0 
 - [ ] eliminate any Patient <-> Doctor relationship in transaction (zero knowledge proofs);
