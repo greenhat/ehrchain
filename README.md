@@ -19,8 +19,8 @@ Store EHR (Electronic Health Records) in the public blockchain. The patients are
 - [x] simple block generation/mining(included transactions validity);
 
 ### v 2.0
-- [ ] patient's inception transaction(registration);
-- [ ] provider's inception transaction(registration);
+- [ ] patient's registration (inception record/transaction);
+- [ ] provider's registration (inception record/transaction);
 
 ### v 3.0
 - [ ] patient grants append access to the provider(contract);
@@ -54,7 +54,6 @@ Store EHR (Electronic Health Records) in the public blockchain. The patients are
 
 ## Patient registration
 Patient starts with master key pair generation. 
-
 Using the hierarchical deterministic wallet (BIP-0032 https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki ) secondary(derived) key pairs are generated to grant access to the providers to append medical records. Provider uses the provided patient's secondary public key to encrypt the appended record.
 
 ## Provider registration
