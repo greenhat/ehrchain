@@ -2,13 +2,16 @@ package com.ehrchain.transaction
 
 import java.time.Instant
 
+import scorex.core.serialization.{BytesSerializable, JsonSerializable, Serializer}
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
+
+import scala.util.Try
 
 trait EhrContractTerm {}
 case object Unlimited extends EhrContractTerm
 final case class ValidUntil(date: Instant) extends EhrContractTerm
 
-trait EhrContract {
+trait EhrContract extends BytesSerializable {
 
   val timestamp: Instant
   val term: EhrContractTerm
@@ -24,7 +27,15 @@ trait EhrContract {
 final case class EhrAppendContract(patientPK: PublicKey25519Proposition,
                                    providerPK: PublicKey25519Proposition,
                                    timestamp: Instant,
-                                   term: EhrContractTerm)
-  extends EhrContract {
+                                   term: EhrContractTerm) extends EhrContract {
+  override type M = EhrAppendContract
 
+  override def serializer: Serializer[M] = EhrAppendContractSerializer
+}
+
+object EhrAppendContractSerializer extends Serializer[EhrAppendContract] {
+
+  override def toBytes(obj: EhrAppendContract): Array[Byte] = ???
+
+  override def parseBytes(bytes: Array[Byte]): Try[EhrAppendContract] = ???
 }
