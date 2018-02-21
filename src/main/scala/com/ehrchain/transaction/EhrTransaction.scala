@@ -16,7 +16,6 @@ import scorex.core.transaction.proof.Signature25519
 @SuppressWarnings(Array("org.wartremover.warts.LeakingSealed"))
 trait EhrTransaction extends Transaction[PublicKey25519Proposition] {
 
-  val subject: PublicKey25519Proposition
   val generator: PublicKey25519Proposition
   val signature: Signature25519
   val timestamp: TimeStamp
