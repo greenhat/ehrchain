@@ -5,7 +5,7 @@ import com.ehrchain.core.{RecordType, TimeStamp}
 import com.ehrchain.history.EhrBlockStream._
 import com.ehrchain.history.{EhrBlockStream, EhrBlockStreamElement, EhrHistoryStorage}
 import com.ehrchain.mining.EhrMiningSettings
-import com.ehrchain.transaction.{EhrTransaction, EhrTransactionCompanion}
+import com.ehrchain.transaction.{EhrTransactionRecord, EhrTransactionCompanion}
 import commons.ExamplesCommonGenerators
 import org.scalacheck.{Arbitrary, Gen}
 import scorex.core.block.Block.BlockId
@@ -28,18 +28,18 @@ with ExamplesCommonGenerators {
 
   lazy val timestampGen: Gen[TimeStamp] = Gen.choose(1, Long.MaxValue).map(TimeStamp @@ _)
 
-  lazy val ehrTransactionGen: Gen[EhrTransaction] = for {
+  lazy val ehrTransactionGen: Gen[EhrTransactionRecord] = for {
     timestamp <- timestampGen
     providerKeys <- key25519Gen
     patientPK <- propositionGen
-    record <- genRecord(1, EhrTransaction.MaxRecordSize)
+    record <- genRecord(1, EhrTransactionRecord.MaxRecordSize)
   } yield EhrTransactionCompanion.generate(patientPK, providerKeys, record, timestamp)
 
-  def ehrTransactionsGen(min: Int, max: Int): Gen[List[EhrTransaction]] = for {
+  def ehrTransactionsGen(min: Int, max: Int): Gen[List[EhrTransactionRecord]] = for {
     txs <- Gen.choose(min, max).flatMap(i => Gen.listOfN(i, ehrTransactionGen))
   } yield txs
 
-  lazy val emptyRecordEhrTransactionGen: Gen[EhrTransaction] = for {
+  lazy val emptyRecordEhrTransactionGen: Gen[EhrTransactionRecord] = for {
     timestamp <- timestampGen
     providerKeys <- key25519Gen
     patientPK <- propositionGen

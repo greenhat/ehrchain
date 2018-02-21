@@ -13,19 +13,19 @@ class EhrTransactionSpec extends PropSpec
   with EhrGenerators {
 
   property("EhrTransaction serialization") {
-    forAll(ehrTransactionGen) { b: EhrTransaction =>
+    forAll(ehrTransactionGen) { b: EhrTransactionRecord =>
       b.serializer.parseBytes(b.bytes).map( _.bytes sameElements b.bytes) shouldEqual Success(true)
     }
   }
 
   property("EhrTransaction validity") {
-    forAll(ehrTransactionGen) { b: EhrTransaction =>
+    forAll(ehrTransactionGen) { b: EhrTransactionRecord =>
       b.validity shouldBe true
     }
   }
 
   property("invalid EhrTransaction(empty record)") {
-    forAll(emptyRecordEhrTransactionGen) { b: EhrTransaction =>
+    forAll(emptyRecordEhrTransactionGen) { b: EhrTransactionRecord =>
       b.validity shouldBe false
     }
   }

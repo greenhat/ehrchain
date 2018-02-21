@@ -7,7 +7,7 @@ import com.ehrchain.EhrTransactionMemPool
 import com.ehrchain.core.{NodeViewHolderCurrentView, RecordType, TimeStamp}
 import com.ehrchain.history.EhrBlockStream
 import com.ehrchain.state.EhrMinimalState
-import com.ehrchain.transaction.{EhrTransaction, EhrTransactionCompanion}
+import com.ehrchain.transaction.{EhrTransactionRecord, EhrTransactionCompanion}
 import scorex.core.LocalInterface.LocallyGeneratedTransaction
 import scorex.core.NodeViewHolder.GetDataFromCurrentView
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
@@ -35,7 +35,7 @@ class EhrTransactionGenerator(viewHolderRef: ActorRef) extends Actor {
       val _ = context.system.scheduler.schedule(duration, duration, viewHolderRef, getRequiredData)
 
     case GenerateTransaction(wallet) =>
-      viewHolderRef ! LocallyGeneratedTransaction[PublicKey25519Proposition, EhrTransaction](generateTx(wallet))
+      viewHolderRef ! LocallyGeneratedTransaction[PublicKey25519Proposition, EhrTransactionRecord](generateTx(wallet))
   }
 }
 
@@ -47,7 +47,7 @@ object EhrTransactionGenerator {
 
   final case class GenerateTransaction(wallet: EhrWallet)
 
-  def generateTx(wallet: EhrWallet): EhrTransaction =
+  def generateTx(wallet: EhrWallet): EhrTransactionRecord =
     EhrTransactionCompanion.generate(
       wallet.patientPK,
       wallet.providerKeyPair,
