@@ -28,7 +28,7 @@ with ExamplesCommonGenerators {
 
   lazy val timestampGen: Gen[TimeStamp] = Gen.choose(1, Long.MaxValue).map(TimeStamp @@ _)
 
-  lazy val ehrTransactionGen: Gen[EhrRecordTransaction] = for {
+  lazy val ehrRecordTransactionGen: Gen[EhrRecordTransaction] = for {
     timestamp <- timestampGen
     providerKeys <- key25519Gen
     patientPK <- propositionGen
@@ -36,7 +36,7 @@ with ExamplesCommonGenerators {
   } yield EhrRecordTransactionCompanion.generate(patientPK, providerKeys, record, timestamp)
 
   def ehrTransactionsGen(min: Int, max: Int): Gen[List[EhrRecordTransaction]] = for {
-    txs <- Gen.choose(min, max).flatMap(i => Gen.listOfN(i, ehrTransactionGen))
+    txs <- Gen.choose(min, max).flatMap(i => Gen.listOfN(i, ehrRecordTransactionGen))
   } yield txs
 
   lazy val emptyRecordEhrTransactionGen: Gen[EhrRecordTransaction] = for {
