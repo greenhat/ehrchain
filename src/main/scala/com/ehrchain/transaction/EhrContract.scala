@@ -6,6 +6,6 @@ trait EhrContract {
 }
 
 final case class EhrAppendContract(patientPK: PublicKey25519Proposition,
-                             providerPK: PublicKey25519Proposition)
+                                   providerPK: PublicKey25519Proposition)
   extends EhrContract {
 }
