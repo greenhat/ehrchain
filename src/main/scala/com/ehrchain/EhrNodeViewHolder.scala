@@ -5,7 +5,7 @@ import com.ehrchain.block.{EhrBlock, EhrBlockSerializer}
 import com.ehrchain.core.{RecordType, TimeStamp}
 import com.ehrchain.history.{EhrBlockStream, EhrHistoryStorage, EhrSyncInfo}
 import com.ehrchain.state.EhrMinimalState
-import com.ehrchain.transaction.{EhrTransaction, EhrTransactionCompanion, EhrTransactionSerializer}
+import com.ehrchain.transaction.{EhrTransaction, EhrRecordTransactionCompanion, EhrRecordTransactionSerializer}
 import com.ehrchain.wallet.EhrWallet
 import scorex.core.serialization.Serializer
 import scorex.core.transaction.Transaction
@@ -39,7 +39,8 @@ class EhrNodeViewHolder extends NodeViewHolder[PublicKey25519Proposition, EhrTra
     */
   override val modifierSerializers: Map[ModifierTypeId, Serializer[_ <: NodeViewModifier]] =
     Map(EhrBlock.ModifierType -> EhrBlockSerializer,
-      Transaction.ModifierTypeId -> EhrTransactionSerializer)
+      // todo use generic EhrTransaction serializer
+      Transaction.ModifierTypeId -> EhrRecordTransactionSerializer)
 }
 
 object EhrNodeViewHolder {
@@ -54,7 +55,7 @@ object EhrNodeViewHolder {
     val timestamp = TimeStamp @@ 1518788012L
     val genesisRecord = RecordType @@ "genesis record".getBytes
     val genesisTxs = Seq(
-      EhrTransactionCompanion.generate(genesisPatientAccount._2, genesisProviderAccount, genesisRecord,
+      EhrRecordTransactionCompanion.generate(genesisPatientAccount._2, genesisProviderAccount, genesisRecord,
         timestamp)
     )
     val genesisBlock = EhrBlock.generate(EhrBlockStream.GenesisParentId, timestamp, genesisTxs,

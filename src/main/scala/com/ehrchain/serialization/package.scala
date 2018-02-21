@@ -1,7 +1,7 @@
 package com.ehrchain
 
 import com.ehrchain.core.TimeStamp
-import com.ehrchain.transaction.{EhrTransaction, EhrTransactionSerializer}
+import com.ehrchain.transaction.{EhrTransaction, EhrRecordTransactionSerializer}
 import com.google.common.primitives.{Bytes, Ints, Longs}
 import examples.commons.Nonce
 import scorex.core.serialization.Serializer
@@ -26,6 +26,7 @@ package object serialization {
       Try { Nonce @@ Longs.fromByteArray(bytes) }
   }
 
+  // todo use generic EhrTransaction serializer
   implicit val transactionsSerializer: Serializer[Seq[EhrTransaction]] = new Serializer[Seq[EhrTransaction]] {
     override def toBytes(txs: Seq[EhrTransaction]): Array[Byte] =
       Bytes.concat(
@@ -47,7 +48,7 @@ package object serialization {
           val txSize = Ints.fromByteArray(bytes.slice(0, txSizeEnd))
           val txStart = txSizeEnd
           for {
-            tx <- EhrTransactionSerializer.parseBytes(bytes.slice(txStart, txStart + txSize))
+            tx <- EhrRecordTransactionSerializer.parseBytes(bytes.slice(txStart, txStart + txSize))
             txs <- loop(bytes.slice(txStart + txSize, bytes.length), txQtyLeft - 1)
           } yield txs ++ Seq(tx)
       }

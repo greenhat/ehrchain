@@ -13,15 +13,15 @@ import scorex.crypto.signatures.{Curve25519, PublicKey, Signature}
 
 import scala.util.Try
 
-final case class EhrTransactionRecord(generator: PublicKey25519Proposition,
-                                 subject: PublicKey25519Proposition,
-                                 record: RecordType,
-                                 signature: Signature25519,
-                                 timestamp: TimeStamp) extends EhrTransaction {
+final case class EhrRecordTransaction(generator: PublicKey25519Proposition,
+                                      subject: PublicKey25519Proposition,
+                                      record: RecordType,
+                                      signature: Signature25519,
+                                      timestamp: TimeStamp) extends EhrTransaction {
 
-  override type M = EhrTransactionRecord
+  override type M = EhrRecordTransaction
 
-  override def serializer: Serializer[EhrTransactionRecord] = EhrTransactionSerializer
+  override def serializer: Serializer[EhrRecordTransaction] = EhrRecordTransactionSerializer
 
   override lazy val json: Json = Map(
     "id" -> Base58.encode(id).asJson,
@@ -33,13 +33,13 @@ final case class EhrTransactionRecord(generator: PublicKey25519Proposition,
   ).asJson
 
   override lazy val messageToSign: Array[Byte] =
-    EhrTransactionRecord.generateMessageToSign(timestamp, subject, generator, record)
+    EhrRecordTransaction.generateMessageToSign(timestamp, subject, generator, record)
 
   override def validity: Boolean =
-    super.validity && record.nonEmpty && record.length <= EhrTransactionRecord.MaxRecordSize
+    super.validity && record.nonEmpty && record.length <= EhrRecordTransaction.MaxRecordSize
 }
 
-object EhrTransactionRecord {
+object EhrRecordTransaction {
 
   val MaxRecordSize: Int = 1024
 
@@ -55,9 +55,9 @@ object EhrTransactionRecord {
     )
 }
 
-object EhrTransactionSerializer extends Serializer[EhrTransactionRecord] {
+object EhrRecordTransactionSerializer extends Serializer[EhrRecordTransaction] {
 
-  override def toBytes(obj: EhrTransactionRecord): Array[Byte] = {
+  override def toBytes(obj: EhrRecordTransaction): Array[Byte] = {
     Bytes.concat(
       Longs.toByteArray(obj.timestamp),
       obj.generator.bytes,
@@ -67,7 +67,7 @@ object EhrTransactionSerializer extends Serializer[EhrTransactionRecord] {
     )
   }
 
-  override def parseBytes(bytes: Array[Byte]): Try[EhrTransactionRecord] = Try {
+  override def parseBytes(bytes: Array[Byte]): Try[EhrRecordTransaction] = Try {
     val timestamp = TimeStamp @@ Longs.fromByteArray(bytes.slice(0, 8))
     val providerStart = 8
     val providerEnd = providerStart + Curve25519.KeyLength
@@ -82,22 +82,22 @@ object EhrTransactionSerializer extends Serializer[EhrTransactionRecord] {
     val signature = Signature25519(Signature @@ bytes.slice(signatureStart, signatureEnd))
     val recordStart = signatureEnd
     val record = RecordType @@ bytes.slice(recordStart, bytes.length)
-    EhrTransactionRecord(provider, patient, record, signature, timestamp)
+    EhrRecordTransaction(provider, patient, record, signature, timestamp)
   }
 }
 
-object EhrTransactionCompanion {
+object EhrRecordTransactionCompanion {
 
   // todo move to test (generators)?
   def generate(patientPK: PublicKey25519Proposition,
                providerKeys: (PrivateKey25519, PublicKey25519Proposition),
                record: RecordType,
-               timestamp: TimeStamp): EhrTransactionRecord = {
+               timestamp: TimeStamp): EhrRecordTransaction = {
     val providerPK = providerKeys._2
     val providerSK = providerKeys._1
-    val messageToSign = EhrTransactionRecord.generateMessageToSign(timestamp, patientPK, providerPK, record)
+    val messageToSign = EhrRecordTransaction.generateMessageToSign(timestamp, patientPK, providerPK, record)
     val signature = PrivateKey25519Companion.sign(providerSK, messageToSign)
-    EhrTransactionRecord(providerPK, patientPK, record, signature, timestamp)
+    EhrRecordTransaction(providerPK, patientPK, record, signature, timestamp)
   }
 }
 

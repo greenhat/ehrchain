@@ -2,7 +2,7 @@ package com.ehrchain.block
 
 import com.ehrchain.core._
 import com.ehrchain.serialization._
-import com.ehrchain.transaction.{EhrTransaction, EhrTransactionRecord}
+import com.ehrchain.transaction.{EhrTransaction, EhrRecordTransaction}
 import com.google.common.primitives.{Bytes, Ints, Longs}
 import examples.commons.Nonce
 import io.circe.Json
