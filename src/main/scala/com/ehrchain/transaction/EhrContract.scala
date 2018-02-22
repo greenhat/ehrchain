@@ -2,7 +2,7 @@ package com.ehrchain.transaction
 
 import java.time.Instant
 
-import scorex.core.serialization.{BytesSerializable, JsonSerializable, Serializer}
+import scorex.core.serialization.{BytesSerializable, Serializer}
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 
 import scala.util.Try

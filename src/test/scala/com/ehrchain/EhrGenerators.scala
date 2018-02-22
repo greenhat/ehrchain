@@ -1,11 +1,12 @@
 package com.ehrchain
 
-import com.ehrchain.block.{EhrBlock}
+import java.time.Instant
+
+import com.ehrchain.block.EhrBlock
 import com.ehrchain.core.{RecordType, TimeStamp}
 import com.ehrchain.history.EhrBlockStream._
 import com.ehrchain.history.{EhrBlockStream, EhrBlockStreamElement, EhrHistoryStorage}
-import com.ehrchain.mining.EhrMiningSettings
-import com.ehrchain.transaction.{EhrRecordTransaction, EhrRecordTransactionCompanion}
+import com.ehrchain.transaction._
 import commons.ExamplesCommonGenerators
 import org.scalacheck.{Arbitrary, Gen}
 import scorex.core.block.Block.BlockId
@@ -20,13 +21,20 @@ with ExamplesCommonGenerators {
 
   val MiningDifficulty: Int = 0
 
-  def genRecord(minSize: Int, maxSize: Int): Gen[RecordType] = {
+  def genRecord(minSize: Int, maxSize: Int): Gen[RecordType] =
     Gen.choose(minSize, maxSize) flatMap { sz =>
       Gen.listOfN(sz, Arbitrary.arbitrary[Byte]).map(RecordType @@  _.toArray)
     }
-  }
+
+  def ehrAppendContractGen: Gen[EhrAppendContract] = for {
+    patientPK <- propositionGen
+    providerPK <- propositionGen
+    timestamp <- instantGen
+  } yield EhrAppendContract(patientPK, providerPK, timestamp, Unlimited)
 
   lazy val timestampGen: Gen[TimeStamp] = Gen.choose(1, Long.MaxValue).map(TimeStamp @@ _)
+  lazy val instantGen: Gen[Instant] =
+    Gen.choose(Instant.EPOCH.getEpochSecond, Instant.MAX.getEpochSecond).map(Instant.ofEpochSecond(_))
 
   lazy val ehrRecordTransactionGen: Gen[EhrRecordTransaction] = for {
     timestamp <- timestampGen
@@ -34,6 +42,12 @@ with ExamplesCommonGenerators {
     patientPK <- propositionGen
     record <- genRecord(1, EhrRecordTransaction.MaxRecordSize)
   } yield EhrRecordTransactionCompanion.generate(patientPK, providerKeys, record, timestamp)
+
+  lazy val ehrAppendContractTransactionGen: Gen[EhrContractTransaction] = for {
+    timestamp <- timestampGen
+    generatorKeys <- key25519Gen
+    appendContract <- ehrAppendContractGen
+  } yield EhrContractTransaction.generate(generatorKeys, appendContract, timestamp)
 
   def ehrTransactionsGen(min: Int, max: Int): Gen[List[EhrRecordTransaction]] = for {
     txs <- Gen.choose(min, max).flatMap(i => Gen.listOfN(i, ehrRecordTransactionGen))

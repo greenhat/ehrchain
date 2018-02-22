@@ -1,11 +1,12 @@
 package com.ehrchain.transaction
 
-import com.ehrchain.core.TimeStamp
+import com.ehrchain.core.{AsymmCipherKeyPair, Curve25519KeyPair, TimeStamp}
 import com.google.common.primitives.{Bytes, Longs}
 import io.circe.Json
 import scorex.core.serialization.Serializer
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scorex.core.transaction.proof.Signature25519
+import scorex.core.transaction.state.PrivateKey25519Companion
 
 final case class EhrContractTransaction(generator: PublicKey25519Proposition,
                                         signature: Signature25519,
@@ -35,4 +36,12 @@ object EhrContractTransaction {
       generator.bytes,
       contract.bytes
     )
+
+  def generate(generatorKeys: Curve25519KeyPair,
+               contract: EhrContract,
+               timestamp: TimeStamp): EhrContractTransaction = {
+    val messageToSign = generateMessageToSign(timestamp, generatorKeys.publicKey, contract)
+    val signature = PrivateKey25519Companion.sign(generatorKeys.privateKey, messageToSign)
+    EhrContractTransaction(generatorKeys.publicKey, signature, contract, timestamp)
+  }
 }

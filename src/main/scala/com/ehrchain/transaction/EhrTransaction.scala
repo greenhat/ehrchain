@@ -18,6 +18,7 @@ trait EhrTransaction extends Transaction[PublicKey25519Proposition] {
 
   val generator: PublicKey25519Proposition
   val signature: Signature25519
+  // todo switch to Instant
   val timestamp: TimeStamp
 
   def validity: Boolean =
