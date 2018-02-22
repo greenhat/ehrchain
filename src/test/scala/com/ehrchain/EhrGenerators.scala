@@ -26,7 +26,7 @@ with ExamplesCommonGenerators {
       Gen.listOfN(sz, Arbitrary.arbitrary[Byte]).map(RecordType @@  _.toArray)
     }
 
-  def ehrAppendContractGen: Gen[EhrAppendContract] = for {
+  def ehrAppendContractUnlimitedGen: Gen[EhrAppendContract] = for {
     patientPK <- propositionGen
     providerPK <- propositionGen
     timestamp <- instantGen
@@ -46,7 +46,7 @@ with ExamplesCommonGenerators {
   lazy val ehrAppendContractTransactionGen: Gen[EhrContractTransaction] = for {
     timestamp <- timestampGen
     generatorKeys <- key25519Gen
-    appendContract <- ehrAppendContractGen
+    appendContract <- ehrAppendContractUnlimitedGen
   } yield EhrContractTransaction.generate(generatorKeys, appendContract, timestamp)
 
   def ehrTransactionsGen(min: Int, max: Int): Gen[List[EhrRecordTransaction]] = for {

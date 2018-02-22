@@ -13,7 +13,15 @@ class EhrContractTransactionSpec extends PropSpec
   with EhrGenerators {
 
   property("EhrContractTransaction serialization") {
-    // todo implement
+    forAll(ehrAppendContractTransactionGen) { b: EhrContractTransaction =>
+      b.serializer.parseBytes(b.bytes).map( _.bytes sameElements b.bytes) shouldEqual Success(true)
+    }
+  }
+
+  property("EhrContractTransaction serialization with validation afterwards") {
+    forAll(ehrAppendContractTransactionGen) { b: EhrContractTransaction =>
+      b.serializer.parseBytes(b.bytes).map(_.validity) shouldEqual Success(true)
+    }
   }
 
   property("EhrContractTransaction validity") {
@@ -21,5 +29,4 @@ class EhrContractTransactionSpec extends PropSpec
       b.validity shouldBe true
     }
   }
-
 }

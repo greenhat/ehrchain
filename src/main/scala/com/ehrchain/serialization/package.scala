@@ -1,7 +1,10 @@
 package com.ehrchain
 
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
+import java.time.Instant
+
 import com.ehrchain.core.TimeStamp
-import com.ehrchain.transaction.{EhrTransaction, EhrRecordTransactionSerializer}
+import com.ehrchain.transaction.{EhrRecordTransactionSerializer, EhrTransaction}
 import com.google.common.primitives.{Bytes, Ints, Longs}
 import examples.commons.Nonce
 import scorex.core.serialization.Serializer
@@ -17,6 +20,13 @@ package object serialization {
 
     override def parseBytes(bytes: Array[Byte]): Try[TimeStamp] =
       Try { TimeStamp @@ Longs.fromByteArray(bytes) }
+  }
+
+  implicit val instantSerializer: Serializer[Instant] = new Serializer[Instant] {
+    override def toBytes(obj: Instant): Array[Byte] = Longs.toByteArray(obj.toEpochMilli)
+
+    override def parseBytes(bytes: Array[Byte]): Try[Instant] =
+      Try { Instant.ofEpochMilli(Longs.fromByteArray(bytes)) }
   }
 
   implicit val nonceSerializer: Serializer[Nonce] = new Serializer[Nonce] {
@@ -61,4 +71,28 @@ package object serialization {
     PublicKey25519PropositionSerializer
 
   def serialize[T](t: T)(implicit serializer: Serializer[T]): Array[Byte] = serializer.toBytes(t)
+
+  def serializeToBytes[T <: Serializable](t: T): Array[Byte] = {
+    val stream = new ByteArrayOutputStream()
+    val oos = new ObjectOutputStream(stream)
+    oos.writeObject(t)
+    oos.close()
+    stream.toByteArray
+  }
+
+  @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf"))
+  def deserializeFromBytes[T <: Serializable](bytes: Array[Byte]): Try[T] = Try {
+    val ois = new ObjectInputStream(new ByteArrayInputStream(bytes))
+    val value = ois.readObject.asInstanceOf[T]
+    ois.close()
+    value
+  }
+
+  def byteSerializer[T <: Serializable]: Serializer[T] = {
+    class ConcreteSerializer extends Serializer[T] {
+      override def toBytes(obj: T): Array[Byte] = serializeToBytes(obj)
+      override def parseBytes(bytes: Array[Byte]): Try[T] = deserializeFromBytes[T](bytes)
+    }
+    new ConcreteSerializer
+  }
 }

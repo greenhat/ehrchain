@@ -1,6 +1,7 @@
 package com.ehrchain.transaction
 
-import com.ehrchain.core.{AsymmCipherKeyPair, Curve25519KeyPair, TimeStamp}
+import com.ehrchain.core.{Curve25519KeyPair, TimeStamp}
+import com.ehrchain.serialization._
 import com.google.common.primitives.{Bytes, Longs}
 import io.circe.Json
 import scorex.core.serialization.Serializer
@@ -8,13 +9,14 @@ import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scorex.core.transaction.proof.Signature25519
 import scorex.core.transaction.state.PrivateKey25519Companion
 
+@SerialVersionUID(0L)
 final case class EhrContractTransaction(generator: PublicKey25519Proposition,
                                         signature: Signature25519,
                                         contract: EhrContract,
                                         timestamp: TimeStamp) extends EhrTransaction {
   override type M = this.type
 
-  override def serializer: Serializer[M] = ???
+  override def serializer: Serializer[M] = byteSerializer[M]
 
   override def json: Json = ???
 
