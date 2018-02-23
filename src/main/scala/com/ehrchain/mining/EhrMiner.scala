@@ -9,8 +9,8 @@ import com.ehrchain.core.{NodeViewHolderCurrentView, TimeStamp}
 import com.ehrchain.history.EhrBlockStream
 import com.ehrchain.state.EhrMinimalState
 import com.ehrchain.wallet.EhrWallet
-import scorex.core.LocalInterface.LocallyGeneratedModifier
-import scorex.core.NodeViewHolder.GetDataFromCurrentView
+import scorex.core.LocallyGeneratedModifiersMessages.ReceivableMessages.LocallyGeneratedModifier
+import scorex.core.NodeViewHolder.ReceivableMessages.GetDataFromCurrentView
 import scorex.core.block.Block.BlockId
 import scorex.core.utils.ScorexLogging
 

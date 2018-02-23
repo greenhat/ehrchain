@@ -8,8 +8,8 @@ import com.ehrchain.core.{NodeViewHolderCurrentView, RecordType, TimeStamp}
 import com.ehrchain.history.EhrBlockStream
 import com.ehrchain.state.EhrMinimalState
 import com.ehrchain.transaction.{EhrRecordTransaction, EhrRecordTransactionCompanion}
-import scorex.core.LocalInterface.LocallyGeneratedTransaction
-import scorex.core.NodeViewHolder.GetDataFromCurrentView
+import scorex.core.LocallyGeneratedModifiersMessages.ReceivableMessages.LocallyGeneratedTransaction
+import scorex.core.NodeViewHolder.ReceivableMessages.GetDataFromCurrentView
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 
 import scala.concurrent.ExecutionContext.Implicits.global
