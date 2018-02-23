@@ -32,9 +32,24 @@ with ExamplesCommonGenerators {
     timestamp <- instantGen
   } yield EhrAppendContract(patientPK, providerPK, timestamp, Unlimited)
 
-  lazy val timestampGen: Gen[TimeStamp] = Gen.choose(1, Long.MaxValue).map(TimeStamp @@ _)
+  lazy val timestampGen: Gen[TimeStamp] =
+    Gen.choose(Instant.EPOCH.getEpochSecond, Instant.now.getEpochSecond).map(TimeStamp @@ _)
+
   lazy val instantGen: Gen[Instant] =
-    Gen.choose(Instant.EPOCH.getEpochSecond, Instant.MAX.getEpochSecond).map(Instant.ofEpochSecond(_))
+    Gen.choose(Instant.EPOCH.getEpochSecond, Instant.now.getEpochSecond).map(Instant.ofEpochSecond(_))
+
+  def ehrTransactionPairGen: Gen[List[EhrTransaction]] = for {
+    timestamp <- timestampGen
+    providerKeys <- key25519Gen
+    patientKeys <- key25519Gen
+    record <- genRecord(1, EhrRecordTransaction.MaxRecordSize)
+  } yield List[EhrTransaction](
+    EhrContractTransaction.generate(
+      patientKeys,
+      EhrAppendContract(patientKeys._2, providerKeys._2, Instant.ofEpochSecond(timestamp), Unlimited),
+      timestamp),
+    EhrRecordTransactionCompanion.generate(patientKeys._2, providerKeys, record, timestamp)
+  )
 
   lazy val ehrRecordTransactionGen: Gen[EhrRecordTransaction] = for {
     timestamp <- timestampGen
@@ -49,9 +64,9 @@ with ExamplesCommonGenerators {
     appendContract <- ehrAppendContractUnlimitedGen
   } yield EhrContractTransaction.generate(generatorKeys, appendContract, timestamp)
 
-  def ehrTransactionsGen(min: Int, max: Int): Gen[List[EhrRecordTransaction]] = for {
-    txs <- Gen.choose(min, max).flatMap(i => Gen.listOfN(i, ehrRecordTransactionGen))
-  } yield txs
+  def ehrTransactionsGen(min: Int, max: Int): Gen[List[EhrTransaction]] = for {
+    txs <- Gen.choose(min, max).flatMap(i => Gen.listOfN(i / 2, ehrTransactionPairGen))
+  } yield txs.flatten
 
   lazy val emptyRecordEhrTransactionGen: Gen[EhrRecordTransaction] = for {
     timestamp <- timestampGen
@@ -63,30 +78,22 @@ with ExamplesCommonGenerators {
   lazy val ehrBlockGen: Gen[EhrBlock] = for {
     timestamp <- timestampGen
     generatorKeys <- key25519Gen
-    transactions <- ehrTransactionsGen(1, MaxTransactionQtyInBlock)
+    transactions <- ehrTransactionsGen(2, MaxTransactionQtyInBlock)
     parentId <- modifierIdGen
   } yield EhrBlock.generate(parentId, timestamp,transactions, generatorKeys, MiningDifficulty)
 
-  lazy val zeroTxsEhrBlockGen: Gen[EhrBlock] = for {
-    timestamp <- timestampGen
-    generatorKeys <- key25519Gen
-    transactions <- ehrTransactionsGen(0, 0)
-    parentId <- modifierIdGen
-  } yield EhrBlock.generate(parentId, timestamp, transactions, generatorKeys, MiningDifficulty)
-
-  def generateGenesisBlock: EhrBlock = {
+  def generateGenesisBlock: EhrBlock =
     EhrBlock.generate(
       EhrBlockStream.GenesisParentId,
       timestampGen.sample.get,
-      ehrTransactionsGen(1, MaxTransactionQtyInBlock).sample.get,
+      ehrTransactionsGen(2, MaxTransactionQtyInBlock).sample.get,
       key25519Gen.sample.get, MiningDifficulty)
-  }
 
   def generateBlock(parentId: BlockId): EhrBlock =
     EhrBlock.generate(
       parentId,
       timestampGen.sample.get,
-      ehrTransactionsGen(1, MaxTransactionQtyInBlock).sample.get,
+      ehrTransactionsGen(2, MaxTransactionQtyInBlock).sample.get,
       key25519Gen.sample.get, MiningDifficulty)
 
   def generateBlockStream(height: Int): EhrBlockStream = {
