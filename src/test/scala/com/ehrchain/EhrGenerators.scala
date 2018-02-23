@@ -97,22 +97,22 @@ with ExamplesCommonGenerators {
       key25519Gen.sample.get, MiningDifficulty)
 
   def generateBlockStream(height: Int): EhrBlockStream = {
-    def blockList(element: EhrBlockStreamElement, elements: List[EhrBlockStreamElement]): List[EhrBlockStreamElement] = {
+    require(height > 0)
+    def blockList(block: EhrBlock, elements: List[EhrBlock]): List[EhrBlock] = {
       if (elements.lengthCompare(height) < 0)
-        blockList(EhrBlockStreamElement(generateBlock(element.block.id), element.blockHeight + 1), elements :+ element)
+        blockList(generateBlock(block.id), elements :+ block)
       else
         elements
     }
-    val reversedBlockList = blockList(EhrBlockStreamElement(generateGenesisBlock, 1), List())
-    blockStreamFromElements(reversedBlockList.reverse)(new EhrHistoryStorage())
+    blockStreamFromElements(blockList(generateGenesisBlock, List()))(new EhrHistoryStorage())
   }
 
   @SuppressWarnings(Array("org.wartremover.warts.ImplicitParameter"))
-  def blockStreamFromElements(elements: List[EhrBlockStreamElement])(implicit storage: EhrHistoryStorage): EhrBlockStream = {
-    def loop(rest: List[EhrBlockStreamElement]): EhrBlockStream = rest match {
-      case h :: t => cons(h, loop(t))
-      case _ => empty
+  def blockStreamFromElements(blocks: List[EhrBlock])(implicit storage: EhrHistoryStorage): EhrBlockStream = {
+    def loop(stream: EhrBlockStream, rest: List[EhrBlock]): EhrBlockStream = rest match {
+      case h :: t => loop(stream.append(h).get._1, t)
+      case Nil => stream
     }
-    loop(elements)
+    loop(empty, blocks)
   }
 }

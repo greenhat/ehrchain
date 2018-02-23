@@ -28,9 +28,9 @@ final case class EhrMinimalState(override val version: VersionTag) extends Minim
   }
 
   override def validate(mod: EhrBlock): Try[Unit] = Try {
-    // todo validate each tx
+    // todo validate each tx in the block
     require(mod.parentId sameElements version)
-  }.recoverWith{case t => log.warn(s"Not valid modifier ${mod.encodedId}", t); Failure[Unit](t)}
+  }.recoverWith{case t => log.warn(s"Not a valid modifier ${mod.encodedId}", t); Failure[Unit](t)}
 
   override def maxRollbackDepth: Int = ???
 }

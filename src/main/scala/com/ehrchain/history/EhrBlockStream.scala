@@ -55,10 +55,11 @@ trait EhrBlockStream extends History[EhrBlock, EhrSyncInfo, EhrBlockStream]
     */
   override def append(block: EhrBlock): Try[(EhrBlockStream, History.ProgressInfo[EhrBlock])] = {
     log.debug(s"Trying to append block ${Base58.encode(block.id)} to history")
-    if (block.validity) {
+    if (block.validity
+      && (isGenesisBlock(block) || storage.modifierById(block.parentId).nonEmpty)) {
       storage.append(block)
       Try {
-        (cons(EhrBlockStreamElement(block, storage.height), this),
+        (cons(EhrBlockStreamElement(block, storage.heightOf(block.id).getOrElse(0L)), this),
           ProgressInfo(branchPoint = None,
             toRemove = Seq[EhrBlock](),
             toApply = Some(block),
@@ -267,4 +268,6 @@ object EhrBlockStream {
       loop(() => blockId, storage.height).result
     ).getOrElse(empty(storage))
   }
+
+  def isGenesisBlock(block: EhrBlock): Boolean = block.parentId sameElements GenesisParentId
 }

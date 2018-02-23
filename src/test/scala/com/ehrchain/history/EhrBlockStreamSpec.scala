@@ -3,7 +3,9 @@ package com.ehrchain.history
 import com.ehrchain.EhrGenerators
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{FlatSpec, Matchers}
+import scorex.core.ModifierId
 import scorex.core.consensus.History.HistoryComparisonResult
+import scorex.crypto.hash.Blake2b256
 
 @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
 class EhrBlockStreamSpec extends FlatSpec
@@ -100,5 +102,21 @@ class EhrBlockStreamSpec extends FlatSpec
   it should "have compare the same" in {
     val fullStream = generateBlockStream(3)
     fullStream.compare(fullStream.syncInfo) shouldEqual HistoryComparisonResult.Equal
+  }
+
+  it should "append a block with existing parent" in {
+    val stream = generateBlockStream(3)
+    stream.headOption
+      .map(e => generateBlock(e.block.id))
+      .map(stream.append)
+      .map(_.isSuccess) shouldBe Some(true)
+  }
+
+  it should "fail to append a block with unknown parent" in {
+    val stream = generateBlockStream(3)
+    stream.headOption
+      .map(e => generateBlock(ModifierId @@ Blake2b256("some id".getBytes)))
+      .map(stream.append)
+      .map(_.isFailure) shouldBe Some(true)
   }
 }
