@@ -47,8 +47,20 @@ Store EHR (Electronic Health Records) in the public blockchain. The patients are
 ### v 10.0 
 - [ ] eliminate any Patient <-> Doctor relationship in transaction (zero knowledge proofs);
 
-## Generic transaction validation
+## Transaction validation
+### Semantic validity 
+#### Signature 
 Originator of the transaction (`generator` property with their public key) makes a signature of the transaction with their private key and includes it as `signature` in the transaction.
+### Generic validity
+#### Record transaction authorization (`EhrRecordTransaction`)
+For each record transaction a valid append-only contract must exist. 
+
+## Block validation
+### Semantic validity
+#### Signature
+Generator of the block (`generator` property with their public key) makes a signature of the block with their private key and includes it as `signature` in the block.
+#### PoW
+Each block must have such `nonce` value so hash of the block has X leading zeroes (determined by current difficulty).
 
 ## Patient registration
 Patient starts with master key pair generation. 
