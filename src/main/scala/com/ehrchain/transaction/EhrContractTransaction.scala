@@ -20,8 +20,8 @@ final case class EhrContractTransaction(generator: PublicKey25519Proposition,
 
   override def json: Json = ???
 
-  override def validity: Boolean =
-    super.validity && contract.validity.exists(_ == true)
+  override def semanticValidity: Boolean =
+    super.semanticValidity && contract.validity.exists(_ == true)
 
   override val messageToSign: Array[Byte] =
     EhrContractTransaction.generateMessageToSign(timestamp, generator, contract)

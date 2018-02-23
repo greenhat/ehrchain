@@ -23,10 +23,12 @@ final case class EhrMinimalState(override val version: VersionTag) extends Minim
   override def rollbackTo(version: VersionTag): Try[EhrMinimalState] = ???
 
   override def validate(tx: EhrTransaction): Try[Unit] = Try {
-    require(tx.validity)
+    // todo validate record transaction by verifying it against a valid contract
+    require(tx.semanticValidity)
   }
 
   override def validate(mod: EhrBlock): Try[Unit] = Try {
+    // todo validate each tx
     require(mod.parentId sameElements version)
   }.recoverWith{case t => log.warn(s"Not valid modifier ${mod.encodedId}", t); Failure[Unit](t)}
 

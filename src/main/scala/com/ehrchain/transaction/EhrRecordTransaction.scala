@@ -35,8 +35,8 @@ final case class EhrRecordTransaction(generator: PublicKey25519Proposition,
   override lazy val messageToSign: Array[Byte] =
     EhrRecordTransaction.generateMessageToSign(timestamp, subject, generator, record)
 
-  override def validity: Boolean =
-    super.validity && record.nonEmpty && record.length <= EhrRecordTransaction.MaxRecordSize
+  override def semanticValidity: Boolean =
+    super.semanticValidity && record.nonEmpty && record.length <= EhrRecordTransaction.MaxRecordSize
 }
 
 object EhrRecordTransaction {

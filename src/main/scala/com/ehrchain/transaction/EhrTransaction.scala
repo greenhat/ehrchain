@@ -21,6 +21,6 @@ trait EhrTransaction extends Transaction[PublicKey25519Proposition] {
   // todo switch to Instant
   val timestamp: TimeStamp
 
-  def validity: Boolean =
+  def semanticValidity: Boolean =
     timestamp > 0 && signature.isValid(generator, messageToSign)
 }

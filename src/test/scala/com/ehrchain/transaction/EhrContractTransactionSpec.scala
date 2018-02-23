@@ -20,13 +20,13 @@ class EhrContractTransactionSpec extends PropSpec
 
   property("EhrContractTransaction serialization with validation afterwards") {
     forAll(ehrAppendContractTransactionGen) { b: EhrContractTransaction =>
-      b.serializer.parseBytes(b.bytes).map(_.validity) shouldEqual Success(true)
+      b.serializer.parseBytes(b.bytes).map(_.semanticValidity) shouldEqual Success(true)
     }
   }
 
   property("EhrContractTransaction validity") {
     forAll(ehrAppendContractTransactionGen) { b: EhrContractTransaction =>
-      b.validity shouldBe true
+      b.semanticValidity shouldBe true
     }
   }
 }
