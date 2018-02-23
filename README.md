@@ -47,6 +47,9 @@ Store EHR (Electronic Health Records) in the public blockchain. The patients are
 ### v 10.0 
 - [ ] eliminate any Patient <-> Doctor relationship in transaction (zero knowledge proofs);
 
+## Generic transaction validation
+Originator of the transaction (`generator` property with their public key) makes a signature of the transaction with their private key and includes it as `signature` in the transaction.
+
 ## Patient registration
 Patient starts with master key pair generation. 
 Using the hierarchical deterministic wallet (BIP-0032 https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki ) secondary(derived) key pairs are generated to grant access to the providers to append medical records. Provider uses the provided patient's secondary public key to encrypt the appended record.
@@ -55,7 +58,7 @@ Using the hierarchical deterministic wallet (BIP-0032 https://github.com/bitcoin
 Provider starts with master key pair generation. 
 
 ## Patient grants append access to the provider
-Patient creates a transaction(append-only contract) where puts one of their secondary public key encrypted with a provider's public key, a provider public key and a statement for the access (term, etc.). Patient signs the transaction with with the secondary private key counterpart.
+Patient creates a transaction(append-only contract) where puts one of their secondary public key, a provider's public key and a statement for the access (term, etc.). 
 
 ## Provider appends a record for the patient
 Provider creates a transaction using the patient's public key decrypted with it's own private key from provided in the contract to encrypt the record and signs the transaction with it's private key. Aforementioned append-only contract is referenced in this transaction. 

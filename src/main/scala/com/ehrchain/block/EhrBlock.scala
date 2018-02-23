@@ -2,7 +2,7 @@ package com.ehrchain.block
 
 import com.ehrchain.core._
 import com.ehrchain.serialization._
-import com.ehrchain.transaction.EhrTransaction
+import com.ehrchain.transaction.{EhrTransaction, EhrRecordTransaction}
 import com.google.common.primitives.{Bytes, Ints, Longs}
 import examples.commons.Nonce
 import io.circe.Json
@@ -21,15 +21,14 @@ import scorex.crypto.signatures.{Curve25519, PublicKey, Signature}
 import scala.annotation.tailrec
 import scala.util.{Random, Try}
 
-final class EhrBlock(
-              val parentId: BlockId,
-              val timestamp: TimeStamp,
-              val nonce: Nonce,
-              val transactions: Seq[EhrTransaction],
-              val signature: Signature25519,
-              val generator: PublicKey25519Proposition,
-              val difficulty: Int
-              ) extends Block[PublicKey25519Proposition, EhrTransaction] {
+final class EhrBlock(val parentId: BlockId,
+                     val timestamp: TimeStamp,
+                     val nonce: Nonce,
+                     val transactions: Seq[EhrTransaction],
+                     val signature: Signature25519,
+                     val generator: PublicKey25519Proposition,
+                     val difficulty: Int)
+  extends Block[PublicKey25519Proposition, EhrTransaction] {
 
   require(transactions.nonEmpty)
 

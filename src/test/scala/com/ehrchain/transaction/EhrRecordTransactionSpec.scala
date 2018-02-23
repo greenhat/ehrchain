@@ -6,26 +6,26 @@ import com.ehrchain.{EhrGenerators, core}
 
 import scala.util.Success
 
-class EhrTransactionSpec extends PropSpec
+class EhrRecordTransactionSpec extends PropSpec
   with PropertyChecks
   with GeneratorDrivenPropertyChecks
   with Matchers
   with EhrGenerators {
 
   property("EhrTransaction serialization") {
-    forAll(ehrTransactionGen) { b: EhrTransaction =>
+    forAll(ehrRecordTransactionGen) { b: EhrRecordTransaction =>
       b.serializer.parseBytes(b.bytes).map( _.bytes sameElements b.bytes) shouldEqual Success(true)
     }
   }
 
   property("EhrTransaction validity") {
-    forAll(ehrTransactionGen) { b: EhrTransaction =>
+    forAll(ehrRecordTransactionGen) { b: EhrRecordTransaction =>
       b.validity shouldBe true
     }
   }
 
   property("invalid EhrTransaction(empty record)") {
-    forAll(emptyRecordEhrTransactionGen) { b: EhrTransaction =>
+    forAll(emptyRecordEhrTransactionGen) { b: EhrRecordTransaction =>
       b.validity shouldBe false
     }
   }
