@@ -1,16 +1,16 @@
 package com.ehrchain.state
 
-import com.ehrchain.{EhrGenerators, EhrNodeViewHolder}
+import com.ehrchain.EhrGenerators
 import com.ehrchain.contract.EhrInMemoryContractStorage
 import com.ehrchain.history.EhrBlockStream
 import com.ehrchain.transaction.{EhrContractTransaction, EhrRecordTransaction}
-import org.scalatest.{Failed, Matchers, PropSpec, Succeeded}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
+import org.scalatest._
 import scorex.core.VersionTag
 
-import scala.util.Success
+import scala.util.{Failure, Success, Try}
 
-class EhrMinimalStateSpec extends PropSpec
+class EhrMinimalStatePropSpec extends PropSpec
   with PropertyChecks
   with GeneratorDrivenPropertyChecks
   with Matchers
@@ -27,5 +27,27 @@ class EhrMinimalStateSpec extends PropSpec
         } shouldEqual Success(Succeeded)
       case _ => Failed(new Error("incorrect tx pair"))
     }
+  }
+}
+
+class EhrMinimalStateFlatSpec extends FlatSpec
+  with Matchers
+  with EhrGenerators {
+
+  "EhrMinimalState" should "process valid blocks" in {
+    val initialState = EhrMinimalState(
+      VersionTag @@ EhrBlockStream.GenesisParentId,
+      new EhrInMemoryContractStorage())
+    generateBlockStream(4).toList.foldRight(Try {initialState}) { case (element, state) =>
+      state.flatMap(_.applyModifier(element.block).flatMap { newState =>
+        if (element.block.transactions.forall {
+          case _: EhrContractTransaction => true
+          case recordTx: EhrRecordTransaction => newState.validate(recordTx).isSuccess}) {
+          Success(newState)
+        } else {
+          Failure[EhrMinimalState](new Error("fail"))
+        }
+      })
+    }.isSuccess shouldBe true
   }
 }
