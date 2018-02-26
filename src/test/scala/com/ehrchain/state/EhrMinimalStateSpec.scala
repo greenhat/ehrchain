@@ -38,4 +38,13 @@ class EhrMinimalStateFlatSpec extends FlatSpec
       })
     }.isSuccess shouldBe true
   }
+
+  "EhrMinimalState" should "validate unauthorized tx" in {
+    val initialState = EhrMinimalState(
+      VersionTag @@ EhrBlockStream.GenesisParentId,
+      new EhrInMemoryContractStorage())
+    ehrRecordTransactionGen.sample.map { tx =>
+      initialState.validate(tx).isSuccess
+    } shouldEqual Some(false)
+  }
 }
