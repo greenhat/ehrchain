@@ -2,10 +2,11 @@ package com.ehrchain
 
 import akka.actor.Props
 import com.ehrchain.block.{EhrBlock, EhrBlockSerializer}
+import com.ehrchain.contract.EhrInMemoryContractStorage
 import com.ehrchain.core.{RecordType, TimeStamp}
 import com.ehrchain.history.{EhrBlockStream, EhrHistoryStorage, EhrSyncInfo}
 import com.ehrchain.state.EhrMinimalState
-import com.ehrchain.transaction.{EhrTransaction, EhrRecordTransactionCompanion, EhrRecordTransactionSerializer}
+import com.ehrchain.transaction.{EhrRecordTransactionCompanion, EhrRecordTransactionSerializer, EhrTransaction}
 import com.ehrchain.wallet.EhrWallet
 import scorex.core.serialization.Serializer
 import scorex.core.transaction.Transaction
@@ -64,7 +65,7 @@ object EhrNodeViewHolder {
     // todo loadOrGenerate
     val history = EhrBlockStream.load(new EhrHistoryStorage()).append(genesisBlock).get._1
 
-    val gs = EhrMinimalState(VersionTag @@ genesisBlock.id)
+    val gs = EhrMinimalState(VersionTag @@ genesisBlock.id, new EhrInMemoryContractStorage())
     val gw = EhrWallet()
 
     (history, gs, gw, EhrTransactionMemPool.emptyPool)

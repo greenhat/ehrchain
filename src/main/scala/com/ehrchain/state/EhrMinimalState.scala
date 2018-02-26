@@ -1,15 +1,18 @@
 package com.ehrchain.state
 
 import com.ehrchain.block.EhrBlock
-import com.ehrchain.transaction.EhrTransaction
+import com.ehrchain.contract.EhrContractStorage
+import com.ehrchain.transaction.{EhrRecordTransaction, EhrRecordTransactionContractValidator, EhrTransaction}
 import scorex.core.VersionTag
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scorex.core.transaction.state.{MinimalState, ModifierValidation, TransactionValidation}
 import scorex.core.utils.ScorexLogging
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Try}
 
-final case class EhrMinimalState(override val version: VersionTag) extends MinimalState[EhrBlock, EhrMinimalState]
+final case class EhrMinimalState(override val version: VersionTag,
+                                 contractStorage: EhrContractStorage)
+  extends MinimalState[EhrBlock, EhrMinimalState]
   with TransactionValidation[PublicKey25519Proposition, EhrTransaction]
   with ModifierValidation[EhrBlock]
   with ScorexLogging {
@@ -17,8 +20,10 @@ final case class EhrMinimalState(override val version: VersionTag) extends Minim
 
   override type NVCT = this.type
 
+  private val ehrRecordTxContractValidator = new EhrRecordTransactionContractValidator(contractStorage)
+
   override def applyModifier(mod: EhrBlock): Try[EhrMinimalState] =
-    validate(mod).map(_ => EhrMinimalState(VersionTag @@ mod.id))
+    validate(mod).map(_ => EhrMinimalState(VersionTag @@ mod.id, contractStorage))
   // todo scan for new contract txs (put into the contract store)
 
   override def rollbackTo(version: VersionTag): Try[EhrMinimalState] = ???
@@ -26,6 +31,11 @@ final case class EhrMinimalState(override val version: VersionTag) extends Minim
   override def validate(tx: EhrTransaction): Try[Unit] = Try {
     // todo validate record transaction by verifying it against a valid contract
     require(tx.semanticValidity)
+    require(
+      tx match {
+        case recordTx: EhrRecordTransaction => ehrRecordTxContractValidator.validity(recordTx)
+      }
+    )
   }
 
   override def validate(mod: EhrBlock): Try[Unit] = Try {
