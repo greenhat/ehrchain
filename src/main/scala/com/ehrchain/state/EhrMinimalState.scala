@@ -1,7 +1,7 @@
 package com.ehrchain.state
 
 import com.ehrchain.block.EhrBlock
-import com.ehrchain.contract.EhrContractStorage
+import com.ehrchain.contract.{EhrContract, EhrContractStorage}
 import com.ehrchain.transaction.{EhrContractTransaction, EhrRecordTransaction, EhrRecordTransactionContractValidator, EhrTransaction}
 import scorex.core.VersionTag
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
@@ -24,14 +24,13 @@ final case class EhrMinimalState(override val version: VersionTag,
 
   override def applyModifier(mod: EhrBlock): Try[EhrMinimalState] =
     validate(mod).map { _ =>
-      mod.transactions.flatMap {
-        case contractTx: EhrContractTransaction => Seq(contractTx)
-        case _ => Seq[EhrContractTransaction]()
-      }.foreach(t => contractStorage.add(t.contract))
-      EhrMinimalState(VersionTag @@ mod.id, contractStorage)
+      EhrMinimalState(VersionTag @@ mod.id, contractStorage.add(
+        mod.transactions.flatMap {
+          case contractTx: EhrContractTransaction => Seq(contractTx.contract)
+          case _ => Seq[EhrContract]()
+        }
+      ))
     }
-
-  // todo scan for new contract txs (put into the contract store)
 
   override def rollbackTo(version: VersionTag): Try[EhrMinimalState] = ???
 

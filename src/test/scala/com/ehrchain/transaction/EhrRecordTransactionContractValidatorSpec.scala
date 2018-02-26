@@ -23,9 +23,9 @@ class EhrRecordTransactionContractValidatorSpec extends PropSpec
   property("with valid contract in contract storage") {
     forAll(ehrTransactionPairGen) {
       case (contractTx: EhrContractTransaction) :: (recordTx: EhrRecordTransaction) :: Nil =>
-        new EhrInMemoryContractStorage().add(contractTx.contract).map { storage =>
-          new EhrRecordTransactionContractValidator(storage).validity(recordTx)
-        } shouldEqual Success(true)
+          new EhrRecordTransactionContractValidator(
+            new EhrInMemoryContractStorage().add(Seq(contractTx.contract)))
+            .validity(recordTx) shouldBe true
       case _ => Failed(new Error("incorrect tx pair"))
     }
   }

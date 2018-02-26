@@ -16,18 +16,6 @@ class EhrMinimalStatePropSpec extends PropSpec
   with Matchers
   with EhrGenerators {
 
-  property("add contract, validate tx") {
-    // fixme rewrite with block via applyModifier call
-    val contractStorage = new EhrInMemoryContractStorage()
-    val state = EhrMinimalState(VersionTag @@ EhrBlockStream.GenesisParentId, contractStorage)
-    forAll(ehrTransactionPairGen) {
-      case (contractTx: EhrContractTransaction) :: (recordTx: EhrRecordTransaction) :: Nil =>
-        contractStorage.add(contractTx.contract).map { _ =>
-          state.validate(recordTx) shouldBe Success()
-        } shouldEqual Success(Succeeded)
-      case _ => Failed(new Error("incorrect tx pair"))
-    }
-  }
 }
 
 class EhrMinimalStateFlatSpec extends FlatSpec

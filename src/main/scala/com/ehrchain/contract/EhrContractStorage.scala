@@ -2,25 +2,24 @@ package com.ehrchain.contract
 
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 
-import scala.util.{Failure, Success, Try}
-
 trait EhrContractStorage {
 
-  def add(contract: EhrContract): Try[EhrContractStorage]
+  def add(contracts: Seq[EhrContract]): EhrContractStorage
   def contractsForPatient(patientPK: PublicKey25519Proposition): Seq[EhrContract]
 }
 
-@SuppressWarnings(Array("org.wartremover.warts.MutableDataStructures", "org.wartremover.warts.Var"))
-class EhrInMemoryContractStorage extends EhrContractStorage {
+@SuppressWarnings(Array("org.wartremover.warts.DefaultArguments"))
+class EhrInMemoryContractStorage(store: Map[String, EhrContract] = Map[String, EhrContract]()) extends EhrContractStorage {
 
-  private val store: scala.collection.mutable.Map[String, EhrContract] = scala.collection.mutable.Map()
-
-  override def add(contract: EhrContract): Try[EhrContractStorage] = contract match {
-    case append: EhrAppendContract =>
-      store(append.patientPK.address) = append
-      Success(this)
-    case _ => Failure[EhrContractStorage](new Error("unknown contract type"))
-  }
+  override def add(contracts: Seq[EhrContract]): EhrContractStorage =
+    new EhrInMemoryContractStorage(
+      contracts.flatMap {
+        case append: EhrAppendContract => Seq(append)
+        case _ => Seq[EhrAppendContract]()
+      }.foldLeft(store) { case (s, contract) =>
+        s + (contract.patientPK.address -> contract)
+      }
+    )
 
   override def contractsForPatient(patientPK: PublicKey25519Proposition): Seq[EhrContract] =
     store.get(patientPK.address).map(Seq(_)).getOrElse(Seq[EhrContract]())
