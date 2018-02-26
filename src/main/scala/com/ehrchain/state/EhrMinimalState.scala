@@ -19,6 +19,7 @@ final case class EhrMinimalState(override val version: VersionTag) extends Minim
 
   override def applyModifier(mod: EhrBlock): Try[EhrMinimalState] =
     validate(mod).map(_ => EhrMinimalState(VersionTag @@ mod.id))
+  // todo scan for new contract txs (put into the contract store)
 
   override def rollbackTo(version: VersionTag): Try[EhrMinimalState] = ???
 

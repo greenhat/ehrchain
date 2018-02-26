@@ -1,4 +1,4 @@
-package com.ehrchain.transaction
+package com.ehrchain.contract
 
 import java.time.Instant
 

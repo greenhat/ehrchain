@@ -2,6 +2,7 @@ package com.ehrchain.transaction
 
 import java.time.Instant
 
+import com.ehrchain.contract.{EhrContractTerm, Unlimited, ValidUntil}
 import com.ehrchain.serialization._
 import org.scalatest.{FlatSpec, Matchers}
 

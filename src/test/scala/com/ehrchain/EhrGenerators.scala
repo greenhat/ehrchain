@@ -3,6 +3,7 @@ package com.ehrchain
 import java.time.Instant
 
 import com.ehrchain.block.EhrBlock
+import com.ehrchain.contract.{EhrAppendContract, Unlimited}
 import com.ehrchain.core.{RecordType, TimeStamp}
 import com.ehrchain.history.EhrBlockStream._
 import com.ehrchain.history.{EhrBlockStream, EhrBlockStreamElement, EhrHistoryStorage}

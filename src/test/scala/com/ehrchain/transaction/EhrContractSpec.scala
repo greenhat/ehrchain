@@ -1,6 +1,7 @@
 package com.ehrchain.transaction
 
 import com.ehrchain.EhrGenerators
+import com.ehrchain.contract.EhrAppendContract
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 
