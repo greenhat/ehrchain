@@ -6,7 +6,7 @@ import scala.util.{Failure, Success, Try}
 
 trait EhrContractStorage {
 
-  def add(contract: EhrContract): Try[Unit]
+  def add(contract: EhrContract): Try[EhrContractStorage]
   def contractsForPatient(patientPK: PublicKey25519Proposition): Seq[EhrContract]
 }
 
@@ -15,9 +15,11 @@ class EhrInMemoryContractStorage extends EhrContractStorage {
 
   private val store: scala.collection.mutable.Map[String, EhrContract] = scala.collection.mutable.Map()
 
-  override def add(contract: EhrContract): Try[Unit] = contract match {
-    case append: EhrAppendContract => Success(store(append.patientPK.address) = append)
-    case _ => Failure[Unit](new Error("unknown contract type"))
+  override def add(contract: EhrContract): Try[EhrContractStorage] = contract match {
+    case append: EhrAppendContract =>
+      store(append.patientPK.address) = append
+      Success(this)
+    case _ => Failure[EhrContractStorage](new Error("unknown contract type"))
   }
 
   override def contractsForPatient(patientPK: PublicKey25519Proposition): Seq[EhrContract] =

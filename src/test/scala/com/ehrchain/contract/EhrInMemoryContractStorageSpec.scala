@@ -15,7 +15,7 @@ class EhrInMemoryContractStorageSpec extends PropSpec
   property("add") {
     val storage = new EhrInMemoryContractStorage()
     forAll(ehrAppendContractUnlimitedGen) { b: EhrAppendContract =>
-      storage.add(b) shouldBe Success()
+      storage.add(b) shouldBe Success(storage)
     }
   }
 
