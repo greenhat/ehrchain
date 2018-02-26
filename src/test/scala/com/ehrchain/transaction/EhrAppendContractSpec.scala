@@ -7,25 +7,25 @@ import org.scalatest.{Matchers, PropSpec}
 
 import scala.util.Success
 
-class EhrContractSpec extends PropSpec
+class EhrAppendContractSpec extends PropSpec
   with PropertyChecks
   with GeneratorDrivenPropertyChecks
   with Matchers
   with EhrGenerators {
 
-  property("EhrAppendContract(unlimited term) validity") {
+  property("unlimited term validity") {
     forAll(ehrAppendContractUnlimitedGen) { b: EhrAppendContract =>
       b.validity.exists(_ == true) shouldBe true
     }
   }
 
-  property("EhrAppendContract serialization") {
+  property("serialization") {
     forAll(ehrAppendContractUnlimitedGen) { b: EhrAppendContract =>
       b.serializer.parseBytes(b.bytes).map( _.bytes sameElements b.bytes) shouldEqual Success(true)
     }
   }
 
-  property("EhrAppendContract serialization with validation afterwards") {
+  property("serialization with validation afterwards") {
     forAll(ehrAppendContractUnlimitedGen) { b: EhrAppendContract =>
       b.serializer.parseBytes(b.bytes).map(_.validity.exists(_ == true)) shouldEqual Success(true)
     }
