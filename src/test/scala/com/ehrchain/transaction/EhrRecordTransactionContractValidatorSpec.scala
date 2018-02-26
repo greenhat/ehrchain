@@ -3,7 +3,7 @@ package com.ehrchain.transaction
 import com.ehrchain.EhrGenerators
 import com.ehrchain.contract.EhrInMemoryContractStorage
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
-import org.scalatest.{Matchers, PropSpec, Succeeded}
+import org.scalatest.{Failed, Matchers, PropSpec}
 
 import scala.util.Success
 
@@ -26,7 +26,7 @@ class EhrRecordTransactionContractValidatorSpec extends PropSpec
         new EhrInMemoryContractStorage().add(contractTx.contract).map { storage =>
           new EhrRecordTransactionContractValidator(storage).validity(recordTx)
         } shouldEqual Success(true)
-      case _ => Succeeded
+      case _ => Failed(new Error("incorrect tx pair"))
     }
   }
 }
