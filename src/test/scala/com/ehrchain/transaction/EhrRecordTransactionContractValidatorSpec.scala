@@ -13,14 +13,14 @@ class EhrRecordTransactionContractValidatorSpec extends PropSpec
   with Matchers
   with EhrGenerators {
 
-  property("empty contract storage") {
+  property("validate tx against an empty contract storage") {
     val validator = new EhrRecordTransactionContractValidator(new EhrInMemoryContractStorage())
     forAll(ehrRecordTransactionGen) { b: EhrRecordTransaction =>
       validator.validity(b) shouldBe false
     }
   }
 
-  property("with valid contract in contract storage") {
+  property("validate tx with valid contract in contract storage") {
     forAll(ehrTransactionPairGen) {
       case (contractTx: EhrContractTransaction) :: (recordTx: EhrRecordTransaction) :: Nil =>
           new EhrRecordTransactionContractValidator(
