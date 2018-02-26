@@ -36,15 +36,18 @@ Store EHR (Electronic Health Records) in the public blockchain. The patients are
 - [ ] attach files(transaction valid if all attached files are available locally);
 
 ### v 7.0
-- [ ] use hierarchical deterministic wallet for patient's secondary key pair generation;
+- [ ] lightweight client proof-of-concept (for mobile);
 
 ### v 8.0
-- [ ] provider should be able to share their access to the patient's records with another provider;
+- [ ] use hierarchical deterministic wallet for patient's secondary key pair generation;
 
 ### v 9.0
+- [ ] provider should be able to share their access to the patient's records with another provider;
+
+### v 10.0
 - [ ] some patient's records should not be accessible by the patient (psychotherapy notes, IP, etc.);
 
-### v 10.0 
+### v 11.0 
 - [ ] eliminate any Patient <-> Doctor relationship in transaction (zero knowledge proofs);
 
 ## Transaction validation
