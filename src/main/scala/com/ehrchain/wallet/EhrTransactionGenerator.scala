@@ -1,5 +1,6 @@
 package com.ehrchain.wallet
 
+import java.io.ByteArrayInputStream
 import java.time.Instant
 
 import akka.actor.{Actor, ActorRef, Props}
@@ -52,6 +53,6 @@ object EhrTransactionGenerator {
     EhrRecordTransactionCompanion.generate(
       wallet.patientPK,
       wallet.providerKeyPair,
-      Record(Seq(RecordFile.generate("generator record".getBytes))),
+      Record(Seq(RecordFile.generate(new ByteArrayInputStream("generator record".getBytes)))),
       TimeStamp @@ Instant.now.getEpochSecond)
 }

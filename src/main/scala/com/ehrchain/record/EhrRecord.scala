@@ -1,6 +1,9 @@
 package com.ehrchain.record
 
+import java.io.InputStream
+
 import com.ehrchain.serialization._
+import com.google.common.io.ByteStreams
 import io.circe.Json
 import io.circe.syntax._
 import scorex.core.serialization.{BytesSerializable, JsonSerializable, Serializer}
@@ -33,5 +36,8 @@ final case class Record(files: Seq[RecordFile]) extends BytesSerializable with J
 
 object RecordFile {
 
-  def generate(bytes: Array[Byte]): RecordFile = RecordFile(bytes.length, Blake2b256(bytes))
+  def generate(inputStream: InputStream): RecordFile = {
+    val bytes = ByteStreams.toByteArray(inputStream)
+    RecordFile(bytes.length, Blake2b256(bytes))
+  }
 }

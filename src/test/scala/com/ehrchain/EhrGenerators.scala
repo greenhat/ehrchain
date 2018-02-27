@@ -1,5 +1,6 @@
 package com.ehrchain
 
+import java.io.InputStream
 import java.time.Instant
 
 import com.ehrchain.block.EhrBlock
@@ -9,6 +10,7 @@ import com.ehrchain.history.EhrBlockStream._
 import com.ehrchain.history.{EhrBlockStream, EhrHistoryStorage}
 import com.ehrchain.record.{Record, RecordFile}
 import com.ehrchain.transaction._
+import com.sun.xml.internal.messaging.saaj.util.ByteInputStream
 import commons.ExamplesCommonGenerators
 import org.scalacheck.{Arbitrary, Gen}
 import scorex.core.block.Block.BlockId
@@ -25,7 +27,16 @@ with ExamplesCommonGenerators {
 
   def genRecord(): Gen[Record] =
     Gen.choose(1, 10) flatMap { sz =>
-      Gen.listOfN(sz, Arbitrary.arbitrary[Byte]).map(b => Record(Seq(RecordFile.generate(b.toArray))))
+      Gen.listOfN(sz, Arbitrary.arbitrary[Byte]).map(b =>
+        Record(Seq(RecordFile.generate(new ByteInputStream(b.toArray, b.length)))))
+    }
+
+  def genRecordFile(minSize: Int, maxSize: Int): Gen[(RecordFile, InputStream)] =
+    Gen.choose(minSize, maxSize) flatMap { sz =>
+      Gen.listOfN(sz, Arbitrary.arbitrary[Byte]).map { b =>
+        val bis = new ByteInputStream(b.toArray, b.length)
+        (RecordFile.generate(bis), bis)
+      }
     }
 
   def ehrAppendContractUnlimitedGen: Gen[EhrAppendContract] = for {
