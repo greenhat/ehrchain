@@ -19,8 +19,8 @@ Store EHR (Electronic Health Records) in the public blockchain. The patients are
 - [x] simple block generation/mining(included transactions validity);
 
 ### v 2.0
-- [ ] patient grants append access to the provider(contract);
-- [ ] provider appends medical record to the authorized patient;
+- [x] patient grants append access to the provider(contract);
+- [x] provider appends medical record to the authorized patient;
 
 ### v 3.0
 - [ ] patients read their own medical records;
