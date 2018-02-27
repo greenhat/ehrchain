@@ -8,7 +8,7 @@ trait RecordFileStorage {
   def put(recordFile: RecordFile, inputStream: InputStream): RecordFileStorage
 }
 
-case object InMemoryRecordFileStorage extends RecordFileStorage {
+final class InMemoryRecordFileStorage() extends RecordFileStorage {
 
   override def get(recordFile: RecordFile): Option[InputStream] = ???
 

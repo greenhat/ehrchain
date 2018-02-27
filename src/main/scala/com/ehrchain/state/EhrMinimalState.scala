@@ -2,7 +2,8 @@ package com.ehrchain.state
 
 import com.ehrchain.block.EhrBlock
 import com.ehrchain.contract.{EhrContract, EhrContractStorage}
-import com.ehrchain.transaction.{EhrContractTransaction, EhrRecordTransaction, EhrRecordTransactionContractValidator, EhrTransaction}
+import com.ehrchain.record.{InMemoryRecordFileStorage, RecordFileStorage}
+import com.ehrchain.transaction._
 import scorex.core.VersionTag
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scorex.core.transaction.state.{MinimalState, ModifierValidation, TransactionValidation}
@@ -11,7 +12,8 @@ import scorex.core.utils.ScorexLogging
 import scala.util.{Failure, Try}
 
 final case class EhrMinimalState(override val version: VersionTag,
-                                 contractStorage: EhrContractStorage)
+                                 contractStorage: EhrContractStorage,
+                                 recordFileStorage: RecordFileStorage)
   extends MinimalState[EhrBlock, EhrMinimalState]
   with TransactionValidation[PublicKey25519Proposition, EhrTransaction]
   with ModifierValidation[EhrBlock]
@@ -21,6 +23,7 @@ final case class EhrMinimalState(override val version: VersionTag,
   override type NVCT = this.type
 
   private val ehrRecordTxContractValidator = new EhrRecordTransactionContractValidator(contractStorage)
+  private val ehrRecordTxFileValidator = new RecordTransactionFileValidator(recordFileStorage)
 
   override def applyModifier(mod: EhrBlock): Try[EhrMinimalState] =
     validate(mod).map { _ =>
@@ -29,7 +32,7 @@ final case class EhrMinimalState(override val version: VersionTag,
           case contractTx: EhrContractTransaction => Seq(contractTx.contract)
           case _ => Seq[EhrContract]()
         }
-      ))
+      ), recordFileStorage)
     }
 
   override def rollbackTo(version: VersionTag): Try[EhrMinimalState] = ???
@@ -38,7 +41,8 @@ final case class EhrMinimalState(override val version: VersionTag,
     require(tx.semanticValidity)
     require(
       tx match {
-        case recordTx: EhrRecordTransaction => ehrRecordTxContractValidator.validity(recordTx)
+        case recordTx: EhrRecordTransaction =>
+          ehrRecordTxContractValidator.validity(recordTx) && ehrRecordTxFileValidator.validity(recordTx)
       }
     )
   }
