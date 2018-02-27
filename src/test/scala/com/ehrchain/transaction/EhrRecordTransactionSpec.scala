@@ -24,11 +24,5 @@ class EhrRecordTransactionSpec extends PropSpec
     }
   }
 
-  property("invalid EhrTransaction(empty record)") {
-    forAll(emptyRecordEhrTransactionGen) { b: EhrRecordTransaction =>
-      b.semanticValidity shouldBe false
-    }
-  }
-
   // todo test invalid signature
 }

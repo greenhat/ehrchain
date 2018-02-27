@@ -4,9 +4,10 @@ import java.time.Instant
 
 import com.ehrchain.block.EhrBlock
 import com.ehrchain.contract.{EhrAppendContract, Unlimited}
-import com.ehrchain.core.{RecordType, TimeStamp}
+import com.ehrchain.core.TimeStamp
 import com.ehrchain.history.EhrBlockStream._
-import com.ehrchain.history.{EhrBlockStream, EhrBlockStreamElement, EhrHistoryStorage}
+import com.ehrchain.history.{EhrBlockStream, EhrHistoryStorage}
+import com.ehrchain.record.{Record, RecordFile}
 import com.ehrchain.transaction._
 import commons.ExamplesCommonGenerators
 import org.scalacheck.{Arbitrary, Gen}
@@ -22,9 +23,9 @@ with ExamplesCommonGenerators {
 
   val MiningDifficulty: Int = 0
 
-  def genRecord(minSize: Int, maxSize: Int): Gen[RecordType] =
-    Gen.choose(minSize, maxSize) flatMap { sz =>
-      Gen.listOfN(sz, Arbitrary.arbitrary[Byte]).map(RecordType @@  _.toArray)
+  def genRecord(): Gen[Record] =
+    Gen.choose(1, 10) flatMap { sz =>
+      Gen.listOfN(sz, Arbitrary.arbitrary[Byte]).map(b => Record(Seq(RecordFile.generate(b.toArray))))
     }
 
   def ehrAppendContractUnlimitedGen: Gen[EhrAppendContract] = for {
@@ -43,7 +44,7 @@ with ExamplesCommonGenerators {
     timestamp <- timestampGen
     providerKeys <- key25519Gen
     patientKeys <- key25519Gen
-    record <- genRecord(1, EhrRecordTransaction.MaxRecordSize)
+    record <- genRecord()
   } yield List[EhrTransaction](
     EhrContractTransaction.generate(
       patientKeys,
@@ -56,7 +57,7 @@ with ExamplesCommonGenerators {
     timestamp <- timestampGen
     providerKeys <- key25519Gen
     patientPK <- propositionGen
-    record <- genRecord(1, EhrRecordTransaction.MaxRecordSize)
+    record <- genRecord()
   } yield EhrRecordTransactionCompanion.generate(patientPK, providerKeys, record, timestamp)
 
   lazy val ehrAppendContractTransactionGen: Gen[EhrContractTransaction] = for {
@@ -68,13 +69,6 @@ with ExamplesCommonGenerators {
   def ehrTransactionsGen(min: Int, max: Int): Gen[List[EhrTransaction]] = for {
     txs <- Gen.choose(min, max).flatMap(i => Gen.listOfN(i / 2, ehrTransactionPairGen))
   } yield txs.flatten
-
-  lazy val emptyRecordEhrTransactionGen: Gen[EhrRecordTransaction] = for {
-    timestamp <- timestampGen
-    providerKeys <- key25519Gen
-    patientPK <- propositionGen
-    record <- genRecord(0, 0)
-  } yield EhrRecordTransactionCompanion.generate(patientPK, providerKeys, record, timestamp)
 
   lazy val ehrBlockGen: Gen[EhrBlock] = for {
     timestamp <- timestampGen

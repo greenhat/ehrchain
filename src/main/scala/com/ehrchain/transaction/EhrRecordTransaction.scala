@@ -1,6 +1,8 @@
 package com.ehrchain.transaction
 
-import com.ehrchain.core.{RecordType, TimeStamp}
+import com.ehrchain.core.TimeStamp
+import com.ehrchain.record.Record
+import com.ehrchain.serialization.deserializeFromBytes
 import com.google.common.primitives.{Bytes, Longs}
 import io.circe.Json
 import io.circe.syntax._
@@ -15,7 +17,7 @@ import scala.util.Try
 
 final case class EhrRecordTransaction(generator: PublicKey25519Proposition,
                                       subject: PublicKey25519Proposition,
-                                      record: RecordType,
+                                      record: Record,
                                       signature: Signature25519,
                                       timestamp: TimeStamp) extends EhrTransaction {
 
@@ -26,9 +28,9 @@ final case class EhrRecordTransaction(generator: PublicKey25519Proposition,
   override lazy val json: Json = Map(
     "id" -> Base58.encode(id).asJson,
     "timestamp" -> timestamp.toLong.asJson,
-    "provider" -> Base58.encode(generator.bytes).asJson,
-    "patient" -> Base58.encode(subject.bytes).asJson,
-    "record" -> Base58.encode(record).asJson,
+    "generator" -> Base58.encode(generator.bytes).asJson,
+    "subject" -> Base58.encode(subject.bytes).asJson,
+    "record" -> record.json,
     "signature" -> Base58.encode(signature.bytes).asJson,
   ).asJson
 
@@ -36,7 +38,7 @@ final case class EhrRecordTransaction(generator: PublicKey25519Proposition,
     EhrRecordTransaction.generateMessageToSign(timestamp, subject, generator, record)
 
   override def semanticValidity: Boolean =
-    super.semanticValidity && record.nonEmpty && record.length <= EhrRecordTransaction.MaxRecordSize
+    super.semanticValidity && record.bytes.length <= EhrRecordTransaction.MaxRecordSize
 }
 
 object EhrRecordTransaction {
@@ -46,12 +48,12 @@ object EhrRecordTransaction {
   def generateMessageToSign(timestamp: TimeStamp,
                             patient: PublicKey25519Proposition,
                             provider: PublicKey25519Proposition,
-                            record: RecordType): Array[Byte] =
+                            record: Record): Array[Byte] =
     Bytes.concat(
       Longs.toByteArray(timestamp),
       patient.bytes,
       provider.bytes,
-      record
+      record.bytes
     )
 }
 
@@ -63,11 +65,11 @@ object EhrRecordTransactionSerializer extends Serializer[EhrRecordTransaction] {
       obj.generator.bytes,
       obj.subject.bytes,
       obj.signature.bytes,
-      obj.record
+      obj.record.bytes
     )
   }
 
-  override def parseBytes(bytes: Array[Byte]): Try[EhrRecordTransaction] = Try {
+  override def parseBytes(bytes: Array[Byte]): Try[EhrRecordTransaction] = {
     val timestamp = TimeStamp @@ Longs.fromByteArray(bytes.slice(0, 8))
     val providerStart = 8
     val providerEnd = providerStart + Curve25519.KeyLength
@@ -81,8 +83,9 @@ object EhrRecordTransactionSerializer extends Serializer[EhrRecordTransaction] {
     val signatureEnd = patientEnd + Curve25519.SignatureLength
     val signature = Signature25519(Signature @@ bytes.slice(signatureStart, signatureEnd))
     val recordStart = signatureEnd
-    val record = RecordType @@ bytes.slice(recordStart, bytes.length)
-    EhrRecordTransaction(provider, patient, record, signature, timestamp)
+    for {
+      record <- deserializeFromBytes[Record](bytes.slice(recordStart, bytes.length))
+    } yield EhrRecordTransaction(provider, patient, record, signature, timestamp)
   }
 }
 
@@ -91,7 +94,7 @@ object EhrRecordTransactionCompanion {
   // todo move to test (generators)?
   def generate(patientPK: PublicKey25519Proposition,
                providerKeys: (PrivateKey25519, PublicKey25519Proposition),
-               record: RecordType,
+               record: Record,
                timestamp: TimeStamp): EhrRecordTransaction = {
     val providerPK = providerKeys._2
     val providerSK = providerKeys._1

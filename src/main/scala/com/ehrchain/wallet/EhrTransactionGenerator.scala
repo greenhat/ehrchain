@@ -4,8 +4,9 @@ import java.time.Instant
 
 import akka.actor.{Actor, ActorRef, Props}
 import com.ehrchain.EhrTransactionMemPool
-import com.ehrchain.core.{NodeViewHolderCurrentView, RecordType, TimeStamp}
+import com.ehrchain.core.{NodeViewHolderCurrentView, TimeStamp}
 import com.ehrchain.history.EhrBlockStream
+import com.ehrchain.record.{Record, RecordFile}
 import com.ehrchain.state.EhrMinimalState
 import com.ehrchain.transaction.{EhrRecordTransaction, EhrRecordTransactionCompanion}
 import scorex.core.LocallyGeneratedModifiersMessages.ReceivableMessages.LocallyGeneratedTransaction
@@ -51,6 +52,6 @@ object EhrTransactionGenerator {
     EhrRecordTransactionCompanion.generate(
       wallet.patientPK,
       wallet.providerKeyPair,
-      RecordType @@ Array.fill[Byte](10)(0),
+      Record(Seq(RecordFile.generate("generator record".getBytes))),
       TimeStamp @@ Instant.now.getEpochSecond)
 }

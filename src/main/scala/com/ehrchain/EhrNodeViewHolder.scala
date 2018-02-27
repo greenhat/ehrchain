@@ -3,8 +3,9 @@ package com.ehrchain
 import akka.actor.Props
 import com.ehrchain.block.{EhrBlock, EhrBlockSerializer}
 import com.ehrchain.contract.EhrInMemoryContractStorage
-import com.ehrchain.core.{RecordType, TimeStamp}
+import com.ehrchain.core.TimeStamp
 import com.ehrchain.history.{EhrBlockStream, EhrHistoryStorage, EhrSyncInfo}
+import com.ehrchain.record.{Record, RecordFile}
 import com.ehrchain.state.EhrMinimalState
 import com.ehrchain.transaction.{EhrRecordTransactionCompanion, EhrRecordTransactionSerializer, EhrTransaction}
 import com.ehrchain.wallet.EhrWallet
@@ -54,7 +55,7 @@ object EhrNodeViewHolder {
     val genesisPatientAccount = PrivateKey25519Companion.generateKeys("genesis patient".getBytes)
     val genesisProviderAccount = PrivateKey25519Companion.generateKeys("genesis provider".getBytes)
     val timestamp = TimeStamp @@ 1518788012L
-    val genesisRecord = RecordType @@ "genesis record".getBytes
+    val genesisRecord = Record(Seq(RecordFile.generate("genesis record".getBytes)))
     val genesisTxs = Seq(
       EhrRecordTransactionCompanion.generate(genesisPatientAccount._2, genesisProviderAccount, genesisRecord,
         timestamp)
