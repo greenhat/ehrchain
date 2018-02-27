@@ -76,8 +76,8 @@ Provider starts with master key pair generation.
 Patient creates a transaction(append-only contract) where puts one of their secondary public key, a provider's public key and a statement for the access (term, etc.). 
 
 ## Provider appends a record for the patient
-Provider creates a transaction using the patient's public key decrypted with it's own private key from provided in the contract to encrypt the record and signs the transaction with it's private key. Aforementioned append-only contract is referenced in this transaction. 
-Transaction is valid only if referenced append-only contract for this patient's public key exists in the blockchain and is active. Contract is active if it's terms are valid and there is no revocation contract further in the blockchain that cancels it. Must be checked by a node mining a block as a part of transaction validity check.
+Provider creates a transaction using the patient's public key provided in the contract to encrypt the record and signs the transaction with it's private key. 
+Transaction is valid only if if an append-only contract for this patient's public key exists in the blockchain and is active. Contract is active if it's terms are valid and there is no revocation contract further in the blockchain that cancels it. Must be checked by a node mining a block as a part of transaction validity check.
 
 ## Patient grants read access to their records to a provider
 Patient creates a transaction(read-only contract) with their secondary key pairs (encrypted with provider's public key) from corresponding secondary public keys given to providers in the past and used to encrypt appended records. Most likely patient should give all their secondary private keys in case it's desirable for the provider to have access to future patient's records. Patient sign the transaction with one of the included secondary private key.
