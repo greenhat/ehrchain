@@ -1,13 +1,14 @@
 package com.ehrchain
 
 import akka.actor.Props
-import com.ehrchain.block.{EhrBlock, EhrBlockSerializer}
+import com.ehrchain.block.EhrBlock
 import com.ehrchain.contract.EhrInMemoryContractStorage
 import com.ehrchain.core.TimeStamp
 import com.ehrchain.history.{EhrBlockStream, EhrHistoryStorage, EhrSyncInfo}
 import com.ehrchain.record.{Record, RecordFile}
+import com.ehrchain.serialization.byteSerializer
 import com.ehrchain.state.EhrMinimalState
-import com.ehrchain.transaction.{EhrRecordTransactionCompanion, EhrRecordTransactionSerializer, EhrTransaction}
+import com.ehrchain.transaction.{EhrRecordTransactionCompanion, EhrTransaction}
 import com.ehrchain.wallet.EhrWallet
 import scorex.core.serialization.Serializer
 import scorex.core.transaction.Transaction
@@ -15,6 +16,7 @@ import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scorex.core.transaction.state.PrivateKey25519Companion
 import scorex.core.{ModifierTypeId, NodeViewHolder, NodeViewModifier, VersionTag}
 
+@SerialVersionUID(0L)
 class EhrNodeViewHolder extends NodeViewHolder[PublicKey25519Proposition, EhrTransaction, EhrBlock] {
 
   override val networkChunkSize: Int = 10
@@ -40,9 +42,9 @@ class EhrNodeViewHolder extends NodeViewHolder[PublicKey25519Proposition, EhrTra
     * Serializers for modifiers, to be provided by a concrete instantiation
     */
   override val modifierSerializers: Map[ModifierTypeId, Serializer[_ <: NodeViewModifier]] =
-    Map(EhrBlock.ModifierType -> EhrBlockSerializer,
+    Map(EhrBlock.ModifierType -> byteSerializer[EhrBlock],
       // todo use generic EhrTransaction serializer
-      Transaction.ModifierTypeId -> EhrRecordTransactionSerializer)
+      Transaction.ModifierTypeId -> byteSerializer[EhrTransaction])
 }
 
 object EhrNodeViewHolder {

@@ -2,7 +2,7 @@ package com.ehrchain.transaction
 
 import com.ehrchain.core.TimeStamp
 import com.ehrchain.record.Record
-import com.ehrchain.serialization.deserializeFromBytes
+import com.ehrchain.serialization._
 import com.google.common.primitives.{Bytes, Longs}
 import io.circe.Json
 import io.circe.syntax._
@@ -23,7 +23,7 @@ final case class EhrRecordTransaction(generator: PublicKey25519Proposition,
 
   override type M = EhrRecordTransaction
 
-  override def serializer: Serializer[EhrRecordTransaction] = EhrRecordTransactionSerializer
+  override def serializer: Serializer[M] = byteSerializer[M]
 
   override lazy val json: Json = Map(
     "id" -> Base58.encode(id).asJson,
@@ -55,38 +55,6 @@ object EhrRecordTransaction {
       provider.bytes,
       record.bytes
     )
-}
-
-object EhrRecordTransactionSerializer extends Serializer[EhrRecordTransaction] {
-
-  override def toBytes(obj: EhrRecordTransaction): Array[Byte] = {
-    Bytes.concat(
-      Longs.toByteArray(obj.timestamp),
-      obj.generator.bytes,
-      obj.subject.bytes,
-      obj.signature.bytes,
-      obj.record.bytes
-    )
-  }
-
-  override def parseBytes(bytes: Array[Byte]): Try[EhrRecordTransaction] = {
-    val timestamp = TimeStamp @@ Longs.fromByteArray(bytes.slice(0, 8))
-    val providerStart = 8
-    val providerEnd = providerStart + Curve25519.KeyLength
-    val providerPK = PublicKey @@ bytes.slice(providerStart, providerEnd)
-    val provider = PublicKey25519Proposition(providerPK)
-    val patientStart = providerEnd
-    val patientEnd = patientStart + Curve25519.KeyLength
-    val patientPK = PublicKey @@ bytes.slice(patientStart, patientEnd)
-    val patient = PublicKey25519Proposition(patientPK)
-    val signatureStart = patientEnd
-    val signatureEnd = patientEnd + Curve25519.SignatureLength
-    val signature = Signature25519(Signature @@ bytes.slice(signatureStart, signatureEnd))
-    val recordStart = signatureEnd
-    for {
-      record <- deserializeFromBytes[Record](bytes.slice(recordStart, bytes.length))
-    } yield EhrRecordTransaction(provider, patient, record, signature, timestamp)
-  }
 }
 
 object EhrRecordTransactionCompanion {

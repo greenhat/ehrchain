@@ -4,8 +4,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, 
 import java.time.Instant
 
 import com.ehrchain.core.TimeStamp
-import com.ehrchain.transaction.{EhrRecordTransactionSerializer, EhrTransaction}
-import com.google.common.primitives.{Bytes, Ints, Longs}
+import com.google.common.primitives.Longs
 import examples.commons.Nonce
 import scorex.core.serialization.Serializer
 import scorex.core.transaction.box.proposition.PublicKey25519PropositionSerializer
@@ -34,36 +33,6 @@ package object serialization {
 
     override def parseBytes(bytes: Array[Byte]): Try[Nonce] =
       Try { Nonce @@ Longs.fromByteArray(bytes) }
-  }
-
-  // todo use generic EhrTransaction serializer
-  implicit val transactionsSerializer: Serializer[Seq[EhrTransaction]] = new Serializer[Seq[EhrTransaction]] {
-    override def toBytes(txs: Seq[EhrTransaction]): Array[Byte] =
-      Bytes.concat(
-        Ints.toByteArray(txs.length),
-        txs.foldLeft(Array[Byte]()) { (a, b) =>
-          Bytes.concat(Ints.toByteArray(b.bytes.length), b.bytes, a)
-        }
-      )
-
-    @SuppressWarnings(Array("org.wartremover.warts.Recursion")) // transaction qty is limited
-    override def parseBytes(bytes: Array[Byte]): Try[Seq[EhrTransaction]] = {
-      val txsQtyEnd = 4
-      val txsQty = Ints.fromByteArray(bytes.slice(0, txsQtyEnd))
-
-      def loop(bytes: Array[Byte], txQty: Int): Try[Seq[EhrTransaction]] = txQty match {
-        case 0 => Try { Nil }
-        case txQtyLeft =>
-          val txSizeEnd = 4
-          val txSize = Ints.fromByteArray(bytes.slice(0, txSizeEnd))
-          val txStart = txSizeEnd
-          for {
-            tx <- EhrRecordTransactionSerializer.parseBytes(bytes.slice(txStart, txStart + txSize))
-            txs <- loop(bytes.slice(txStart + txSize, bytes.length), txQtyLeft - 1)
-          } yield txs ++ Seq(tx)
-      }
-      loop(bytes.slice(txsQtyEnd, bytes.length), txsQty)
-    }
   }
 
   implicit val signature25519Serializer: Signature25519Serializer.type = Signature25519Serializer
