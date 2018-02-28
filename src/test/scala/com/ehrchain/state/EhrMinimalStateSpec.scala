@@ -3,7 +3,7 @@ package com.ehrchain.state
 import com.ehrchain.EhrGenerators
 import com.ehrchain.contract.EhrInMemoryContractStorage
 import com.ehrchain.history.EhrBlockStream
-import com.ehrchain.record.InMemoryRecordFileStorage
+import com.ehrchain.record.{InMemoryRecordFileStorage, InMemoryRecordFileStorageMock}
 import com.ehrchain.transaction.{EhrContractTransaction, EhrRecordTransaction}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest._
@@ -27,7 +27,7 @@ class EhrMinimalStateFlatSpec extends FlatSpec
     val initialState = EhrMinimalState(
       VersionTag @@ EhrBlockStream.GenesisParentId,
       new EhrInMemoryContractStorage(),
-      new InMemoryRecordFileStorage())
+      InMemoryRecordFileStorageMock.storage)
     generateBlockStream(4).toList.foldRight(Try {initialState}) { case (element, state) =>
       state.flatMap(_.applyModifier(element.block).flatMap { newState =>
         if (element.block.transactions.forall {

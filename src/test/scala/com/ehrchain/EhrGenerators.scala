@@ -8,7 +8,7 @@ import com.ehrchain.contract.{EhrAppendContract, Unlimited}
 import com.ehrchain.core.TimeStamp
 import com.ehrchain.history.EhrBlockStream._
 import com.ehrchain.history.{EhrBlockStream, EhrHistoryStorage}
-import com.ehrchain.record.{Record, RecordFile}
+import com.ehrchain.record.{InMemoryRecordFileStorageMock, Record, RecordFile}
 import com.ehrchain.transaction._
 import com.sun.xml.internal.messaging.saaj.util.ByteInputStream
 import commons.ExamplesCommonGenerators
@@ -25,11 +25,7 @@ with ExamplesCommonGenerators {
 
   val MiningDifficulty: Int = 0
 
-  def genRecord(): Gen[Record] =
-    Gen.choose(1, 10) flatMap { sz =>
-      Gen.listOfN(sz, Arbitrary.arbitrary[Byte]).map(b =>
-        Record(Seq(RecordFile.generate(new ByteInputStream(b.toArray, b.length)))))
-    }
+  val mockRecord: Record = Record(Seq(InMemoryRecordFileStorageMock.recordFile))
 
   def genRecordFile(minSize: Int, maxSize: Int): Gen[(RecordFile, InputStream)] =
     Gen.choose(minSize, maxSize) flatMap { sz =>
@@ -55,21 +51,19 @@ with ExamplesCommonGenerators {
     timestamp <- timestampGen
     providerKeys <- key25519Gen
     patientKeys <- key25519Gen
-    record <- genRecord()
   } yield List[EhrTransaction](
     EhrContractTransaction.generate(
       patientKeys,
       EhrAppendContract(patientKeys._2, providerKeys._2, Instant.ofEpochSecond(timestamp), Unlimited),
       timestamp),
-    EhrRecordTransactionCompanion.generate(patientKeys._2, providerKeys, record, timestamp)
+    EhrRecordTransactionCompanion.generate(patientKeys._2, providerKeys, mockRecord, timestamp)
   )
 
   lazy val ehrRecordTransactionGen: Gen[EhrRecordTransaction] = for {
     timestamp <- timestampGen
     providerKeys <- key25519Gen
     patientPK <- propositionGen
-    record <- genRecord()
-  } yield EhrRecordTransactionCompanion.generate(patientPK, providerKeys, record, timestamp)
+  } yield EhrRecordTransactionCompanion.generate(patientPK, providerKeys, mockRecord, timestamp)
 
   lazy val ehrAppendContractTransactionGen: Gen[EhrContractTransaction] = for {
     timestamp <- timestampGen

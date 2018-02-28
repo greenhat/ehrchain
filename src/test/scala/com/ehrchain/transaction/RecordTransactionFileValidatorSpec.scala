@@ -1,7 +1,7 @@
 package com.ehrchain.transaction
 
 import com.ehrchain.EhrGenerators
-import com.ehrchain.record.InMemoryRecordFileStorage
+import com.ehrchain.record.{InMemoryRecordFileStorage, InMemoryRecordFileStorageMock}
 import org.scalatest.{Matchers, PropSpec}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 
@@ -19,9 +19,8 @@ class RecordTransactionFileValidatorSpec extends PropSpec
   }
 
   property("validate tx against an filled file storage") {
-    val validator = new RecordTransactionFileValidator(new InMemoryRecordFileStorage())
+    val validator = new RecordTransactionFileValidator(InMemoryRecordFileStorageMock.storage)
     forAll(ehrRecordTransactionGen) { b: EhrRecordTransaction =>
-      // fixme pre-fill the storage first
       validator.validity(b) shouldBe true
     }
   }
