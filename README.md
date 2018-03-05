@@ -23,7 +23,7 @@ Store EHR (Electronic Health Records) in the public blockchain. The patients are
 - [x] provider appends medical record to the authorized patient;
 
 ### v 3.0
-- [ ] record metadata format, attached files(transaction valid if all attached files are available locally);
+- [x] record metadata format, attached files(transaction valid if all attached files are available locally);
 
 ### v 4.0
 - [ ] patients read their own medical records;
