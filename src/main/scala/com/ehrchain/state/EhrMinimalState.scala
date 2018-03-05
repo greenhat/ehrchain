@@ -57,7 +57,6 @@ final case class EhrMinimalState(override val version: VersionTag,
     }.map { _ =>
       mod.transactions.map(tx => validate(tx)).find(_.isFailure).getOrElse(Success())
     }.flatten
-//    require(mod.transactions.forall(tx => validate(tx).isSuccess), "transactions validation failed")
 
   override def maxRollbackDepth: Int = ???
 }
