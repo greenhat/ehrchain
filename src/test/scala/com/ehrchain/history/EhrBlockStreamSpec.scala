@@ -112,7 +112,7 @@ class EhrBlockStreamSpec extends FlatSpec
       .map(_.isSuccess) shouldBe Some(true)
   }
 
-  it should "fail to append a block with unknown parent" in {
+  it should "fail to append a block with an unknown parent" in {
     val stream = generateBlockStream(3)
     stream.headOption
       .map(e => generateBlock(ModifierId @@ Blake2b256("some id".getBytes)))

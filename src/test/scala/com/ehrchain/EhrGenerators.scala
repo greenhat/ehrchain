@@ -1,11 +1,11 @@
 package com.ehrchain
 
-import java.io.InputStream
+import java.io.{ByteArrayInputStream, InputStream}
 import java.time.Instant
 
 import com.ehrchain.block.EhrBlock
 import com.ehrchain.contract.{EhrAppendContract, Unlimited}
-import com.ehrchain.core.TimeStamp
+import com.ehrchain.core.{Curve25519KeyPair, TimeStamp}
 import com.ehrchain.history.EhrBlockStream._
 import com.ehrchain.history.{EhrBlockStream, EhrHistoryStorage}
 import com.ehrchain.record.{InMemoryRecordFileStorageMock, Record, RecordFile}
@@ -86,7 +86,7 @@ with ExamplesCommonGenerators {
     EhrBlock.generate(
       EhrBlockStream.GenesisParentId,
       timestampGen.sample.get,
-      ehrTransactionsGen(2, MaxTransactionQtyInBlock).sample.get,
+      Seq(ehrAppendContractTransactionGen.sample.get),
       key25519Gen.sample.get, MiningDifficulty)
 
   def generateBlock(parentId: BlockId): EhrBlock =
@@ -114,5 +114,36 @@ with ExamplesCommonGenerators {
       case Nil => stream
     }
     loop(empty, blocks)
+  }
+
+  def currentTimestamp: TimeStamp = TimeStamp @@ Instant.now.toEpochMilli
+
+  def validBlockstream: EhrBlockStream = {
+    val genesisBlock = generateGenesisBlock
+    val patientKeyPair: Curve25519KeyPair = key25519Gen.sample.get
+    val providerKeyPair: Curve25519KeyPair = key25519Gen.sample.get
+    val blockGeneratorKeyPair: Curve25519KeyPair = key25519Gen.sample.get
+    val appendContract = EhrAppendContract(patientKeyPair.publicKey,
+      providerKeyPair.publicKey,
+      Instant.now,
+      Unlimited)
+    val block1TXs = Seq(EhrContractTransaction.generate(patientKeyPair, appendContract, currentTimestamp))
+    val block1 = EhrBlock.generate(genesisBlock.id,
+      currentTimestamp,
+      block1TXs,
+      blockGeneratorKeyPair,
+      0)
+
+    val block2TXs = Seq(EhrRecordTransactionCompanion.generate(
+      patientKeyPair.publicKey,
+      providerKeyPair,
+      mockRecord,
+      currentTimestamp))
+    val block2 = EhrBlock.generate(block1.id,
+      currentTimestamp,
+      block2TXs,
+      blockGeneratorKeyPair,
+      0)
+    blockStreamFromElements(List(genesisBlock, block1, block2))(new EhrHistoryStorage())
   }
 }

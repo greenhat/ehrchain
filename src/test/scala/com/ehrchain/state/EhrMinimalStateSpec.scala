@@ -28,17 +28,9 @@ class EhrMinimalStateFlatSpec extends FlatSpec
       VersionTag @@ EhrBlockStream.GenesisParentId,
       new EhrInMemoryContractStorage(),
       InMemoryRecordFileStorageMock.storage)
-    generateBlockStream(4).toList.foldRight(Try {initialState}) { case (element, state) =>
-      state.flatMap(_.applyModifier(element.block).flatMap { newState =>
-        if (element.block.transactions.forall {
-          case _: EhrContractTransaction => true
-          case recordTx: EhrRecordTransaction => newState.validate(recordTx).isSuccess}) {
-          Success(newState)
-        } else {
-          Failure[EhrMinimalState](new Error("fail"))
-        }
-      })
-    }.isSuccess shouldBe true
+    validBlockstream.toList.foldRight(Try {initialState}) { case (element, state) =>
+      state.flatMap(_.applyModifier(element.block))
+    }.map(_ => true) shouldBe Success(true)
   }
 
   "EhrMinimalState" should "validate unauthorized tx" in {
