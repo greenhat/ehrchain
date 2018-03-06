@@ -1,11 +1,10 @@
 package com.ehrchain.crypto
 
-import java.io.InputStream
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 import com.ehrchain.EhrGenerators
-import com.sun.xml.internal.messaging.saaj.util.{ByteInputStream, ByteOutputStream}
-import org.scalatest.{Matchers, PropSpec}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
+import org.scalatest.{Matchers, PropSpec}
 
 import scala.util.Success
 
@@ -20,18 +19,17 @@ class AESCipherSpec extends PropSpec
     forAll(key25519PairGen, key25519PairGen, genBytes(37, 199 * 11)) { (party1Keys, party2Keys, originalContent) =>
       val senderKey = ECDHDerivedKey.derivedKey(party1Keys, party2Keys.publicKey)
 
-      val inputStream: InputStream = new ByteInputStream(originalContent, originalContent.length)
-      val outputStream = new ByteOutputStream()
+      val inputStream = new ByteArrayInputStream(originalContent)
+      val outputStream = new ByteArrayOutputStream()
 
       AESCipher.encrypt(inputStream, outputStream, senderKey) shouldEqual Success()
 
-      val encryptedInputStream: InputStream = new ByteInputStream(outputStream.getBytes,
-        outputStream.getBytes.length)
-      val decryptedOutputStream = new ByteOutputStream()
+      val encryptedInputStream = new ByteArrayInputStream(outputStream.toByteArray)
+      val decryptedOutputStream = new ByteArrayOutputStream()
       val receiverKey = ECDHDerivedKey.derivedKey(party2Keys, party1Keys.publicKey)
       AESCipher.decrypt(encryptedInputStream, decryptedOutputStream, receiverKey) shouldEqual Success()
 
-      decryptedOutputStream.getBytes shouldEqual originalContent
+      decryptedOutputStream.toByteArray shouldEqual originalContent
     }
   }
 }

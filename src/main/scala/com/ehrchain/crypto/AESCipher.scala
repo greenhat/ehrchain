@@ -44,11 +44,12 @@ object AESCipher {
 
   def decrypt(in: InputStream, out: OutputStream, key: Array[Byte]): Try[Unit] = Try {
     require(key.length > 16, "key length must be longer than 16 byte")
-    val ivLengthRead = new Array[Byte](1)
-    require(in.read(ivLengthRead) == 1)
-    val ivLengthReadByte = ivLengthRead.head
-    val iv = new Array[Byte](ivLengthReadByte)
-    require(in.read(iv) == ivLengthReadByte)
+    // read IV length
+    val ivLengthRead = in.read()
+    require(ivLengthRead > 0)
+    // read IV
+    val iv = new Array[Byte](ivLengthRead)
+    require(in.read(iv) == ivLengthRead)
 
     val cipher = Cipher.getInstance(cipherInstanceName)
     val secretKeySpec = new SecretKeySpec(key, "AES")
@@ -56,7 +57,7 @@ object AESCipher {
     cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, parameterSpec)
 
     val cis = new CipherInputStream(in, cipher)
-    val data = new Array[Byte](128)
+    val data = new Array[Byte](1024)
     var read = cis.read(data)
     while(read != -1) {
       out.write(data, 0, read)
