@@ -15,6 +15,8 @@ import com.sun.xml.internal.messaging.saaj.util.ByteInputStream
 import commons.ExamplesCommonGenerators
 import org.scalacheck.{Arbitrary, Gen}
 import scorex.core.block.Block.BlockId
+import scorex.core.transaction.state.PrivateKey25519Companion
+import scorex.crypto.signatures.Curve25519
 import scorex.testkit.generators.CoreGenerators
 
 
@@ -82,6 +84,9 @@ with ExamplesCommonGenerators {
     transactions <- ehrTransactionsGen(2, MaxTransactionQtyInBlock)
     parentId <- modifierIdGen
   } yield EhrBlock.generate(parentId, timestamp,transactions, generatorKeys, MiningDifficulty)
+
+  lazy val key25519PairGen: Gen[Curve25519KeyPair] = genBytesList(Curve25519.KeyLength)
+    .map(s => PrivateKey25519Companion.generateKeys(s))
 
   def generateGenesisBlock: EhrBlock =
     EhrBlock.generate(
