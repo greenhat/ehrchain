@@ -1,7 +1,7 @@
 package com.ehrchain.wallet
 
 import com.ehrchain.block.EhrBlock
-import com.ehrchain.core.Curve25519KeyPair
+import com.ehrchain.crypto.Curve25519KeyPair
 import com.ehrchain.transaction.EhrTransaction
 import scorex.core.VersionTag
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition

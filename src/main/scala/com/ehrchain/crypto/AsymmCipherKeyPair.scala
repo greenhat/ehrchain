@@ -1,4 +1,4 @@
-package com.ehrchain.core
+package com.ehrchain.crypto
 
 import scorex.core.transaction.box.proposition.{ProofOfKnowledgeProposition, PublicKey25519Proposition}
 import scorex.core.transaction.state.{PrivateKey25519, Secret}

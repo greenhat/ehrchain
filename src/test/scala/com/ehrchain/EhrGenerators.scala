@@ -5,7 +5,8 @@ import java.time.Instant
 
 import com.ehrchain.block.EhrBlock
 import com.ehrchain.contract.{EhrAppendContract, Unlimited}
-import com.ehrchain.core.{Curve25519KeyPair, TimeStamp}
+import com.ehrchain.core.TimeStamp
+import com.ehrchain.crypto.Curve25519KeyPair
 import com.ehrchain.history.EhrBlockStream._
 import com.ehrchain.history.{EhrBlockStream, EhrHistoryStorage}
 import com.ehrchain.record.{InMemoryRecordFileStorageMock, Record, RecordFile}

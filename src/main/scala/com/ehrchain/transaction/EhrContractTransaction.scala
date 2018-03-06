@@ -1,7 +1,8 @@
 package com.ehrchain.transaction
 
 import com.ehrchain.contract.EhrContract
-import com.ehrchain.core.{Curve25519KeyPair, TimeStamp}
+import com.ehrchain.core.TimeStamp
+import com.ehrchain.crypto.Curve25519KeyPair
 import com.ehrchain.serialization._
 import com.google.common.primitives.{Bytes, Longs}
 import io.circe.Json
