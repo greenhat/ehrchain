@@ -29,7 +29,7 @@ class AESCipherSpec extends PropSpec
       val encryptedInputStream: InputStream = new ByteInputStream(outputStream.getBytes,
         outputStream.getBytes.length)
       val decryptedOutputStream = new ByteOutputStream()
-      val receiverKey = ECDHDerivedKey.derivedKey(party1Keys, party2Keys.publicKey)
+      val receiverKey = ECDHDerivedKey.derivedKey(party2Keys, party1Keys.publicKey)
       AESCipher.decrypt(encryptedInputStream, decryptedOutputStream, receiverKey) shouldEqual Success()
 
       decryptedOutputStream.getBytes shouldEqual outputStream.getBytes
