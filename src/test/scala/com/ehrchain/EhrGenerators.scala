@@ -53,7 +53,8 @@ with ExamplesCommonGenerators {
     Gen.choose(Instant.EPOCH.getEpochSecond, Instant.now.getEpochSecond).map(TimeStamp @@ _)
 
   lazy val instantGen: Gen[Instant] =
-    Gen.choose(Instant.EPOCH.getEpochSecond, Instant.now.getEpochSecond).map(Instant.ofEpochSecond(_))
+    Gen.choose(Instant.EPOCH.getEpochSecond, Instant.now.getEpochSecond)
+      .map(Instant.ofEpochSecond)
 
   def ehrTransactionPairGen: Gen[List[EhrTransaction]] = for {
     timestamp <- timestampGen
