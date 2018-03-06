@@ -17,10 +17,9 @@ class AESCipherSpec extends PropSpec
   with EhrGenerators {
 
   property("encrypt/decrypt") {
-    forAll(key25519PairGen, key25519PairGen) { (party1Keys, party2Keys) =>
+    forAll(key25519PairGen, key25519PairGen, genBytes(37, 199)) { (party1Keys, party2Keys, originalContent) =>
       val senderKey = ECDHDerivedKey.derivedKey(party1Keys, party2Keys.publicKey)
 
-      val originalContent = "mock file".getBytes
       val inputStream: InputStream = new ByteInputStream(originalContent, originalContent.length)
       val outputStream = new ByteOutputStream()
 
@@ -32,7 +31,7 @@ class AESCipherSpec extends PropSpec
       val receiverKey = ECDHDerivedKey.derivedKey(party2Keys, party1Keys.publicKey)
       AESCipher.decrypt(encryptedInputStream, decryptedOutputStream, receiverKey) shouldEqual Success()
 
-      decryptedOutputStream.getBytes shouldEqual outputStream.getBytes
+      decryptedOutputStream.getBytes shouldEqual originalContent
     }
   }
 }

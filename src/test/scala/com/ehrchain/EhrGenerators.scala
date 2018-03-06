@@ -38,6 +38,11 @@ with ExamplesCommonGenerators {
       }
     }
 
+  def genBytes(minSize: Int, maxSize: Int): Gen[Array[Byte]] =
+    Gen.choose(minSize, maxSize) flatMap { sz =>
+      Gen.listOfN(sz, Arbitrary.arbitrary[Byte]).map(_.toArray)
+    }
+
   def ehrAppendContractUnlimitedGen: Gen[EhrAppendContract] = for {
     patientPK <- propositionGen
     providerPK <- propositionGen
