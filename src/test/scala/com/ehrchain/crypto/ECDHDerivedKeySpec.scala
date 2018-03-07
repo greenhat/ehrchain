@@ -13,8 +13,8 @@ class ECDHDerivedKeySpec extends PropSpec
 
   property("ECDH derived key equivalence for both parties") {
     forAll(key25519PairGen, key25519PairGen) { (party1Keys, party2Keys) =>
-      Base58.encode(ECDHDerivedKey.derivedKey(party1Keys, party2Keys.publicKey)) shouldEqual
-        Base58.encode(ECDHDerivedKey.derivedKey(party2Keys, party1Keys.publicKey))
+      ECDHDerivedKey.derivedKey(party1Keys, party2Keys.publicKey) shouldEqual
+        ECDHDerivedKey.derivedKey(party2Keys, party1Keys.publicKey)
     }
   }
 

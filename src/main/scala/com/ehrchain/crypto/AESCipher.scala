@@ -3,6 +3,7 @@ package com.ehrchain.crypto
 import java.io.{InputStream, OutputStream}
 import java.security.SecureRandom
 
+import com.ehrchain.core.KeyAes256
 import javax.crypto.spec.{GCMParameterSpec, SecretKeySpec}
 import javax.crypto.{Cipher, CipherInputStream, CipherOutputStream}
 
@@ -15,14 +16,12 @@ object AESCipher {
   private val ivLengthByte = 12
   private val tagLengthBit = 128
 
-  def encrypt(in: InputStream, out: OutputStream, key: Array[Byte]): Try[Unit] = Try {
-    require(key.length > 16, "key length must be longer than 16 byte")
+  def encrypt(in: InputStream, out: OutputStream, key: KeyAes256): Try[Unit] = Try {
     val iv = new Array[Byte](ivLengthByte)
     new SecureRandom().nextBytes(iv)
     val cipher = Cipher.getInstance(cipherInstanceName)
-    val secretKeySpec = new SecretKeySpec(key, "AES")
     val parameterSpec = new GCMParameterSpec(tagLengthBit, iv)
-    cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, parameterSpec)
+    cipher.init(Cipher.ENCRYPT_MODE, key.secretKeySpec, parameterSpec)
 
     // write IV to the output stream first
     out.write(iv.length.toByte)
@@ -42,8 +41,7 @@ object AESCipher {
     in.close()
   }
 
-  def decrypt(in: InputStream, out: OutputStream, key: Array[Byte]): Try[Unit] = Try {
-    require(key.length > 16, "key length must be longer than 16 byte")
+  def decrypt(in: InputStream, out: OutputStream, key: KeyAes256): Try[Unit] = Try {
     // read IV length
     val ivLengthRead = in.read()
     require(ivLengthRead > 0)
@@ -52,9 +50,8 @@ object AESCipher {
     require(in.read(iv) == ivLengthRead)
 
     val cipher = Cipher.getInstance(cipherInstanceName)
-    val secretKeySpec = new SecretKeySpec(key, "AES")
     val parameterSpec = new GCMParameterSpec(tagLengthBit, iv)
-    cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, parameterSpec)
+    cipher.init(Cipher.DECRYPT_MODE, key.secretKeySpec, parameterSpec)
 
     val cis = new CipherInputStream(in, cipher)
     val data = new Array[Byte](1024)

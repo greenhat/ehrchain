@@ -3,12 +3,13 @@ package com.ehrchain.crypto
 import java.nio.ByteBuffer
 import java.security.MessageDigest
 
+import com.ehrchain.core.DigestSha256
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scorex.crypto.signatures.Curve25519
 
 object ECDHDerivedKey {
 
-  def derivedKey(party1Keys: Curve25519KeyPair, party2PK: PublicKey25519Proposition): Array[Byte] = {
+  def derivedKey(party1Keys: Curve25519KeyPair, party2PK: PublicKey25519Proposition): DigestSha256 = {
     val sharedSecret = Curve25519.createSharedSecret(party1Keys.privateKey.privKeyBytes, party2PK.pubKeyBytes)
     // Derive a key from the shared secret and both public keys
     /*
@@ -27,6 +28,6 @@ object ECDHDerivedKey {
     List(ByteBuffer.wrap(party1Keys.publicKey.bytes), ByteBuffer.wrap(party2PK.bytes))
       .sorted
       .foreach(hash.update(_))
-    hash.digest
+    DigestSha256(hash.digest)
   }
 }
