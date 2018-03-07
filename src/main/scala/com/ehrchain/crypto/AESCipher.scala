@@ -4,7 +4,7 @@ import java.io.{InputStream, OutputStream}
 import java.security.SecureRandom
 
 import com.ehrchain.core.KeyAes256
-import javax.crypto.spec.{GCMParameterSpec, SecretKeySpec}
+import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.{Cipher, CipherInputStream, CipherOutputStream}
 
 import scala.util.Try

@@ -1,21 +1,19 @@
 package com.ehrchain.record
 
-import java.io.InputStream
-
+import com.ehrchain.core.DigestSha256
+import com.ehrchain.crypto.Sha256
 import com.ehrchain.serialization._
-import com.google.common.io.ByteStreams
 import io.circe.Json
 import io.circe.syntax._
 import scorex.core.serialization.{BytesSerializable, JsonSerializable, Serializer}
 import scorex.crypto.encode.Base58
-import scorex.crypto.hash.{Blake2b256, Digest32}
+
+import scala.util.Try
 
 @SerialVersionUID(0L)
-final case class RecordFile(size: Long,
-                            hash: Digest32) extends JsonSerializable {
+final case class RecordFile(hash: DigestSha256) extends JsonSerializable {
   override lazy val json: Json = Map(
-    "size" -> size.asJson,
-    "hash" -> Base58.encode(hash).asJson
+    "hash" -> Base58.encode(hash.bytes).asJson
   ).asJson
 
 }
@@ -36,8 +34,7 @@ final case class Record(files: Seq[RecordFile]) extends BytesSerializable with J
 
 object RecordFile {
 
-  def generate(inputStream: InputStream): RecordFile = {
-    val bytes = ByteStreams.toByteArray(inputStream)
-    RecordFile(bytes.length, Blake2b256(bytes))
+  def generate(source: RecordFileSource): Try[RecordFile] = {
+    Sha256.digest(source.inputStream).map(RecordFile(_))
   }
 }

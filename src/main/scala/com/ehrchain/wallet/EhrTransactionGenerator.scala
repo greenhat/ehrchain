@@ -49,10 +49,11 @@ object EhrTransactionGenerator {
 
   final case class GenerateTransaction(wallet: EhrWallet)
 
+  @SuppressWarnings(Array("org.wartremover.warts.TryPartial"))
   def generateTx(wallet: EhrWallet): EhrRecordTransaction =
     EhrRecordTransactionCompanion.generate(
       wallet.patientPK,
       wallet.providerKeyPair,
-      Record(Seq(RecordFile.generate(new ByteArrayInputStream("generator record".getBytes)))),
+      Record(Seq(RecordFile.generate("generator record".getBytes).get)),
       TimeStamp @@ Instant.now.getEpochSecond)
 }

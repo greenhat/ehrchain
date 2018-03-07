@@ -9,9 +9,8 @@ import com.ehrchain.core.TimeStamp
 import com.ehrchain.crypto.Curve25519KeyPair
 import com.ehrchain.history.EhrBlockStream._
 import com.ehrchain.history.{EhrBlockStream, EhrHistoryStorage}
-import com.ehrchain.record.{InMemoryRecordFileStorageMock, Record, RecordFile}
+import com.ehrchain.record._
 import com.ehrchain.transaction._
-import com.sun.xml.internal.messaging.saaj.util.ByteInputStream
 import commons.ExamplesCommonGenerators
 import org.scalacheck.{Arbitrary, Gen}
 import scorex.core.block.Block.BlockId
@@ -30,11 +29,11 @@ with ExamplesCommonGenerators {
 
   val mockRecord: Record = Record(Seq(InMemoryRecordFileStorageMock.recordFile))
 
-  def genRecordFile(minSize: Int, maxSize: Int): Gen[(RecordFile, InputStream)] =
+  def genRecordFile(minSize: Int, maxSize: Int): Gen[(RecordFile, RecordFileSource)] =
     Gen.choose(minSize, maxSize) flatMap { sz =>
       Gen.listOfN(sz, Arbitrary.arbitrary[Byte]).map { b =>
-        val bis = new ByteInputStream(b.toArray, b.length)
-        (RecordFile.generate(bis), bis)
+        val recordFileSource = ByteArrayRecordFileSource(b.toArray)
+        (RecordFile.generate(recordFileSource).get, recordFileSource)
       }
     }
 

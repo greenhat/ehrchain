@@ -10,7 +10,7 @@ import scala.util.Try
 object Sha256 {
 
   @SuppressWarnings(Array("org.wartremover.warts.Var", "org.wartremover.warts.While"))
-  def sha256(in: InputStream): Try[DigestSha256] = Try {
+  def digest(in: InputStream): Try[DigestSha256] = Try {
     val buffer = new Array[Byte](1024)
     val sha256 = MessageDigest.getInstance("SHA-256")
     var bytesRead = in.read(buffer)

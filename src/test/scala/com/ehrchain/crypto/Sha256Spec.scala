@@ -18,7 +18,7 @@ class Sha256Spec extends PropSpec
 
     property("equivalence to non-streamed") {
       forAll(genBytes(37, 199 * 11)) { originalContent =>
-        Sha256.sha256(new ByteArrayInputStream(originalContent)) shouldEqual
+        Sha256.digest(new ByteArrayInputStream(originalContent)) shouldEqual
           Success(DigestSha256(MessageDigest.getInstance("SHA-256").digest(originalContent)))
       }
     }

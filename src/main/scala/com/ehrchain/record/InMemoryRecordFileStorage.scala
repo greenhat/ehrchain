@@ -1,28 +1,26 @@
 package com.ehrchain.record
 
-import java.io.InputStream
-
-import com.sun.xml.internal.messaging.saaj.util.ByteInputStream
-import scorex.crypto.encode.Base58
+import com.ehrchain.core.DigestSha256
 
 @SuppressWarnings(Array("org.wartremover.warts.DefaultArguments"))
-final class InMemoryRecordFileStorage(store: Map[String, InputStream] = Map[String, InputStream]()
+final class InMemoryRecordFileStorage(store: Map[DigestSha256, RecordFileSource] =
+                                      Map[DigestSha256, RecordFileSource]()
                                      ) extends RecordFileStorage {
 
-  override def get(recordFile: RecordFile): Option[InputStream] =
-    store.get(Base58.encode(recordFile.hash))
+  override def get(recordFile: RecordFile): Option[RecordFileSource] =
+    store.get(recordFile.hash)
 
-  override def put(recordFile: RecordFile, inputStream: InputStream): RecordFileStorage =
+  override def put(recordFile: RecordFile, source: RecordFileSource): RecordFileStorage =
     new InMemoryRecordFileStorage(
-      store + (Base58.encode(recordFile.hash) -> inputStream))
+      store + (recordFile.hash -> source))
 }
 
+@SuppressWarnings(Array("org.wartremover.warts.TryPartial"))
 object InMemoryRecordFileStorageMock {
 
   private val bytes = "mock file".getBytes
-  val inputStream: InputStream = new ByteInputStream(bytes, bytes.length)
-  val recordFile: RecordFile = RecordFile.generate(inputStream)
+  val recordFile: RecordFile = RecordFile.generate(bytes).get
 
-  val storage: RecordFileStorage = new InMemoryRecordFileStorage().put(recordFile, inputStream)
+  val storage: RecordFileStorage = new InMemoryRecordFileStorage().put(recordFile, bytes)
 }
 

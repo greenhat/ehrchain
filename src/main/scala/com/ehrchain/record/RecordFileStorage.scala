@@ -1,10 +1,8 @@
 package com.ehrchain.record
 
-import java.io.InputStream
-
 trait RecordFileStorage {
 
-  def get(recordFile: RecordFile): Option[InputStream]
-  def put(recordFile: RecordFile, inputStream: InputStream): RecordFileStorage
+  def get(recordFile: RecordFile): Option[RecordFileSource]
+  def put(recordFile: RecordFile, source: RecordFileSource): RecordFileStorage
 }
 
