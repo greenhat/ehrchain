@@ -26,19 +26,19 @@ Store EHR (Electronic Health Records) in the public blockchain. The patients are
 - [x] record metadata format, attached files(transaction valid if all attached files are available locally);
 
 ### v 4.0
-- [ ] record file encryption;
-- [ ] record file hash;
-- [ ] patients read their own medical records;
+- [x] record file encryption;
+- [x] record file hash;
+- [x] patients read their own medical records;
 
 ### v 5.0
-- [ ] requesting/retrieving files attached to record transactions;
-
-### v 6.0
 - [ ] patient grants read access to the provider(contract);
 - [ ] provider reads patient's medical records;
 
-### v 7.0 
+### v 6.0
 - [ ] patient revokes append access to the provider(contract);
+
+### v 7.0 
+- [ ] requesting/retrieving files attached to record transactions;
 
 ### v 8.0
 - [ ] deployable testnet(few nodes with a scripted interactions: add/read records);
@@ -63,8 +63,10 @@ Store EHR (Electronic Health Records) in the public blockchain. The patients are
 #### Signature 
 Originator of the transaction (`generator` property with their public key) makes a signature of the transaction with their private key and includes it as `signature` in the transaction.
 ### Generic validity
-#### Record transaction authorization (`EhrRecordTransaction`)
+#### Record transaction authorization
 For each record transaction a valid append-only contract must exist. 
+#### Record transaction included record files verification
+For each record transaction a record file must be accessible by the local system. The file authenticity if verified with hash included in the transaction. 
 
 ## Block validation
 ### Semantic validity
@@ -81,10 +83,15 @@ Using the hierarchical deterministic wallet (BIP-0032 https://github.com/bitcoin
 Provider starts with master key pair generation. 
 
 ## Patient grants append access to the provider
-Patient creates a transaction(append-only contract) where puts one of their secondary public key, a provider's public key and a statement for the access (term, etc.). 
+Patient creates a transaction(append-only contract) where puts one of their secondary public key, a provider's public key and a statement for the access properties (term, etc.). 
 
 ## Provider appends a record for the patient
-Provider creates a transaction using the patient's public key provided in the contract to encrypt the record and signs the transaction with it's private key. 
+Provider creates a key for AES-256 by getting SHA-256 digest from the following items:
+ - shared secret using ECDH from provider's private key and patient's public key;
+ - patient's public key;
+ - provider's public key;
+This key is used to encrypt the record file. The hash of the encrypted record file is put in the record transaction.
+Provider creates a transaction and signs it with it's private key. 
 Transaction is valid only if if an append-only contract for this patient's public key exists in the blockchain and is active. Contract is active if it's terms are valid and there is no revocation contract further in the blockchain that cancels it. Must be checked by a node mining a block as a part of transaction validity check.
 
 ## Patient grants read access to their records to a provider
