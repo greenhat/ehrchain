@@ -10,7 +10,7 @@ import com.ehrchain.history.{EhrBlockStream, EhrHistoryStorage, EhrSyncInfo}
 import com.ehrchain.record.{InMemoryRecordFileStorage, Record, RecordFile}
 import com.ehrchain.serialization.byteSerializer
 import com.ehrchain.state.EhrMinimalState
-import com.ehrchain.transaction.{EhrRecordTransactionCompanion, EhrTransaction}
+import com.ehrchain.transaction.{EhrRecordTransactionCompanion, EhrTransaction, InMemoryRecordTransactionStorage}
 import com.ehrchain.wallet.EhrWallet
 import scorex.core.serialization.Serializer
 import scorex.core.transaction.Transaction
@@ -72,7 +72,8 @@ object EhrNodeViewHolder {
 
     val gs = EhrMinimalState(VersionTag @@ genesisBlock.id,
       new EhrInMemoryContractStorage(),
-      new InMemoryRecordFileStorage())
+      new InMemoryRecordFileStorage(),
+      new InMemoryRecordTransactionStorage())
     val gw = EhrWallet()
 
     (history, gs, gw, EhrTransactionMemPool.emptyPool)

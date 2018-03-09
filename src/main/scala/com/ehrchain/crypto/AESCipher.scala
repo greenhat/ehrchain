@@ -1,6 +1,6 @@
 package com.ehrchain.crypto
 
-import java.io.{InputStream, OutputStream}
+import java.io.{ByteArrayOutputStream, InputStream, OutputStream}
 import java.security.SecureRandom
 
 import com.ehrchain.core.KeyAes256
@@ -63,6 +63,11 @@ object AESCipher {
     out.close()
     cis.close()
     in.close()
+  }
+
+  def decryptInMemory(in: InputStream, key: KeyAes256): Try[Array[Byte]] = {
+    val out = new ByteArrayOutputStream()
+    decrypt(in, out, key).map(_ => out.toByteArray)
   }
 
 }

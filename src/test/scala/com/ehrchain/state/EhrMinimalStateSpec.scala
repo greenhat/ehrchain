@@ -4,12 +4,12 @@ import com.ehrchain.EhrGenerators
 import com.ehrchain.contract.EhrInMemoryContractStorage
 import com.ehrchain.history.EhrBlockStream
 import com.ehrchain.record.{InMemoryRecordFileStorage, InMemoryRecordFileStorageMock}
-import com.ehrchain.transaction.{EhrContractTransaction, EhrRecordTransaction}
-import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
+import com.ehrchain.transaction.InMemoryRecordTransactionStorage
 import org.scalatest._
+import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import scorex.core.VersionTag
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Success, Try}
 
 class EhrMinimalStatePropSpec extends PropSpec
   with PropertyChecks
@@ -27,7 +27,8 @@ class EhrMinimalStateFlatSpec extends FlatSpec
     val initialState = EhrMinimalState(
       VersionTag @@ EhrBlockStream.GenesisParentId,
       new EhrInMemoryContractStorage(),
-      InMemoryRecordFileStorageMock.storage)
+      InMemoryRecordFileStorageMock.storage,
+      new InMemoryRecordTransactionStorage())
     validBlockstream.toList.foldRight(Try {initialState}) { case (element, state) =>
       state.flatMap(_.applyModifier(element.block))
     }.map(_ => true) shouldBe Success(true)
@@ -37,7 +38,8 @@ class EhrMinimalStateFlatSpec extends FlatSpec
     val initialState = EhrMinimalState(
       VersionTag @@ EhrBlockStream.GenesisParentId,
       new EhrInMemoryContractStorage(),
-      new InMemoryRecordFileStorage())
+      new InMemoryRecordFileStorage(),
+      new InMemoryRecordTransactionStorage())
     ehrRecordTransactionGen.sample.map { tx =>
       initialState.validate(tx).isSuccess
     } shouldEqual Some(false)

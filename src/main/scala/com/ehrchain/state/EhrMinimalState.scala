@@ -13,7 +13,8 @@ import scala.util.{Failure, Success, Try}
 
 final case class EhrMinimalState(override val version: VersionTag,
                                  contractStorage: EhrContractStorage,
-                                 recordFileStorage: RecordFileStorage)
+                                 recordFileStorage: RecordFileStorage,
+                                 recordTransactionStorage: RecordTransactionStorage)
   extends MinimalState[EhrBlock, EhrMinimalState]
   with TransactionValidation[PublicKey25519Proposition, EhrTransaction]
   with ModifierValidation[EhrBlock]
@@ -29,13 +30,20 @@ final case class EhrMinimalState(override val version: VersionTag,
     validate(mod).map { _ =>
       EhrMinimalState(VersionTag @@ mod.id,
         contractStorage.add(gatherContracts(mod.transactions)),
-        recordFileStorage)
+        recordFileStorage,
+        recordTransactionStorage.put(gatherRecordTransactions(mod.transactions)))
     }
 
   private def gatherContracts(txs: Seq[EhrTransaction]): Seq[EhrContract] =
     txs.flatMap {
       case contractTx: EhrContractTransaction => Seq(contractTx.contract)
       case _ => Seq[EhrContract]()
+    }
+
+  private def gatherRecordTransactions(txs: Seq[EhrTransaction]): Seq[EhrRecordTransaction] =
+    txs.flatMap {
+      case recordTx: EhrRecordTransaction => Seq(recordTx)
+      case _ => Seq[EhrRecordTransaction]()
     }
 
   override def rollbackTo(version: VersionTag): Try[EhrMinimalState] = ???

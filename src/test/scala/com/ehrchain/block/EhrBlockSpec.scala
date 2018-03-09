@@ -26,6 +26,4 @@ class EhrBlockSpec extends PropSpec
     }
   }
 
-  // todo test invalid signature
-
 }

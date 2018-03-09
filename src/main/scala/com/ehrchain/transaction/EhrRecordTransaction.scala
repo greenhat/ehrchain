@@ -59,7 +59,6 @@ object EhrRecordTransaction {
 
 object EhrRecordTransactionCompanion {
 
-  // todo move to test (generators)?
   def generate(patientPK: PublicKey25519Proposition,
                providerKeys: (PrivateKey25519, PublicKey25519Proposition),
                record: Record,

@@ -15,7 +15,6 @@ final case class ValidUntil(date: Instant) extends EhrContractTerm
 
 trait EhrContract extends BytesSerializable {
 
-  // todo every contract must have an id
   val timestamp: Instant
   val term: EhrContractTerm
 

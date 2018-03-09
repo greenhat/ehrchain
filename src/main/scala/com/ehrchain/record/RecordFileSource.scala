@@ -2,6 +2,7 @@ package com.ehrchain.record
 
 import java.io.{ByteArrayInputStream, InputStream}
 
+// todo rename to FileSource
 trait RecordFileSource {
   def inputStream: InputStream
 }
