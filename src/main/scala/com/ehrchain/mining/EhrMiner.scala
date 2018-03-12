@@ -73,7 +73,7 @@ object EhrMiner extends App {
       case ref@ _ =>
         Right[Throwable, EhrBlock](EhrBlock.generate(
           bestBlockId,
-          TimeStamp @@ Instant.now.getEpochSecond,
+          Instant.now,
           ref.toSeq,
           wallet.blockGeneratorKeyPair,
           // todo difficulty = blockchain.height / X ?

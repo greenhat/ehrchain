@@ -1,6 +1,7 @@
 package com.ehrchain.transaction
 
-import com.ehrchain.core.TimeStamp
+import java.time.Instant
+
 import scorex.core.serialization.BytesSerializable
 import scorex.core.transaction.Transaction
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
@@ -11,9 +12,8 @@ trait EhrTransaction extends Transaction[PublicKey25519Proposition] with BytesSe
 
   val generator: PublicKey25519Proposition
   val signature: Signature25519
-  // todo switch to Instant
-  val timestamp: TimeStamp
+  val timestamp: Instant
 
   def semanticValidity: Boolean =
-    timestamp > 0 && signature.isValid(generator, messageToSign)
+    signature.isValid(generator, messageToSign)
 }

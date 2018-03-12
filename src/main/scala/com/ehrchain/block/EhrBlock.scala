@@ -1,14 +1,15 @@
 package com.ehrchain.block
 
-import com.ehrchain.core._
+import java.time.Instant
+
 import com.ehrchain.serialization._
-import com.ehrchain.transaction.{EhrTransaction, EhrRecordTransaction}
-import com.google.common.primitives.{Bytes, Ints, Longs}
+import com.ehrchain.transaction.EhrTransaction
+import com.google.common.primitives.{Bytes, Ints}
 import examples.commons.Nonce
 import io.circe.Json
 import io.circe.syntax._
 import scorex.core.block.Block
-import scorex.core.block.Block.{BlockId, Version}
+import scorex.core.block.Block.{BlockId, Timestamp, Version}
 import scorex.core.serialization.Serializer
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scorex.core.transaction.proof.Signature25519
@@ -16,13 +17,12 @@ import scorex.core.transaction.state.{PrivateKey25519, PrivateKey25519Companion}
 import scorex.core.{ModifierId, ModifierTypeId}
 import scorex.crypto.encode.Base58
 import scorex.crypto.hash.Blake2b256
-import scorex.crypto.signatures.{Curve25519, PublicKey, Signature}
 
 import scala.annotation.tailrec
-import scala.util.{Random, Try}
+import scala.util.Random
 
 final class EhrBlock(val parentId: BlockId,
-                     val timestamp: TimeStamp,
+                     val dateTime: Instant,
                      val nonce: Nonce,
                      val transactions: Seq[EhrTransaction],
                      val signature: Signature25519,
@@ -38,10 +38,13 @@ final class EhrBlock(val parentId: BlockId,
 
   override def version: Version = 1: Byte
 
+  override def timestamp: Timestamp = dateTime.toEpochMilli
+
   override def json: Json = Map(
     "id" -> Base58.encode(id).asJson,
     "parentId" -> Base58.encode(parentId).asJson,
-    "timestamp" -> timestamp.toLong.asJson,
+    // todo make encoder/decoder
+    "timestamp" -> dateTime.toEpochMilli.asJson,
     "nonce" -> nonce.toLong.asJson,
     "transactions" -> transactions.map(_.json).asJson,
     "signature" -> Base58.encode(signature.bytes).asJson,
@@ -51,14 +54,13 @@ final class EhrBlock(val parentId: BlockId,
   override def toString: String = s"EhrBlock(${json.noSpaces}})"
 
   override def id: ModifierId =
-    ModifierId @@ Blake2b256(parentId ++ serialize(timestamp) ++ generator.bytes)
+    ModifierId @@ Blake2b256(parentId ++ serialize(dateTime) ++ generator.bytes)
 
   override def serializer: Serializer[M] = byteSerializer[M]
 
   lazy val validity: Boolean =
-    timestamp > 0 &&
-      transactions.nonEmpty &&
-      signature.isValid(generator, EhrBlock.generateMessageToSign(parentId, timestamp, nonce, transactions, generator, difficulty)) &&
+    transactions.nonEmpty &&
+      signature.isValid(generator, EhrBlock.generateMessageToSign(parentId, dateTime, nonce, transactions, generator, difficulty)) &&
       powValidity
 
   lazy val powValidity: Boolean = {
@@ -72,7 +74,7 @@ object EhrBlock {
   val ModifierType: ModifierTypeId = ModifierTypeId @@ 1.toByte
 
   def generateMessageToSign(parentId: BlockId,
-                            timestamp: TimeStamp,
+                            timestamp: Instant,
                             nonce: Nonce,
                             transactions: Seq[EhrTransaction],
                             generator: PublicKey25519Proposition,
@@ -88,7 +90,7 @@ object EhrBlock {
 
   @tailrec
   def generate(parentId: BlockId,
-               timestamp: TimeStamp,
+               timestamp: Instant,
                transactions: Seq[EhrTransaction],
                generatorKeys: (PrivateKey25519, PublicKey25519Proposition),
                difficulty: Int): EhrBlock = {

@@ -55,5 +55,5 @@ object EhrTransactionGenerator {
       wallet.patientPK,
       wallet.providerKeyPair,
       Record(Seq(RecordFile.generate("generator record".getBytes).get)),
-      TimeStamp @@ Instant.now.getEpochSecond)
+      Instant.now)
 }

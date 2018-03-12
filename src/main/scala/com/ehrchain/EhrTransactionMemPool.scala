@@ -41,7 +41,7 @@ final case class EhrTransactionMemPool(unconfirmed: TrieMap[ByteArrayWrapper, Eh
   }
 
   override def take(limit: Int): Iterable[EhrTransaction] =
-    unconfirmed.values.toSeq.sortBy(-_.timestamp).take(limit)
+    unconfirmed.values.toSeq.sortBy(_.timestamp).take(limit)
 
   override def filter(condition: (EhrTransaction) => Boolean): EhrTransactionMemPool = {
     val _ = unconfirmed.retain { (k, v) =>

@@ -3,7 +3,6 @@ package com.ehrchain
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
 import java.time.Instant
 
-import com.ehrchain.core.TimeStamp
 import com.google.common.primitives.Longs
 import examples.commons.Nonce
 import scorex.core.serialization.Serializer
@@ -13,13 +12,6 @@ import scorex.core.transaction.proof.Signature25519Serializer
 import scala.util.Try
 
 package object serialization {
-
-  implicit val timestampSerializer: Serializer[TimeStamp] = new Serializer[TimeStamp] {
-    override def toBytes(obj: TimeStamp): Array[Byte] = Longs.toByteArray(obj)
-
-    override def parseBytes(bytes: Array[Byte]): Try[TimeStamp] =
-      Try { TimeStamp @@ Longs.fromByteArray(bytes) }
-  }
 
   implicit val instantSerializer: Serializer[Instant] = new Serializer[Instant] {
     override def toBytes(obj: Instant): Array[Byte] = Longs.toByteArray(obj.toEpochMilli)

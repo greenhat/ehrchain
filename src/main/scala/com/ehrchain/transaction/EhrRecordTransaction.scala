@@ -1,9 +1,10 @@
 package com.ehrchain.transaction
 
-import com.ehrchain.core.TimeStamp
+import java.time.Instant
+
 import com.ehrchain.record.Record
 import com.ehrchain.serialization._
-import com.google.common.primitives.{Bytes, Longs}
+import com.google.common.primitives.Bytes
 import io.circe.Json
 import io.circe.syntax._
 import scorex.core.serialization.Serializer
@@ -11,15 +12,12 @@ import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scorex.core.transaction.proof.Signature25519
 import scorex.core.transaction.state.{PrivateKey25519, PrivateKey25519Companion}
 import scorex.crypto.encode.Base58
-import scorex.crypto.signatures.{Curve25519, PublicKey, Signature}
-
-import scala.util.Try
 
 final case class EhrRecordTransaction(generator: PublicKey25519Proposition,
                                       subject: PublicKey25519Proposition,
                                       record: Record,
                                       signature: Signature25519,
-                                      timestamp: TimeStamp) extends EhrTransaction {
+                                      timestamp: Instant) extends EhrTransaction {
 
   override type M = EhrRecordTransaction
 
@@ -27,7 +25,7 @@ final case class EhrRecordTransaction(generator: PublicKey25519Proposition,
 
   override lazy val json: Json = Map(
     "id" -> Base58.encode(id).asJson,
-    "timestamp" -> timestamp.toLong.asJson,
+    "timestamp" -> timestamp.toEpochMilli.asJson,
     "generator" -> Base58.encode(generator.bytes).asJson,
     "subject" -> Base58.encode(subject.bytes).asJson,
     "record" -> record.json,
@@ -45,12 +43,12 @@ object EhrRecordTransaction {
 
   val MaxRecordSize: Int = 1024
 
-  def generateMessageToSign(timestamp: TimeStamp,
+  def generateMessageToSign(timestamp: Instant,
                             patient: PublicKey25519Proposition,
                             provider: PublicKey25519Proposition,
                             record: Record): Array[Byte] =
     Bytes.concat(
-      Longs.toByteArray(timestamp),
+      serialize(timestamp),
       patient.bytes,
       provider.bytes,
       record.bytes
@@ -62,7 +60,7 @@ object EhrRecordTransactionCompanion {
   def generate(patientPK: PublicKey25519Proposition,
                providerKeys: (PrivateKey25519, PublicKey25519Proposition),
                record: Record,
-               timestamp: TimeStamp): EhrRecordTransaction = {
+               timestamp: Instant): EhrRecordTransaction = {
     val providerPK = providerKeys._2
     val providerSK = providerKeys._1
     val messageToSign = EhrRecordTransaction.generateMessageToSign(timestamp, patientPK, providerPK, record)

@@ -10,10 +10,6 @@ import scala.util.{Failure, Success, Try}
 
 package object core {
 
-  object TimeStamp extends TaggedType[Long]
-
-  type TimeStamp = TimeStamp.Type
-
   type NodeViewHolderCurrentView =
     CurrentView[EhrBlockStream, EhrMinimalState, EhrWallet, EhrTransactionMemPool]
 

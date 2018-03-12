@@ -10,7 +10,7 @@ class EhrRecordTransactionContractValidator(contractStorage: EhrContractStorage)
     contractStorage.contractsForPatient(tx.subject).exists {
       case appendContract: EhrAppendContract => appendContract.term match {
         case Unlimited => true
-        case ValidUntil(date) => date.compareTo(Instant.ofEpochSecond(tx.timestamp)) >= 0
+        case ValidUntil(date) => date.compareTo(tx.timestamp) >= 0
       }
       case _ => false
     }

@@ -1,11 +1,9 @@
 package com.ehrchain
 
-import java.io.{ByteArrayInputStream, InputStream}
 import java.time.Instant
 
 import com.ehrchain.block.EhrBlock
 import com.ehrchain.contract.{EhrAppendContract, Unlimited}
-import com.ehrchain.core.TimeStamp
 import com.ehrchain.crypto.Curve25519KeyPair
 import com.ehrchain.history.EhrBlockStream._
 import com.ehrchain.history.{EhrBlockStream, EhrHistoryStorage}
@@ -48,8 +46,7 @@ with ExamplesCommonGenerators {
     timestamp <- instantGen
   } yield EhrAppendContract(patientPK, providerPK, timestamp, Unlimited)
 
-  lazy val timestampGen: Gen[TimeStamp] =
-    Gen.choose(Instant.EPOCH.getEpochSecond, Instant.now.getEpochSecond).map(TimeStamp @@ _)
+  lazy val timestampGen: Gen[Instant] = instantGen
 
   lazy val instantGen: Gen[Instant] =
     Gen.choose(Instant.EPOCH.getEpochSecond, Instant.now.getEpochSecond)
@@ -62,7 +59,7 @@ with ExamplesCommonGenerators {
   } yield List[EhrTransaction](
     EhrContractTransaction.generate(
       patientKeys,
-      EhrAppendContract(patientKeys._2, providerKeys._2, Instant.ofEpochSecond(timestamp), Unlimited),
+      EhrAppendContract(patientKeys._2, providerKeys._2, timestamp, Unlimited),
       timestamp),
     EhrRecordTransactionCompanion.generate(patientKeys._2, providerKeys, mockRecord, timestamp)
   )
@@ -127,7 +124,7 @@ with ExamplesCommonGenerators {
     loop(empty, blocks)
   }
 
-  def currentTimestamp: TimeStamp = TimeStamp @@ Instant.now.toEpochMilli
+  def currentTimestamp: Instant = Instant.now
 
   def validBlockstream: EhrBlockStream = {
     val genesisBlock = generateGenesisBlock

@@ -1,10 +1,11 @@
 package com.ehrchain.transaction
 
+import java.time.Instant
+
 import com.ehrchain.contract.EhrContract
-import com.ehrchain.core.TimeStamp
 import com.ehrchain.crypto.Curve25519KeyPair
 import com.ehrchain.serialization._
-import com.google.common.primitives.{Bytes, Longs}
+import com.google.common.primitives.Bytes
 import io.circe.Json
 import io.circe.syntax._
 import scorex.core.serialization.Serializer
@@ -17,14 +18,14 @@ import scorex.crypto.encode.Base58
 final case class EhrContractTransaction(generator: PublicKey25519Proposition,
                                         signature: Signature25519,
                                         contract: EhrContract,
-                                        timestamp: TimeStamp) extends EhrTransaction {
+                                        timestamp: Instant) extends EhrTransaction {
   override type M = this.type
 
   override def serializer: Serializer[M] = byteSerializer[M]
 
   override def json: Json = Map(
     "id" -> Base58.encode(id).asJson,
-    "timestamp" -> timestamp.toLong.asJson,
+    "timestamp" -> timestamp.toEpochMilli.asJson,
     "generator" -> Base58.encode(generator.bytes).asJson,
 //    "contract" -> contract.asJson,
     "signature" -> Base58.encode(signature.bytes).asJson,
@@ -39,19 +40,19 @@ final case class EhrContractTransaction(generator: PublicKey25519Proposition,
 
 object EhrContractTransaction {
 
-  def generateMessageToSign(timestamp: TimeStamp,
+  def generateMessageToSign(timestamp: Instant,
                             generator: PublicKey25519Proposition,
                             contract: EhrContract
                             ): Array[Byte] =
     Bytes.concat(
-      Longs.toByteArray(timestamp),
+      serialize(timestamp),
       generator.bytes,
       contract.bytes
     )
 
   def generate(generatorKeys: Curve25519KeyPair,
                contract: EhrContract,
-               timestamp: TimeStamp): EhrContractTransaction = {
+               timestamp: Instant): EhrContractTransaction = {
     val messageToSign = generateMessageToSign(timestamp, generatorKeys.publicKey, contract)
     val signature = PrivateKey25519Companion.sign(generatorKeys.privateKey, messageToSign)
     EhrContractTransaction(generatorKeys.publicKey, signature, contract, timestamp)
