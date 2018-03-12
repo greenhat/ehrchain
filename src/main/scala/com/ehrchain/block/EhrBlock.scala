@@ -43,8 +43,7 @@ final class EhrBlock(val parentId: BlockId,
   override def json: Json = Map(
     "id" -> Base58.encode(id).asJson,
     "parentId" -> Base58.encode(parentId).asJson,
-    // todo make encoder/decoder
-    "timestamp" -> dateTime.toEpochMilli.asJson,
+    "timestamp" -> dateTime.asJson,
     "nonce" -> nonce.toLong.asJson,
     "transactions" -> transactions.map(_.json).asJson,
     "signature" -> Base58.encode(signature.bytes).asJson,

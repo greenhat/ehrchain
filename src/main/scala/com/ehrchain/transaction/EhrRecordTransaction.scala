@@ -25,7 +25,7 @@ final case class EhrRecordTransaction(generator: PublicKey25519Proposition,
 
   override lazy val json: Json = Map(
     "id" -> Base58.encode(id).asJson,
-    "timestamp" -> timestamp.toEpochMilli.asJson,
+    "timestamp" -> timestamp.asJson,
     "generator" -> Base58.encode(generator.bytes).asJson,
     "subject" -> Base58.encode(subject.bytes).asJson,
     "record" -> record.json,

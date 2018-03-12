@@ -5,9 +5,11 @@ import java.time.Instant
 
 import com.google.common.primitives.Longs
 import examples.commons.Nonce
+import io.circe.{Decoder, Encoder}
 import scorex.core.serialization.Serializer
 import scorex.core.transaction.box.proposition.PublicKey25519PropositionSerializer
 import scorex.core.transaction.proof.Signature25519Serializer
+import cats.syntax.either._
 
 import scala.util.Try
 
@@ -55,5 +57,11 @@ package object serialization {
       override def parseBytes(bytes: Array[Byte]): Try[T] = deserializeFromBytes[T](bytes)
     }
     new ConcreteSerializer
+  }
+
+  implicit val encodeInstant: Encoder[Instant] = Encoder.encodeLong.contramap[Instant](_.toEpochMilli)
+
+  implicit val decodeInstant: Decoder[Instant] = Decoder.decodeLong.emap { epochMilli =>
+    Either.catchNonFatal(Instant.ofEpochMilli(epochMilli)).leftMap(t => "Instant")
   }
 }

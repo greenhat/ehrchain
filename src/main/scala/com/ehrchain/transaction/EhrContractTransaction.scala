@@ -25,7 +25,7 @@ final case class EhrContractTransaction(generator: PublicKey25519Proposition,
 
   override def json: Json = Map(
     "id" -> Base58.encode(id).asJson,
-    "timestamp" -> timestamp.toEpochMilli.asJson,
+    "timestamp" -> timestamp.asJson,
     "generator" -> Base58.encode(generator.bytes).asJson,
 //    "contract" -> contract.asJson,
     "signature" -> Base58.encode(signature.bytes).asJson,
