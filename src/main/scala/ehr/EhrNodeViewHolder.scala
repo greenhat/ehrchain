@@ -4,12 +4,12 @@ import java.time.Instant
 
 import akka.actor.Props
 import ehr.block.EhrBlock
-import ehr.contract.EhrInMemoryContractStorage
-import ehr.history.{EhrBlockStream, EhrHistoryStorage, EhrSyncInfo}
+import ehr.contract.InMemoryContractStorage
+import ehr.history.{BlockStream, HistoryStorage, EhrSyncInfo}
 import ehr.record.{InMemoryRecordFileStorage, Record, RecordFile}
 import ehr.state.EhrMinimalState
 import ehr.transaction.{EhrRecordTransactionCompanion, EhrTransaction, InMemoryRecordTransactionStorage}
-import ehr.wallet.EhrWallet
+import ehr.wallet.Wallet
 import ehr.serialization._
 import scorex.core.serialization.Serializer
 import scorex.core.transaction.Transaction
@@ -23,10 +23,10 @@ class EhrNodeViewHolder extends NodeViewHolder[PublicKey25519Proposition, EhrTra
   override val networkChunkSize: Int = 10
 
   override type SI = EhrSyncInfo
-  override type HIS = EhrBlockStream
+  override type HIS = BlockStream
   override type MS = EhrMinimalState
-  override type VL = EhrWallet
-  override type MP = EhrTransactionMemPool
+  override type VL = Wallet
+  override type MP = TransactionMemPool
 
   /**
     * Restore a local view during a node startup. If no any stored view found
@@ -52,7 +52,7 @@ object EhrNodeViewHolder {
   def props: Props = Props(new EhrNodeViewHolder)
 
   @SuppressWarnings(Array("org.wartremover.warts.TryPartial"))
-  def generateGenesisState: (EhrBlockStream, EhrMinimalState, EhrWallet, EhrTransactionMemPool) = {
+  def generateGenesisState: (BlockStream, EhrMinimalState, Wallet, TransactionMemPool) = {
     val genesisBlockAccount = PrivateKey25519Companion.generateKeys("genesis block".getBytes)
     val genesisPatientAccount = PrivateKey25519Companion.generateKeys("genesis patient".getBytes)
     val genesisProviderAccount = PrivateKey25519Companion.generateKeys("genesis provider".getBytes)
@@ -62,18 +62,18 @@ object EhrNodeViewHolder {
       EhrRecordTransactionCompanion.generate(genesisPatientAccount._2, genesisProviderAccount, genesisRecord,
         timestamp)
     )
-    val genesisBlock = EhrBlock.generate(EhrBlockStream.GenesisParentId, timestamp, genesisTxs,
+    val genesisBlock = EhrBlock.generate(BlockStream.GenesisParentId, timestamp, genesisTxs,
       genesisBlockAccount, 0)
 
     // todo loadOrGenerate
-    val history = EhrBlockStream.load(new EhrHistoryStorage()).append(genesisBlock).get._1
+    val history = BlockStream.load(new HistoryStorage()).append(genesisBlock).get._1
 
     val gs = EhrMinimalState(VersionTag @@ genesisBlock.id,
-      new EhrInMemoryContractStorage(),
+      new InMemoryContractStorage(),
       new InMemoryRecordFileStorage(),
       new InMemoryRecordTransactionStorage())
-    val gw = EhrWallet()
+    val gw = Wallet()
 
-    (history, gs, gw, EhrTransactionMemPool.emptyPool)
+    (history, gs, gw, TransactionMemPool.emptyPool)
   }
 }

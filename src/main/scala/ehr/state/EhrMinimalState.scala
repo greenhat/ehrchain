@@ -1,7 +1,7 @@
 package ehr.state
 
 import ehr.block.EhrBlock
-import ehr.contract.{EhrContract, EhrContractStorage}
+import ehr.contract.{Contract, ContractStorage}
 import ehr.record.RecordFileStorage
 import ehr.transaction._
 import scorex.core.VersionTag
@@ -12,7 +12,7 @@ import scorex.core.utils.ScorexLogging
 import scala.util.{Failure, Success, Try}
 
 final case class EhrMinimalState(override val version: VersionTag,
-                                 contractStorage: EhrContractStorage,
+                                 contractStorage: ContractStorage,
                                  recordFileStorage: RecordFileStorage,
                                  recordTransactionStorage: RecordTransactionStorage)
   extends MinimalState[EhrBlock, EhrMinimalState]
@@ -34,16 +34,16 @@ final case class EhrMinimalState(override val version: VersionTag,
         recordTransactionStorage.put(gatherRecordTransactions(mod.transactions)))
     }
 
-  private def gatherContracts(txs: Seq[EhrTransaction]): Seq[EhrContract] =
+  private def gatherContracts(txs: Seq[EhrTransaction]): Seq[Contract] =
     txs.flatMap {
-      case contractTx: EhrContractTransaction => Seq(contractTx.contract)
-      case _ => Seq[EhrContract]()
+      case contractTx: ContractTransaction => Seq(contractTx.contract)
+      case _ => Seq[Contract]()
     }
 
-  private def gatherRecordTransactions(txs: Seq[EhrTransaction]): Seq[EhrRecordTransaction] =
+  private def gatherRecordTransactions(txs: Seq[EhrTransaction]): Seq[RecordTransaction] =
     txs.flatMap {
-      case recordTx: EhrRecordTransaction => Seq(recordTx)
-      case _ => Seq[EhrRecordTransaction]()
+      case recordTx: RecordTransaction => Seq(recordTx)
+      case _ => Seq[RecordTransaction]()
     }
 
   override def rollbackTo(version: VersionTag): Try[EhrMinimalState] = ???
@@ -51,7 +51,7 @@ final case class EhrMinimalState(override val version: VersionTag,
   override def validate(tx: EhrTransaction): Try[Unit] = Try {
     require(tx.semanticValidity, "tx semantic validation failed")
     tx match {
-      case recordTx: EhrRecordTransaction => {
+      case recordTx: RecordTransaction => {
         require(ehrRecordTxContractValidator.validity(recordTx), s"contract validation failed for: $recordTx")
         require(ehrRecordTxFileValidator.validity(recordTx), s"file validation failed for: $recordTx")
       }

@@ -4,12 +4,12 @@ import java.time.Instant
 
 import commons.ExamplesCommonGenerators
 import ehr.block.EhrBlock
-import ehr.contract.{EhrAppendContract, Unlimited}
+import ehr.contract.{AppendContract, Unlimited}
 import ehr.crypto.Curve25519KeyPair
-import ehr.history.EhrBlockStream._
-import ehr.history.{EhrBlockStream, EhrHistoryStorage}
+import ehr.history.BlockStream._
+import ehr.history.{BlockStream, HistoryStorage}
 import ehr.record._
-import ehr.transaction.{EhrContractTransaction, EhrRecordTransaction, EhrRecordTransactionCompanion, EhrTransaction}
+import ehr.transaction.{ContractTransaction, RecordTransaction, EhrRecordTransactionCompanion, EhrTransaction}
 import org.scalacheck.{Arbitrary, Gen}
 import scorex.core.block.Block.BlockId
 import scorex.core.transaction.state.PrivateKey25519Companion
@@ -40,11 +40,11 @@ with ExamplesCommonGenerators {
       Gen.listOfN(sz, Arbitrary.arbitrary[Byte]).map(_.toArray)
     }
 
-  def ehrAppendContractUnlimitedGen: Gen[EhrAppendContract] = for {
+  def ehrAppendContractUnlimitedGen: Gen[AppendContract] = for {
     patientPK <- propositionGen
     providerPK <- propositionGen
     timestamp <- instantGen
-  } yield EhrAppendContract(patientPK, providerPK, timestamp, Unlimited)
+  } yield AppendContract(patientPK, providerPK, timestamp, Unlimited)
 
   lazy val timestampGen: Gen[Instant] = instantGen
 
@@ -57,24 +57,24 @@ with ExamplesCommonGenerators {
     providerKeys <- key25519Gen
     patientKeys <- key25519Gen
   } yield List[EhrTransaction](
-    EhrContractTransaction.generate(
+    ContractTransaction.generate(
       patientKeys,
-      EhrAppendContract(patientKeys._2, providerKeys._2, timestamp, Unlimited),
+      AppendContract(patientKeys._2, providerKeys._2, timestamp, Unlimited),
       timestamp),
     EhrRecordTransactionCompanion.generate(patientKeys._2, providerKeys, mockRecord, timestamp)
   )
 
-  lazy val ehrRecordTransactionGen: Gen[EhrRecordTransaction] = for {
+  lazy val ehrRecordTransactionGen: Gen[RecordTransaction] = for {
     timestamp <- timestampGen
     providerKeys <- key25519Gen
     patientPK <- propositionGen
   } yield EhrRecordTransactionCompanion.generate(patientPK, providerKeys, mockRecord, timestamp)
 
-  lazy val ehrAppendContractTransactionGen: Gen[EhrContractTransaction] = for {
+  lazy val ehrAppendContractTransactionGen: Gen[ContractTransaction] = for {
     timestamp <- timestampGen
     generatorKeys <- key25519Gen
     appendContract <- ehrAppendContractUnlimitedGen
-  } yield EhrContractTransaction.generate(generatorKeys, appendContract, timestamp)
+  } yield ContractTransaction.generate(generatorKeys, appendContract, timestamp)
 
   def ehrTransactionsGen(min: Int, max: Int): Gen[List[EhrTransaction]] = for {
     txs <- Gen.choose(min, max).flatMap(i => Gen.listOfN(i / 2, ehrTransactionPairGen))
@@ -92,7 +92,7 @@ with ExamplesCommonGenerators {
 
   def generateGenesisBlock: EhrBlock =
     EhrBlock.generate(
-      EhrBlockStream.GenesisParentId,
+      BlockStream.GenesisParentId,
       timestampGen.sample.get,
       Seq(ehrAppendContractTransactionGen.sample.get),
       key25519Gen.sample.get, MiningDifficulty)
@@ -104,7 +104,7 @@ with ExamplesCommonGenerators {
       ehrTransactionsGen(2, MaxTransactionQtyInBlock).sample.get,
       key25519Gen.sample.get, MiningDifficulty)
 
-  def generateBlockStream(height: Int): EhrBlockStream = {
+  def generateBlockStream(height: Int): BlockStream = {
     require(height > 0)
     def blockList(block: EhrBlock, elements: List[EhrBlock]): List[EhrBlock] = {
       if (elements.lengthCompare(height) < 0)
@@ -112,12 +112,12 @@ with ExamplesCommonGenerators {
       else
         elements
     }
-    blockStreamFromElements(blockList(generateGenesisBlock, List()))(new EhrHistoryStorage())
+    blockStreamFromElements(blockList(generateGenesisBlock, List()))(new HistoryStorage())
   }
 
   @SuppressWarnings(Array("org.wartremover.warts.ImplicitParameter"))
-  def blockStreamFromElements(blocks: List[EhrBlock])(implicit storage: EhrHistoryStorage): EhrBlockStream = {
-    def loop(stream: EhrBlockStream, rest: List[EhrBlock]): EhrBlockStream = rest match {
+  def blockStreamFromElements(blocks: List[EhrBlock])(implicit storage: HistoryStorage): BlockStream = {
+    def loop(stream: BlockStream, rest: List[EhrBlock]): BlockStream = rest match {
       case h :: t => loop(stream.append(h).get._1, t)
       case Nil => stream
     }
@@ -126,16 +126,16 @@ with ExamplesCommonGenerators {
 
   def currentTimestamp: Instant = Instant.now
 
-  def validBlockstream: EhrBlockStream = {
+  def validBlockstream: BlockStream = {
     val genesisBlock = generateGenesisBlock
     val patientKeyPair: Curve25519KeyPair = key25519Gen.sample.get
     val providerKeyPair: Curve25519KeyPair = key25519Gen.sample.get
     val blockGeneratorKeyPair: Curve25519KeyPair = key25519Gen.sample.get
-    val appendContract = EhrAppendContract(patientKeyPair.publicKey,
+    val appendContract = AppendContract(patientKeyPair.publicKey,
       providerKeyPair.publicKey,
       Instant.now,
       Unlimited)
-    val block1TXs = Seq(EhrContractTransaction.generate(patientKeyPair, appendContract, currentTimestamp))
+    val block1TXs = Seq(ContractTransaction.generate(patientKeyPair, appendContract, currentTimestamp))
     val block1 = EhrBlock.generate(genesisBlock.id,
       currentTimestamp,
       block1TXs,
@@ -152,6 +152,6 @@ with ExamplesCommonGenerators {
       block2TXs,
       blockGeneratorKeyPair,
       0)
-    blockStreamFromElements(List(genesisBlock, block1, block2))(new EhrHistoryStorage())
+    blockStreamFromElements(List(genesisBlock, block1, block2))(new HistoryStorage())
   }
 }

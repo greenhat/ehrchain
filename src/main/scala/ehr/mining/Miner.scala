@@ -3,31 +3,31 @@ package ehr.mining
 import java.time.Instant
 
 import akka.actor.{Actor, ActorRef, Props}
-import ehr.EhrTransactionMemPool
+import ehr.TransactionMemPool
 import ehr.block.EhrBlock
 import ehr.core.NodeViewHolderCurrentView
-import ehr.history.EhrBlockStream
-import ehr.mining.EhrMiner.{CreateBlock, MineBlock, StartMining, StopMining}
+import ehr.history.BlockStream
+import ehr.mining.Miner.{CreateBlock, MineBlock, StartMining, StopMining}
 import ehr.state.EhrMinimalState
-import ehr.wallet.EhrWallet
+import ehr.wallet.Wallet
 import scorex.core.LocallyGeneratedModifiersMessages.ReceivableMessages.LocallyGeneratedModifier
 import scorex.core.NodeViewHolder.ReceivableMessages.GetDataFromCurrentView
 import scorex.core.block.Block.BlockId
 import scorex.core.utils.ScorexLogging
 
-class EhrMiner(viewHolderRef: ActorRef) extends Actor with ScorexLogging {
+class Miner(viewHolderRef: ActorRef) extends Actor with ScorexLogging {
 
   private val getRequiredData = GetDataFromCurrentView[
-    EhrBlockStream,
+    BlockStream,
     EhrMinimalState,
-    EhrWallet,
-    EhrTransactionMemPool,
+    Wallet,
+    TransactionMemPool,
     CreateBlock]
     {  view: NodeViewHolderCurrentView =>
       CreateBlock(
         view.vault,
         view.pool,
-        view.history.headOption.map(_.block.id).getOrElse(EhrBlockStream.GenesisParentId))
+        view.history.headOption.map(_.block.id).getOrElse(BlockStream.GenesisParentId))
     }
 
   override def receive: Receive = mining
@@ -39,7 +39,7 @@ class EhrMiner(viewHolderRef: ActorRef) extends Actor with ScorexLogging {
     case MineBlock =>
       viewHolderRef ! getRequiredData
     case CreateBlock(wallet, pool, bestBlockId) =>
-      EhrMiner.generateBlock(wallet, pool, bestBlockId) match {
+      Miner.generateBlock(wallet, pool, bestBlockId) match {
         case Left(error) => log.error(s"error mining block: $error")
         case Right(block) => viewHolderRef ! LocallyGeneratedModifier[EhrBlock](block)
       }
@@ -53,9 +53,9 @@ class EhrMiner(viewHolderRef: ActorRef) extends Actor with ScorexLogging {
   }
 }
 
-object EhrMiner extends App {
+object Miner extends App {
 
-  def props(nodeViewHolderRef: ActorRef): Props = Props(new EhrMiner(nodeViewHolderRef))
+  def props(nodeViewHolderRef: ActorRef): Props = Props(new Miner(nodeViewHolderRef))
 
   case object StartMining
 
@@ -63,10 +63,10 @@ object EhrMiner extends App {
 
   case object MineBlock
 
-  final case class CreateBlock(wallet: EhrWallet, memPool: EhrTransactionMemPool, bestBlockId: BlockId)
+  final case class CreateBlock(wallet: Wallet, memPool: TransactionMemPool, bestBlockId: BlockId)
 
-  def generateBlock(wallet: EhrWallet,
-                    memPool: EhrTransactionMemPool,
+  def generateBlock(wallet: Wallet,
+                    memPool: TransactionMemPool,
                     bestBlockId: BlockId): Either[Throwable, EhrBlock] =
     memPool.take(10).filter(_.semanticValidity) match {
       case Nil => Left[Throwable, EhrBlock](new Exception("no valid transactions found"))

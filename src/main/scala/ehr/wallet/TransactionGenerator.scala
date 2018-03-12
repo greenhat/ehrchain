@@ -3,12 +3,12 @@ package ehr.wallet
 import java.time.Instant
 
 import akka.actor.{Actor, ActorRef, Props}
-import ehr.EhrTransactionMemPool
+import ehr.TransactionMemPool
 import ehr.core.NodeViewHolderCurrentView
-import ehr.history.EhrBlockStream
+import ehr.history.BlockStream
 import ehr.record.{Record, RecordFile}
 import ehr.state.EhrMinimalState
-import ehr.transaction.{EhrRecordTransaction, EhrRecordTransactionCompanion}
+import ehr.transaction.{RecordTransaction, EhrRecordTransactionCompanion}
 import scorex.core.LocallyGeneratedModifiersMessages.ReceivableMessages.LocallyGeneratedTransaction
 import scorex.core.NodeViewHolder.ReceivableMessages.GetDataFromCurrentView
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
@@ -16,18 +16,18 @@ import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.FiniteDuration
 
-class EhrTransactionGenerator(viewHolderRef: ActorRef) extends Actor {
+class TransactionGenerator(viewHolderRef: ActorRef) extends Actor {
 
-  import EhrTransactionGenerator._
+  import TransactionGenerator._
 
   private val getRequiredData = GetDataFromCurrentView[
-    EhrBlockStream,
+    BlockStream,
     EhrMinimalState,
-    EhrWallet,
-    EhrTransactionMemPool,
+    Wallet,
+    TransactionMemPool,
     GenerateTransaction]
     {  view: NodeViewHolderCurrentView =>
-      EhrTransactionGenerator.GenerateTransaction(view.vault)
+      TransactionGenerator.GenerateTransaction(view.vault)
     }
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
@@ -36,20 +36,20 @@ class EhrTransactionGenerator(viewHolderRef: ActorRef) extends Actor {
       val _ = context.system.scheduler.schedule(duration, duration, viewHolderRef, getRequiredData)
 
     case GenerateTransaction(wallet) =>
-      viewHolderRef ! LocallyGeneratedTransaction[PublicKey25519Proposition, EhrRecordTransaction](generateTx(wallet))
+      viewHolderRef ! LocallyGeneratedTransaction[PublicKey25519Proposition, RecordTransaction](generateTx(wallet))
   }
 }
 
-object EhrTransactionGenerator {
+object TransactionGenerator {
 
-  def props(nodeViewHolder: ActorRef): Props = Props(new EhrTransactionGenerator(nodeViewHolder))
+  def props(nodeViewHolder: ActorRef): Props = Props(new TransactionGenerator(nodeViewHolder))
 
   final case class StartGeneration(delay: FiniteDuration)
 
-  final case class GenerateTransaction(wallet: EhrWallet)
+  final case class GenerateTransaction(wallet: Wallet)
 
   @SuppressWarnings(Array("org.wartremover.warts.TryPartial"))
-  def generateTx(wallet: EhrWallet): EhrRecordTransaction =
+  def generateTx(wallet: Wallet): RecordTransaction =
     EhrRecordTransactionCompanion.generate(
       wallet.patientPK,
       wallet.providerKeyPair,

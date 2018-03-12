@@ -8,7 +8,7 @@ import scorex.core.consensus.History.HistoryComparisonResult
 import scorex.crypto.hash.Blake2b256
 
 @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
-class EhrBlockStreamSpec extends FlatSpec
+class BlockStreamSpec extends FlatSpec
   with PropertyChecks
   with GeneratorDrivenPropertyChecks
   with Matchers

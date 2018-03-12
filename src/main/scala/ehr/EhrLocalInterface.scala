@@ -2,7 +2,7 @@ package ehr
 
 import akka.actor.{ActorRef, Props}
 import ehr.block.EhrBlock
-import ehr.mining.EhrMiner.{MineBlock, StartMining, StopMining}
+import ehr.mining.Miner.{MineBlock, StartMining, StopMining}
 import ehr.transaction.EhrTransaction
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scorex.core.{LocalInterface, ModifierId}

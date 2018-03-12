@@ -2,12 +2,12 @@ package ehr
 
 import akka.actor.{ActorRef, Props}
 import ehr.block.EhrBlock
-import ehr.history.{EhrBlockStream, EhrSyncInfo, EhrSyncInfoMessageSpec}
-import ehr.mining.EhrMiner
+import ehr.history.{BlockStream, EhrSyncInfo, EhrSyncInfoMessageSpec}
+import ehr.mining.Miner
 import ehr.settings.EhrAppSettings
 import ehr.transaction.EhrTransaction
-import ehr.wallet.EhrTransactionGenerator
-import ehr.wallet.EhrTransactionGenerator.StartGeneration
+import ehr.wallet.TransactionGenerator
+import ehr.wallet.TransactionGenerator.StartGeneration
 import scorex.core.api.http.{ApiRoute, NodeViewApiRoute, PeersApiRoute, UtilsApiRoute}
 import scorex.core.app.Application
 import scorex.core.network.NodeViewSynchronizer
@@ -43,18 +43,18 @@ class EhrApp(val settingsFilename: String) extends Application {
   // todo generate
   override val swaggerConfig: String = Source.fromResource("api/testApi.yaml").getLines.mkString("\n")
 
-  val miner: ActorRef = actorSystem.actorOf(EhrMiner.props(nodeViewHolderRef))
+  val miner: ActorRef = actorSystem.actorOf(Miner.props(nodeViewHolderRef))
 
   override val localInterface: ActorRef =
     actorSystem.actorOf(EhrLocalInterface.props(nodeViewHolderRef, miner))
 
   override val nodeViewSynchronizer: ActorRef =
     actorSystem.actorOf(Props(
-      new NodeViewSynchronizer[P, TX, EhrSyncInfo, EhrSyncInfoMessageSpec.type, PMOD, EhrBlockStream, EhrTransactionMemPool]
+      new NodeViewSynchronizer[P, TX, EhrSyncInfo, EhrSyncInfoMessageSpec.type, PMOD, BlockStream, TransactionMemPool]
     (networkControllerRef, nodeViewHolderRef, localInterface, EhrSyncInfoMessageSpec, settings.network, timeProvider)))
 
   log.debug("Starting transactions generation")
-  val transactionGenerator: ActorRef = actorSystem.actorOf(EhrTransactionGenerator.props(nodeViewHolderRef))
+  val transactionGenerator: ActorRef = actorSystem.actorOf(TransactionGenerator.props(nodeViewHolderRef))
   transactionGenerator ! StartGeneration(2 seconds)
 }
 

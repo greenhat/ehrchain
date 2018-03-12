@@ -9,8 +9,8 @@ import scorex.core.utils.ScorexLogging
 import scala.collection.concurrent.TrieMap
 import scala.util.{Success, Try}
 
-final case class EhrTransactionMemPool(unconfirmed: TrieMap[ByteArrayWrapper, EhrTransaction])
-  extends MemoryPool[EhrTransaction, EhrTransactionMemPool] with ScorexLogging {
+final case class TransactionMemPool(unconfirmed: TrieMap[ByteArrayWrapper, EhrTransaction])
+  extends MemoryPool[EhrTransaction, TransactionMemPool] with ScorexLogging {
 
   override type NVCT = this.type
 
@@ -23,19 +23,19 @@ final case class EhrTransactionMemPool(unconfirmed: TrieMap[ByteArrayWrapper, Eh
 
   override def getAll(ids: Seq[ModifierId]): Seq[EhrTransaction] = ids.flatMap(getById(_).toList)
 
-  override def put(tx: EhrTransaction): Try[EhrTransactionMemPool] = Success {
+  override def put(tx: EhrTransaction): Try[TransactionMemPool] = Success {
     val _ = unconfirmed.put(key(tx.id), tx)
     this
   }
 
-  override def put(txs: Iterable[EhrTransaction]): Try[EhrTransactionMemPool] = Success(putWithoutCheck(txs))
+  override def put(txs: Iterable[EhrTransaction]): Try[TransactionMemPool] = Success(putWithoutCheck(txs))
 
-  override def putWithoutCheck(txs: Iterable[EhrTransaction]): EhrTransactionMemPool = {
+  override def putWithoutCheck(txs: Iterable[EhrTransaction]): TransactionMemPool = {
     txs.foreach(tx => unconfirmed.put(key(tx.id), tx))
     this
   }
 
-  override def remove(tx: EhrTransaction): EhrTransactionMemPool = {
+  override def remove(tx: EhrTransaction): TransactionMemPool = {
     val _ = unconfirmed.remove(key(tx.id))
     this
   }
@@ -43,7 +43,7 @@ final case class EhrTransactionMemPool(unconfirmed: TrieMap[ByteArrayWrapper, Eh
   override def take(limit: Int): Iterable[EhrTransaction] =
     unconfirmed.values.toSeq.sortBy(_.timestamp).take(limit)
 
-  override def filter(condition: (EhrTransaction) => Boolean): EhrTransactionMemPool = {
+  override def filter(condition: (EhrTransaction) => Boolean): TransactionMemPool = {
     val _ = unconfirmed.retain { (k, v) =>
       condition(v)
     }
@@ -54,7 +54,7 @@ final case class EhrTransactionMemPool(unconfirmed: TrieMap[ByteArrayWrapper, Eh
 }
 
 
-object EhrTransactionMemPool {
-  lazy val emptyPool: EhrTransactionMemPool = EhrTransactionMemPool(TrieMap())
+object TransactionMemPool {
+  lazy val emptyPool: TransactionMemPool = TransactionMemPool(TrieMap())
 }
 

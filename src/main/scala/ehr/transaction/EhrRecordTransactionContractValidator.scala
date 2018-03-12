@@ -1,12 +1,12 @@
 package ehr.transaction
 
-import ehr.contract.{EhrAppendContract, EhrContractStorage, Unlimited, ValidUntil}
+import ehr.contract.{AppendContract, ContractStorage, Unlimited, ValidUntil}
 
-class EhrRecordTransactionContractValidator(contractStorage: EhrContractStorage) {
+class EhrRecordTransactionContractValidator(contractStorage: ContractStorage) {
 
-  def validity(tx: EhrRecordTransaction): Boolean =
+  def validity(tx: RecordTransaction): Boolean =
     contractStorage.contractsForPatient(tx.subject).exists {
-      case appendContract: EhrAppendContract => appendContract.term match {
+      case appendContract: AppendContract => appendContract.term match {
         case Unlimited => true
         case ValidUntil(date) => date.compareTo(tx.timestamp) >= 0
       }

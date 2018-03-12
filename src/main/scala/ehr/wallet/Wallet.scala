@@ -11,18 +11,18 @@ import scorex.core.utils.ScorexLogging
 
 import scala.util.Try
 
-final case class EhrWallet() extends Vault[PublicKey25519Proposition, EhrTransaction, EhrBlock, EhrWallet]
+final case class Wallet() extends Vault[PublicKey25519Proposition, EhrTransaction, EhrBlock, Wallet]
   with ScorexLogging {
 
   override type NVCT = this.type
 
-  override def scanOffchain(tx: EhrTransaction): EhrWallet = this
+  override def scanOffchain(tx: EhrTransaction): Wallet = this
 
-  override def scanOffchain(txs: Seq[EhrTransaction]): EhrWallet = this
+  override def scanOffchain(txs: Seq[EhrTransaction]): Wallet = this
 
-  override def scanPersistent(modifier: EhrBlock): EhrWallet = this
+  override def scanPersistent(modifier: EhrBlock): Wallet = this
 
-  override def rollback(to: VersionTag): Try[EhrWallet] = Try { this }
+  override def rollback(to: VersionTag): Try[Wallet] = Try { this }
 
   val patientPK: PublicKey25519Proposition =
     PrivateKey25519Companion.generateKeys("patient key".getBytes)._2

@@ -13,14 +13,14 @@ class RecordTransactionFileValidatorSpec extends PropSpec
 
   property("validate tx against an empty file storage") {
     val validator = new RecordTransactionFileValidator(new InMemoryRecordFileStorage())
-    forAll(ehrRecordTransactionGen) { b: EhrRecordTransaction =>
+    forAll(ehrRecordTransactionGen) { b: RecordTransaction =>
       validator.validity(b) shouldBe false
     }
   }
 
   property("validate tx against an filled file storage") {
     val validator = new RecordTransactionFileValidator(InMemoryRecordFileStorageMock.storage)
-    forAll(ehrRecordTransactionGen) { b: EhrRecordTransaction =>
+    forAll(ehrRecordTransactionGen) { b: RecordTransaction =>
       validator.validity(b) shouldBe true
     }
   }

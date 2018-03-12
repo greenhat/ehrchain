@@ -3,11 +3,11 @@ package ehr.history
 import ehr.EhrGenerators
 import org.scalatest.{FlatSpec, Matchers}
 
-class EhrHistoryStorageSpec extends FlatSpec
+class HistoryStorageSpec extends FlatSpec
   with Matchers
   with EhrGenerators {
 
-  private def newStorage: EhrHistoryStorage = new EhrHistoryStorage()
+  private def newStorage: HistoryStorage = new HistoryStorage()
 
   "new storage" should "be empty" in {
     val storage = newStorage

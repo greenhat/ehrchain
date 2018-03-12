@@ -13,13 +13,13 @@ import scorex.core.transaction.state.{PrivateKey25519, PrivateKey25519Companion}
 import ehr.serialization._
 import scorex.crypto.encode.Base58
 
-  final case class EhrRecordTransaction(generator: PublicKey25519Proposition,
-                                        subject: PublicKey25519Proposition,
-                                        record: Record,
-                                        signature: Signature25519,
-                                        timestamp: Instant) extends EhrTransaction {
+  final case class RecordTransaction(generator: PublicKey25519Proposition,
+                                     subject: PublicKey25519Proposition,
+                                     record: Record,
+                                     signature: Signature25519,
+                                     timestamp: Instant) extends EhrTransaction {
 
-    override type M = EhrRecordTransaction
+    override type M = RecordTransaction
 
     override def serializer: Serializer[M] = byteSerializer[M]
 
@@ -33,13 +33,13 @@ import scorex.crypto.encode.Base58
   ).asJson
 
   override lazy val messageToSign: Array[Byte] =
-    EhrRecordTransaction.generateMessageToSign(timestamp, subject, generator, record)
+    RecordTransaction.generateMessageToSign(timestamp, subject, generator, record)
 
   override def semanticValidity: Boolean =
-    super.semanticValidity && record.bytes.length <= EhrRecordTransaction.MaxRecordSize
+    super.semanticValidity && record.bytes.length <= RecordTransaction.MaxRecordSize
 }
 
-object EhrRecordTransaction {
+object RecordTransaction {
 
   val MaxRecordSize: Int = 1024
 
@@ -60,12 +60,12 @@ object EhrRecordTransactionCompanion {
   def generate(patientPK: PublicKey25519Proposition,
                providerKeys: (PrivateKey25519, PublicKey25519Proposition),
                record: Record,
-               timestamp: Instant): EhrRecordTransaction = {
+               timestamp: Instant): RecordTransaction = {
     val providerPK = providerKeys._2
     val providerSK = providerKeys._1
-    val messageToSign = EhrRecordTransaction.generateMessageToSign(timestamp, patientPK, providerPK, record)
+    val messageToSign = RecordTransaction.generateMessageToSign(timestamp, patientPK, providerPK, record)
     val signature = PrivateKey25519Companion.sign(providerSK, messageToSign)
-    EhrRecordTransaction(providerPK, patientPK, record, signature, timestamp)
+    RecordTransaction(providerPK, patientPK, record, signature, timestamp)
   }
 }
 

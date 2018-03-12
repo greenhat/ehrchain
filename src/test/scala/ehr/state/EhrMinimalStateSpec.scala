@@ -1,8 +1,8 @@
 package ehr.state
 
 import ehr.EhrGenerators
-import ehr.contract.EhrInMemoryContractStorage
-import ehr.history.EhrBlockStream
+import ehr.contract.InMemoryContractStorage
+import ehr.history.BlockStream
 import ehr.record.{InMemoryRecordFileStorage, InMemoryRecordFileStorageMock}
 import ehr.transaction.InMemoryRecordTransactionStorage
 import org.scalatest._
@@ -25,8 +25,8 @@ class EhrMinimalStateFlatSpec extends FlatSpec
 
   "EhrMinimalState" should "process valid blocks" in {
     val initialState = EhrMinimalState(
-      VersionTag @@ EhrBlockStream.GenesisParentId,
-      new EhrInMemoryContractStorage(),
+      VersionTag @@ BlockStream.GenesisParentId,
+      new InMemoryContractStorage(),
       InMemoryRecordFileStorageMock.storage,
       new InMemoryRecordTransactionStorage())
     validBlockstream.toList.foldRight(Try {initialState}) { case (element, state) =>
@@ -36,8 +36,8 @@ class EhrMinimalStateFlatSpec extends FlatSpec
 
   "EhrMinimalState" should "validate unauthorized tx" in {
     val initialState = EhrMinimalState(
-      VersionTag @@ EhrBlockStream.GenesisParentId,
-      new EhrInMemoryContractStorage(),
+      VersionTag @@ BlockStream.GenesisParentId,
+      new InMemoryContractStorage(),
       new InMemoryRecordFileStorage(),
       new InMemoryRecordTransactionStorage())
     ehrRecordTransactionGen.sample.map { tx =>
