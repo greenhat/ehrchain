@@ -68,7 +68,6 @@ object EhrMiner extends App {
   def generateBlock(wallet: EhrWallet,
                     memPool: EhrTransactionMemPool,
                     bestBlockId: BlockId): Either[Throwable, EhrBlock] =
-  // todo validate tx through state
     memPool.take(10).filter(_.semanticValidity) match {
       case Nil => Left[Throwable, EhrBlock](new Exception("no valid transactions found"))
       case ref@ _ =>
