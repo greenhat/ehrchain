@@ -25,7 +25,7 @@ class AccessRecordsSpec extends FlatSpec
       encryptedRecordFileStream,
       ECDHDerivedKey.derivedKey(providerKeyPair, patientKeyPair.publicKey)) shouldEqual Success()
 
-    val recordFileSource = ByteArrayRecordFileSource(encryptedRecordFileStream.toByteArray)
+    val recordFileSource = ByteArrayFileSource(encryptedRecordFileStream.toByteArray)
     val recordFile = RecordFile.generate(recordFileSource).get
 
     val recordFileStorage = new InMemoryRecordFileStorage().put(recordFile, recordFileSource)

@@ -34,7 +34,7 @@ final case class Record(files: Seq[RecordFile]) extends BytesSerializable with J
 
 object RecordFile {
 
-  def generate(source: RecordFileSource): Try[RecordFile] = {
+  def generate(source: FileSource): Try[RecordFile] = {
     Sha256.digest(source.inputStream).map(RecordFile(_))
   }
 }

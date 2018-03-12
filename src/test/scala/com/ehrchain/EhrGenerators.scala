@@ -29,10 +29,10 @@ with ExamplesCommonGenerators {
 
   val mockRecord: Record = Record(Seq(InMemoryRecordFileStorageMock.recordFile))
 
-  def genRecordFile(minSize: Int, maxSize: Int): Gen[(RecordFile, RecordFileSource)] =
+  def genRecordFile(minSize: Int, maxSize: Int): Gen[(RecordFile, FileSource)] =
     Gen.choose(minSize, maxSize) flatMap { sz =>
       Gen.listOfN(sz, Arbitrary.arbitrary[Byte]).map { b =>
-        val recordFileSource = ByteArrayRecordFileSource(b.toArray)
+        val recordFileSource = ByteArrayFileSource(b.toArray)
         (RecordFile.generate(recordFileSource).get, recordFileSource)
       }
     }

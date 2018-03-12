@@ -3,14 +3,14 @@ package com.ehrchain.record
 import com.ehrchain.core.DigestSha256
 
 @SuppressWarnings(Array("org.wartremover.warts.DefaultArguments"))
-final class InMemoryRecordFileStorage(store: Map[DigestSha256, RecordFileSource] =
-                                      Map[DigestSha256, RecordFileSource]()
+final class InMemoryRecordFileStorage(store: Map[DigestSha256, FileSource] =
+                                      Map[DigestSha256, FileSource]()
                                      ) extends RecordFileStorage {
 
-  override def get(recordFile: RecordFile): Option[RecordFileSource] =
+  override def get(recordFile: RecordFile): Option[FileSource] =
     store.get(recordFile.hash)
 
-  override def put(recordFile: RecordFile, source: RecordFileSource): RecordFileStorage =
+  override def put(recordFile: RecordFile, source: FileSource): RecordFileStorage =
     new InMemoryRecordFileStorage(
       store + (recordFile.hash -> source))
 }

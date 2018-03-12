@@ -2,17 +2,16 @@ package com.ehrchain.record
 
 import java.io.{ByteArrayInputStream, InputStream}
 
-// todo rename to FileSource
-trait RecordFileSource {
+trait FileSource {
   def inputStream: InputStream
 }
 
 @SuppressWarnings(Array("org.wartremover.warts.ArrayEquals"))
-final case class ByteArrayRecordFileSource(bytes: Array[Byte]) extends RecordFileSource {
+final case class ByteArrayFileSource(bytes: Array[Byte]) extends FileSource {
   override def inputStream: InputStream = new ByteArrayInputStream(bytes)
 }
 
 @SuppressWarnings(Array("org.wartremover.warts.ImplicitConversion"))
-object RecordFileSource {
-  implicit def fromByteArray(bytes: Array[Byte]): RecordFileSource = ByteArrayRecordFileSource(bytes)
+object FileSource {
+  implicit def fromByteArray(bytes: Array[Byte]): FileSource = ByteArrayFileSource(bytes)
 }

@@ -11,7 +11,7 @@ object RecordReader {
   @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
   def decryptPatientRecordsInMemory(patientKeys: Curve25519KeyPair,
                                     recordTxStorage: RecordTransactionStorage,
-                                    recordFileStorage: RecordFileStorage):Seq[Try[RecordFileSource]] =
+                                    recordFileStorage: RecordFileStorage):Seq[Try[FileSource]] =
     for {
       tx <- recordTxStorage.getBySubject(patientKeys.publicKey)
       recordFile <- tx.record.files
@@ -19,5 +19,5 @@ object RecordReader {
       encryptedFileSource <- recordFileStorage.get(recordFile).toTry(s"no file source for $recordFile")
       decryptedBytes <- AESCipher.decryptInMemory(encryptedFileSource.inputStream,
               ECDHDerivedKey.derivedKey(patientKeys, tx.generator))
-    } yield ByteArrayRecordFileSource(decryptedBytes)
+    } yield ByteArrayFileSource(decryptedBytes)
 }
