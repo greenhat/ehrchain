@@ -224,7 +224,6 @@ final case class Cons(h: () => EhrBlockStreamElement, t: () => EhrBlockStream)(i
   override def storage: EhrHistoryStorage = store
 }
 
-// todo use closure returning EhrBlock?
 final case class EhrBlockStreamElement(block: EhrBlock, blockHeight: Long)
 
 object EhrBlockStream {
