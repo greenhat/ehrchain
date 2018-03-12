@@ -45,7 +45,6 @@ class EhrNodeViewHolder extends NodeViewHolder[PublicKey25519Proposition, EhrTra
     */
   override val modifierSerializers: Map[ModifierTypeId, Serializer[_ <: NodeViewModifier]] =
     Map(EhrBlock.ModifierType -> byteSerializer[EhrBlock],
-      // todo use generic EhrTransaction serializer
       Transaction.ModifierTypeId -> byteSerializer[EhrTransaction])
 }
 
