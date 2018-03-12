@@ -37,6 +37,6 @@ object KeyAes256 {
 }
 
 @SerialVersionUID(0L)
-final case class EncryptedAes256Keys(bytes: Array[Byte]) extends ByteArrayWrapper {
+final case class EncryptedRecordKeys(bytes: Array[Byte]) extends ByteArrayWrapper {
 }
 
