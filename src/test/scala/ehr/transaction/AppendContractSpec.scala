@@ -15,7 +15,7 @@ class AppendContractSpec extends PropSpec
 
   property("unlimited term validity") {
     forAll(ehrAppendContractUnlimitedGen) { b: AppendContract =>
-      b.validity.exists(_ == true) shouldBe true
+      b.semanticValidity shouldEqual Success()
     }
   }
 
@@ -27,7 +27,7 @@ class AppendContractSpec extends PropSpec
 
   property("serialization with validation afterwards") {
     forAll(ehrAppendContractUnlimitedGen) { b: AppendContract =>
-      b.serializer.parseBytes(b.bytes).map(_.validity.exists(_ == true)) shouldEqual Success(true)
+      b.serializer.parseBytes(b.bytes).map(_.semanticValidity).flatten shouldEqual Success()
     }
   }
 }

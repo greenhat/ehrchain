@@ -2,9 +2,12 @@ package ehr.contract
 
 import java.time.Instant
 
+import ehr.core.EncryptedAes256Keys
 import ehr.serialization._
 import scorex.core.serialization.{BytesSerializable, Serializer}
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
+
+import scala.util.{Failure, Success, Try}
 
 trait ContractTerm extends Serializable
 
@@ -16,14 +19,8 @@ final case class ValidUntil(date: Instant) extends ContractTerm
 trait Contract extends BytesSerializable {
 
   val timestamp: Instant
-  val term: ContractTerm
 
-  def validity: Either[Throwable, Boolean] = term match {
-    case Unlimited => Right[Throwable, Boolean](true)
-    case ValidUntil(date) if timestamp.compareTo(date) < 0 => Right[Throwable, Boolean](true)
-    case ValidUntil(date) if timestamp.compareTo(date) >= 0 =>
-      Left[Throwable, Boolean](new Exception("contract ValidUntil date is less than contract's timestamp"))
-  }
+  def semanticValidity: Try[Unit]
 }
 
 @SerialVersionUID(0L)
@@ -34,4 +31,24 @@ final case class AppendContract(patientPK: PublicKey25519Proposition,
   override type M = AppendContract
 
   override def serializer: Serializer[M] = byteSerializer[M]
+
+  override def semanticValidity: Try[Unit] = term match {
+    case Unlimited => Success()
+    case ValidUntil(date) if timestamp.compareTo(date) < 0 => Success()
+    case ValidUntil(date) if timestamp.compareTo(date) >= 0 =>
+      Failure[Unit](new Exception("contract ValidUntil date is less than contract's timestamp"))
+  }
+}
+
+@SerialVersionUID(0L)
+final case class ReadContract(patientPK: PublicKey25519Proposition,
+                              providerPK: PublicKey25519Proposition,
+                              timestamp: Instant,
+                             // todo providerPK -> AesKey pairs
+                              encryptedKeys: EncryptedAes256Keys) extends Contract {
+  override type M = ReadContract
+
+  override def serializer: Serializer[M] = byteSerializer[M]
+
+  override def semanticValidity: Try[Unit] = ???
 }

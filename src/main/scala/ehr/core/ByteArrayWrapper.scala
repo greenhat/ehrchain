@@ -35,3 +35,8 @@ final case class KeyAes256(bytes: Array[Byte]) extends ByteArrayWrapper {
 object KeyAes256 {
   implicit def fromDigestSha256(digest: DigestSha256): KeyAes256 = KeyAes256(digest.bytes)
 }
+
+@SerialVersionUID(0L)
+final case class EncryptedAes256Keys(bytes: Array[Byte]) extends ByteArrayWrapper {
+}
+

@@ -32,7 +32,7 @@ final case class ContractTransaction(generator: PublicKey25519Proposition,
   ).asJson
 
   override def semanticValidity: Boolean =
-    super.semanticValidity && contract.validity.exists(_ == true)
+    super.semanticValidity && contract.semanticValidity.isSuccess
 
   override val messageToSign: Array[Byte] =
     ContractTransaction.generateMessageToSign(timestamp, generator, contract)
