@@ -3,8 +3,9 @@ package ehr.contract
 import java.time.Instant
 
 import ehr.core.{EncryptedRecordKeys, KeyAes256}
-import ehr.crypto.Curve25519KeyPair
+import ehr.crypto.{Curve25519KeyPair, ECDHDerivedKey}
 import ehr.serialization._
+import ehr.transaction.RecordTransactionStorage
 import scorex.core.serialization.Serializer
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scorex.core.transaction.state.PrivateKey25519
@@ -49,5 +50,15 @@ object RecordKeys {
   def decrypt(providerKeyPair: Curve25519KeyPair,
               patientPK: PublicKey25519Proposition,
               encryptedRecordKeys: EncryptedRecordKeys): RecordKeys = ???
+
+  def build(patientKeyPair: Curve25519KeyPair,
+            recordTxStorage: RecordTransactionStorage): RecordKeys =
+    RecordKeys(
+      recordTxStorage.getByPatient(patientKeyPair.publicKey)
+        .foldLeft(Map[PublicKey25519Proposition, KeyAes256]()) { case (keyMap, tx) =>
+          if (keyMap.get(tx.generator).isDefined) keyMap
+          else keyMap + (tx.generator -> ECDHDerivedKey.derivedKey(patientKeyPair, tx.generator))
+        }
+    )
 }
 
