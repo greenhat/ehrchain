@@ -13,7 +13,7 @@ object RecordReader {
                                     recordTxStorage: RecordTransactionStorage,
                                     recordFileStorage: RecordFileStorage):Seq[Try[FileSource]] =
     for {
-      tx <- recordTxStorage.getBySubject(patientKeys.publicKey)
+      tx <- recordTxStorage.getByPatient(patientKeys.publicKey)
       recordFile <- tx.record.files
     } yield for {
       encryptedFileSource <- recordFileStorage.get(recordFile).toTry(s"no file source for $recordFile")

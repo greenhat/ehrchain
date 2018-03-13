@@ -14,7 +14,7 @@ import ehr.serialization._
 import scorex.crypto.encode.Base58
 
   final case class RecordTransaction(generator: PublicKey25519Proposition,
-                                     subject: PublicKey25519Proposition,
+                                     patient: PublicKey25519Proposition,
                                      record: Record,
                                      signature: Signature25519,
                                      timestamp: Instant) extends EhrTransaction {
@@ -27,13 +27,13 @@ import scorex.crypto.encode.Base58
     "id" -> Base58.encode(id).asJson,
     "timestamp" -> timestamp.asJson,
     "generator" -> Base58.encode(generator.bytes).asJson,
-    "subject" -> Base58.encode(subject.bytes).asJson,
+    "patient" -> Base58.encode(patient.bytes).asJson,
     "record" -> record.json,
     "signature" -> Base58.encode(signature.bytes).asJson,
   ).asJson
 
   override lazy val messageToSign: Array[Byte] =
-    RecordTransaction.generateMessageToSign(timestamp, subject, generator, record)
+    RecordTransaction.generateMessageToSign(timestamp, patient, generator, record)
 
   override def semanticValidity: Boolean =
     super.semanticValidity && record.bytes.length <= RecordTransaction.MaxRecordSize

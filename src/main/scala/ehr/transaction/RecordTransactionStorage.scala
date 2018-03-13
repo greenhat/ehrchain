@@ -5,7 +5,7 @@ import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 trait RecordTransactionStorage {
 
   def put(txs: Seq[RecordTransaction]): RecordTransactionStorage
-  def getBySubject(subjectPK: PublicKey25519Proposition): Seq[RecordTransaction]
+  def getByPatient(patientPK: PublicKey25519Proposition): Seq[RecordTransaction]
 }
 
 
@@ -18,12 +18,12 @@ class InMemoryRecordTransactionStorage(
   override def put(txs: Seq[RecordTransaction]): RecordTransactionStorage =
     new InMemoryRecordTransactionStorage(
       txs.foldLeft(store) { case (s, tx) =>
-          s + (tx.subject ->
-            (s.getOrElse(tx.subject, Seq[RecordTransaction]()) :+ tx))
+          s + (tx.patient ->
+            (s.getOrElse(tx.patient, Seq[RecordTransaction]()) :+ tx))
       }
     )
 
-  override def getBySubject(subjectPK: PublicKey25519Proposition): Seq[RecordTransaction] =
-    store.getOrElse(subjectPK, Seq[RecordTransaction]())
+  override def getByPatient(patientPK: PublicKey25519Proposition): Seq[RecordTransaction] =
+    store.getOrElse(patientPK, Seq[RecordTransaction]())
 
 }
