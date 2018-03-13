@@ -26,6 +26,18 @@ final case class ReadContract(patientPK: PublicKey25519Proposition,
     RecordKeys.decrypt((providerSK, providerPK), patientPK, encryptedRecordKeys)
 }
 
+object ReadContract {
+
+  def generate(patientKeyPair: Curve25519KeyPair,
+               providerPK: PublicKey25519Proposition,
+               timestamp: Instant,
+               recordKeys: RecordKeys): ReadContract =
+    ReadContract(patientKeyPair.publicKey,
+      providerPK,
+      timestamp,
+      RecordKeys.encrypt(patientKeyPair, providerPK, recordKeys))
+}
+
 final case class RecordKeys(keys: Map[PublicKey25519Proposition, KeyAes256])
 
 object RecordKeys {
