@@ -15,7 +15,7 @@ class ReadContractSpec extends FlatSpec
   with Matchers
   with EhrGenerators {
 
-  "Record keys" should "be built from existing record transaction" in {
+  "Read contract" should "be built from existing record transactions" in {
     val patientKeyPair: Curve25519KeyPair = key25519Gen.sample.get
     val providerKeyPair: Curve25519KeyPair = key25519Gen.sample.get
 
@@ -36,6 +36,11 @@ class ReadContractSpec extends FlatSpec
     val expectedRecordKeys = RecordKeys(
       Map(providerKeyPair.publicKey -> ECDHDerivedKey.derivedKey(patientKeyPair, providerKeyPair.publicKey)))
 
-    RecordKeys.build(patientKeyPair, recordTxStorage) shouldEqual expectedRecordKeys
+    val recordKeys = RecordKeys.build(patientKeyPair, recordTxStorage)
+    recordKeys shouldEqual expectedRecordKeys
+
+    ReadContract.generate(patientKeyPair, providerKeyPair.publicKey, currentTimestamp, recordKeys)
+      .decryptRecordKeys(providerKeyPair.privateKey) shouldEqual recordKeys
   }
+
 }
