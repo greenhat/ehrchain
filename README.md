@@ -44,18 +44,21 @@ Store EHR (Electronic Health Records) in the public blockchain. The patients are
 - [ ] deployable testnet(few nodes with a scripted interactions: add/read records);
 
 ### v 9.0
-- [ ] lightweight client proof-of-concept (for mobile);
+- [ ] expose record creation/access via the REST API (integration with provider's EMR);
 
 ### v 10.0
-- [ ] use hierarchical deterministic wallet for patient's secondary key pair generation;
+- [ ] lightweight client proof-of-concept for mobile (contracts management, record access);
 
 ### v 11.0
-- [ ] provider should be able to share their access to the patient's records with another provider;
+- [ ] use hierarchical deterministic wallet for patient's secondary key pair generation;
 
 ### v 12.0
+- [ ] provider should be able to share their access to the patient's records with another provider;
+
+### v 13.0
 - [ ] some patient's records should not be accessible by the patient (psychotherapy notes, IP, etc.);
 
-### v 13.0 
+### v 14.0 
 - [ ] eliminate any Patient <-> Doctor relationship in transaction (zero knowledge proofs);
 
 ## Transaction validation
