@@ -9,9 +9,9 @@ import scala.util.Try
 object RecordReader {
 
   @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
-  def decryptPatientRecordsInMemory(patientKeys: Curve25519KeyPair,
-                                    recordTxStorage: RecordTransactionStorage,
-                                    recordFileStorage: RecordFileStorage):Seq[Try[FileSource]] =
+  def decryptRecordsInMemory(patientKeys: Curve25519KeyPair,
+                             recordTxStorage: RecordTransactionStorage,
+                             recordFileStorage: RecordFileStorage):Seq[Try[FileSource]] =
     for {
       tx <- recordTxStorage.getByPatient(patientKeys.publicKey)
       recordFile <- tx.record.files

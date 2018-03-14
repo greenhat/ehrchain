@@ -38,7 +38,7 @@ class AccessRecordsSpec extends FlatSpec
 
     val recordTxStorage = new InMemoryRecordTransactionStorage().put(transactions)
 
-    RecordReader.decryptPatientRecordsInMemory(patientKeyPair, recordTxStorage, recordFileStorage)
+    RecordReader.decryptRecordsInMemory(patientKeyPair, recordTxStorage, recordFileStorage)
       .map(fileSource => ByteStreams.toByteArray(fileSource.get.inputStream))
       .exists(_ sameElements recordFileContent) shouldBe true
   }
