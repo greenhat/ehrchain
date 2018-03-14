@@ -40,5 +40,6 @@ trait AesEncryptedData extends ByteArrayWrapper
 
 @SerialVersionUID(0L)
 final case class EncryptedRecordKeys(bytes: Array[Byte]) extends AesEncryptedData {
+  require(bytes.length > 0)
 }
 
