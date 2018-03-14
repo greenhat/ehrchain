@@ -23,7 +23,7 @@ final case class ReadContract(patientPK: PublicKey25519Proposition,
 
   override def semanticValidity: Try[Unit] = Success()
 
-  def decryptRecordKeys(providerSK: PrivateKey25519): Try[RecordKeys] =
+  def decryptRecordKeysWithProviderSK(providerSK: PrivateKey25519): Try[RecordKeys] =
     RecordKeys.decrypt((providerSK, providerPK), patientPK, encryptedRecordKeys)
 }
 

@@ -40,7 +40,7 @@ class ReadContractSpec extends FlatSpec
     recordKeys shouldEqual expectedRecordKeys
 
     ReadContract.generate(patientKeyPair, providerKeyPair.publicKey, currentTimestamp, recordKeys)
-      .flatMap(_.decryptRecordKeys(providerKeyPair.privateKey)) shouldEqual Success(recordKeys)
+      .flatMap(_.decryptRecordKeysWithProviderSK(providerKeyPair.privateKey)) shouldEqual Success(recordKeys)
   }
 
 }
