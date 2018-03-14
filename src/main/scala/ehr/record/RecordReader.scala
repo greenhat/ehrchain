@@ -1,6 +1,6 @@
 package ehr.record
 
-import ehr.crypto.{AESCipher, Curve25519KeyPair, ECDHDerivedKey}
+import ehr.crypto.{AesCipher, Curve25519KeyPair, EcdhDerivedKey}
 import ehr.transaction.RecordTransactionStorage
 import ehr.core._
 
@@ -17,7 +17,7 @@ object RecordReader {
       recordFile <- tx.record.files
     } yield for {
       encryptedFileSource <- recordFileStorage.get(recordFile).toTry(s"no file source for $recordFile")
-      decryptedBytes <- AESCipher.decryptInMemory(encryptedFileSource.inputStream,
-              ECDHDerivedKey.derivedKey(patientKeys, tx.generator))
+      decryptedBytes <- AesCipher.decryptInMemoryStream(encryptedFileSource.inputStream,
+              EcdhDerivedKey.derivedKey(patientKeys, tx.generator))
     } yield ByteArrayFileSource(decryptedBytes)
 }

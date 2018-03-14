@@ -1,16 +1,16 @@
 package ehr.crypto
 
-import java.io.{ByteArrayOutputStream, InputStream, OutputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream, OutputStream}
 import java.security.SecureRandom
 
-import ehr.core.KeyAes256
+import ehr.core.{AesEncryptedData, KeyAes256}
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.{Cipher, CipherInputStream, CipherOutputStream}
 
 import scala.util.Try
 
 @SuppressWarnings(Array("org.wartremover.warts.Var", "org.wartremover.warts.While"))
-object AESCipher {
+object AesCipher {
 
   private val cipherInstanceName = "AES/GCM/NoPadding"
   private val ivLengthByte = 12
@@ -65,9 +65,19 @@ object AESCipher {
     in.close()
   }
 
-  def decryptInMemory(in: InputStream, key: KeyAes256): Try[Array[Byte]] = {
+  def decryptInMemoryStream(in: InputStream, key: KeyAes256): Try[Array[Byte]] = {
     val out = new ByteArrayOutputStream()
     decrypt(in, out, key).map(_ => out.toByteArray)
+  }
+
+  def decryptInMemoryBytes(in: AesEncryptedData, key: KeyAes256): Try[Array[Byte]] = {
+    val out = new ByteArrayOutputStream()
+    decrypt(new ByteArrayInputStream(in.bytes), out, key).map(_ => out.toByteArray)
+  }
+
+  def encryptInMemory(in: Array[Byte], key: KeyAes256): Try[Array[Byte]] = {
+    val out = new ByteArrayOutputStream()
+    encrypt(new ByteArrayInputStream(in), out, key).map(_ => out.toByteArray)
   }
 
 }

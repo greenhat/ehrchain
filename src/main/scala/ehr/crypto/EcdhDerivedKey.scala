@@ -7,7 +7,7 @@ import ehr.core.DigestSha256
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scorex.crypto.signatures.Curve25519
 
-object ECDHDerivedKey {
+object EcdhDerivedKey {
 
   def derivedKey(party1Keys: Curve25519KeyPair, party2PK: PublicKey25519Proposition): DigestSha256 = {
     val sharedSecret = Curve25519.createSharedSecret(party1Keys.privateKey.privKeyBytes, party2PK.pubKeyBytes)

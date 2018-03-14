@@ -3,7 +3,7 @@ package ehr.contract
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 import ehr.EhrGenerators
-import ehr.crypto.{AESCipher, Curve25519KeyPair, ECDHDerivedKey}
+import ehr.crypto.{AesCipher, Curve25519KeyPair, EcdhDerivedKey}
 import ehr.record._
 import ehr.transaction.{EhrRecordTransactionCompanion, InMemoryRecordTransactionStorage}
 import org.scalatest.{FlatSpec, Matchers}
@@ -20,9 +20,9 @@ class ReadContractSpec extends FlatSpec
     val providerKeyPair: Curve25519KeyPair = key25519Gen.sample.get
 
     val encryptedRecordFileStream = new ByteArrayOutputStream()
-    AESCipher.encrypt(new ByteArrayInputStream("health record".getBytes),
+    AesCipher.encrypt(new ByteArrayInputStream("health record".getBytes),
       encryptedRecordFileStream,
-      ECDHDerivedKey.derivedKey(providerKeyPair, patientKeyPair.publicKey)) shouldEqual Success()
+      EcdhDerivedKey.derivedKey(providerKeyPair, patientKeyPair.publicKey)) shouldEqual Success()
 
     val recordFile = RecordFile.generate(ByteArrayFileSource(encryptedRecordFileStream.toByteArray)).get
 
@@ -34,13 +34,13 @@ class ReadContractSpec extends FlatSpec
 
     val recordTxStorage = new InMemoryRecordTransactionStorage().put(transactions)
     val expectedRecordKeys = RecordKeys(
-      Map(providerKeyPair.publicKey -> ECDHDerivedKey.derivedKey(patientKeyPair, providerKeyPair.publicKey)))
+      Map(providerKeyPair.publicKey -> EcdhDerivedKey.derivedKey(patientKeyPair, providerKeyPair.publicKey)))
 
     val recordKeys = RecordKeys.build(patientKeyPair, recordTxStorage)
     recordKeys shouldEqual expectedRecordKeys
 
     ReadContract.generate(patientKeyPair, providerKeyPair.publicKey, currentTimestamp, recordKeys)
-      .decryptRecordKeys(providerKeyPair.privateKey) shouldEqual recordKeys
+      .flatMap(_.decryptRecordKeys(providerKeyPair.privateKey)) shouldEqual Success(recordKeys)
   }
 
 }

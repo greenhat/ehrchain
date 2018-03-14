@@ -3,7 +3,7 @@ package ehr
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 import com.google.common.io.ByteStreams
-import ehr.crypto.{AESCipher, Curve25519KeyPair, ECDHDerivedKey}
+import ehr.crypto.{AesCipher, Curve25519KeyPair, EcdhDerivedKey}
 import ehr.record._
 import ehr.transaction.{EhrRecordTransactionCompanion, InMemoryRecordTransactionStorage}
 import org.scalatest.{FlatSpec, Matchers}
@@ -21,9 +21,9 @@ class AccessRecordsSpec extends FlatSpec
 
     val recordFileContent = "health record".getBytes
     val encryptedRecordFileStream = new ByteArrayOutputStream()
-    AESCipher.encrypt(new ByteArrayInputStream(recordFileContent),
+    AesCipher.encrypt(new ByteArrayInputStream(recordFileContent),
       encryptedRecordFileStream,
-      ECDHDerivedKey.derivedKey(providerKeyPair, patientKeyPair.publicKey)) shouldEqual Success()
+      EcdhDerivedKey.derivedKey(providerKeyPair, patientKeyPair.publicKey)) shouldEqual Success()
 
     val recordFileSource = ByteArrayFileSource(encryptedRecordFileStream.toByteArray)
     val recordFile = RecordFile.generate(recordFileSource).get

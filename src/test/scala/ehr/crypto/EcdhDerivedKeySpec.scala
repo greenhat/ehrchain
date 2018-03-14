@@ -4,7 +4,7 @@ import ehr.EhrGenerators
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 
-class ECDHDerivedKeySpec extends PropSpec
+class EcdhDerivedKeySpec extends PropSpec
   with PropertyChecks
   with GeneratorDrivenPropertyChecks
   with Matchers
@@ -12,8 +12,8 @@ class ECDHDerivedKeySpec extends PropSpec
 
   property("ECDH derived key equivalence for both parties") {
     forAll(key25519PairGen, key25519PairGen) { (party1Keys, party2Keys) =>
-      ECDHDerivedKey.derivedKey(party1Keys, party2Keys.publicKey) shouldEqual
-        ECDHDerivedKey.derivedKey(party2Keys, party1Keys.publicKey)
+      EcdhDerivedKey.derivedKey(party1Keys, party2Keys.publicKey) shouldEqual
+        EcdhDerivedKey.derivedKey(party2Keys, party1Keys.publicKey)
     }
   }
 
