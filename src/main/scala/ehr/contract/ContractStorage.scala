@@ -12,7 +12,6 @@ trait ContractStorage {
 @SuppressWarnings(Array("org.wartremover.warts.DefaultArguments"))
 class InMemoryContractStorage(store: Map[String, Contract] = Map[String, Contract]()) extends ContractStorage {
 
-  // todo handle read contracts
   override def add(contracts: Seq[Contract]): ContractStorage =
     new InMemoryContractStorage(
       contracts.foldLeft(store) { case (s, contract) =>
