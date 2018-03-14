@@ -10,7 +10,7 @@ import scorex.core.serialization.Serializer
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scorex.core.transaction.state.PrivateKey25519
 
-import scala.util.Try
+import scala.util.{Success, Try}
 
 @SerialVersionUID(0L)
 final case class ReadContract(patientPK: PublicKey25519Proposition,
@@ -21,7 +21,7 @@ final case class ReadContract(patientPK: PublicKey25519Proposition,
 
   override def serializer: Serializer[M] = byteSerializer[M]
 
-  override def semanticValidity: Try[Unit] = ???
+  override def semanticValidity: Try[Unit] = Success()
 
   def decryptRecordKeys(providerSK: PrivateKey25519): Try[RecordKeys] =
     RecordKeys.decrypt((providerSK, providerPK), patientPK, encryptedRecordKeys)
