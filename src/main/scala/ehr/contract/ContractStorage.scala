@@ -10,17 +10,17 @@ trait ContractStorage {
 }
 
 @SuppressWarnings(Array("org.wartremover.warts.DefaultArguments"))
-class InMemoryContractStorage(store: Map[String, Contract] = Map[String, Contract]()) extends ContractStorage {
+class InMemoryContractStorage(store: Map[String, Seq[Contract]] = Map[String, Seq[Contract]]()) extends ContractStorage {
 
   override def add(contracts: Seq[Contract]): ContractStorage =
     new InMemoryContractStorage(
       contracts.foldLeft(store) { case (s, contract) =>
-        s + (contract.patientPK.address -> contract)
+        s + (contract.patientPK.address -> s.get(contract.patientPK.address).map(_ :+ contract).getOrElse(Seq(contract)))
       }
     )
 
   override def contractsForPatient(patientPK: PublicKey25519Proposition): Seq[Contract] =
-    store.get(patientPK.address).map(Seq(_)).getOrElse(Seq[Contract]())
+    store.getOrElse(patientPK.address, Seq[Contract]())
 
   override def readContractsForPatient(patientPK: PublicKey25519Proposition): Seq[ReadContract] =
     contractsForPatient(patientPK).flatMap {

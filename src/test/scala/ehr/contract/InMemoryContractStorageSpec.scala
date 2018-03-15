@@ -10,10 +10,17 @@ class InMemoryContractStorageSpec extends PropSpec
   with Matchers
   with EhrGenerators {
 
-  property("add and retrieve") {
+  property("add and retrieve one append contract") {
     val storage = new InMemoryContractStorage()
     forAll(ehrAppendContractUnlimitedGen) { b: AppendContract =>
       storage.add(Seq(b)).contractsForPatient(b.patientPK) shouldEqual Seq(b)
+    }
+  }
+
+  property("add and retrieve two append contracts") {
+    val storage = new InMemoryContractStorage()
+    forAll(ehrAppendContractUnlimitedGen) { b: AppendContract =>
+      storage.add(Seq(b, b)).contractsForPatient(b.patientPK) shouldEqual Seq(b, b)
     }
   }
 }
