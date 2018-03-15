@@ -12,7 +12,7 @@ class RecordTransactionContractValidatorSpec extends FlatSpec
   with Matchers
   with EhrGenerators {
 
-  "record transaction" should "be invalid if contract storage is empty" in {
+  "record transaction" should "be invalid if no append contract is present" in {
     val validator = new RecordTransactionContractValidator(new InMemoryContractStorage())
     validator.validity(ehrRecordTransactionGen.sample.get) shouldBe false
   }
