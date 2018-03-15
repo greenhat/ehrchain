@@ -35,7 +35,7 @@ Store EHR (Electronic Health Records) in the public blockchain. The patients are
 - [x] provider reads patient's medical records;
 
 ### v 6.0
-- [ ] patient revokes append access to the provider(contract);
+- [ ] patient revokes append access for the provider(contract);
 
 ### v 7.0 
 - [ ] requesting/retrieving files attached to record transactions;
