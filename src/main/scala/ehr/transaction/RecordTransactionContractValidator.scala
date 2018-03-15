@@ -9,7 +9,7 @@ class RecordTransactionContractValidator(contractStorage: ContractStorage) {
       case appendContract: AppendContract => appendContract.term match {
         case Unlimited => true
         case ValidUntil(date) => date.compareTo(tx.timestamp) >= 0
-      }
+      } // todo no revoke contract (timestamp | startDate) after appendContract.timestamp
       case _ => false
     }
 }

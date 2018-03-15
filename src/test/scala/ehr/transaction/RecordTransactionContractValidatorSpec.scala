@@ -1,30 +1,32 @@
 package ehr.transaction
 
 import ehr.EhrGenerators
-import ehr.contract.InMemoryContractStorage
-import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
-import org.scalatest.{Failed, Matchers, PropSpec}
+import ehr.contract.{AppendContract, InMemoryContractStorage, Unlimited}
+import ehr.crypto.Curve25519KeyPair
+import org.scalatest.{FlatSpec, Matchers}
 
-class RecordTransactionContractValidatorSpec extends PropSpec
-  with PropertyChecks
-  with GeneratorDrivenPropertyChecks
+// todo add revoke contract test
+
+@SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
+class RecordTransactionContractValidatorSpec extends FlatSpec
   with Matchers
   with EhrGenerators {
 
-  property("validate tx against an empty contract storage") {
+  "record transaction" should "be invalid if contract storage is empty" in {
     val validator = new RecordTransactionContractValidator(new InMemoryContractStorage())
-    forAll(ehrRecordTransactionGen) { b: RecordTransaction =>
-      validator.validity(b) shouldBe false
-    }
+    validator.validity(ehrRecordTransactionGen.sample.get) shouldBe false
   }
 
-  property("validate tx with valid contract in contract storage") {
-    forAll(ehrTransactionPairGen) {
-      case (contractTx: ContractTransaction) :: (recordTx: RecordTransaction) :: Nil =>
-          new RecordTransactionContractValidator(
-            new InMemoryContractStorage().add(Seq(contractTx.contract)))
-            .validity(recordTx) shouldBe true
-      case _ => Failed(new Error("incorrect tx pair"))
-    }
+  it should "be valid if append contract is active" in {
+    val patientKeyPair: Curve25519KeyPair = key25519Gen.sample.get
+    val providerKeyPair: Curve25519KeyPair = key25519Gen.sample.get
+
+    val appendContract = AppendContract(patientKeyPair.publicKey, providerKeyPair.publicKey, currentTimestamp, Unlimited)
+    val contractStorage = new InMemoryContractStorage().add(Seq(appendContract))
+    val recordTx = EhrRecordTransactionCompanion.generate(patientKeyPair.publicKey,
+      providerKeyPair, mockRecord, currentTimestamp)
+
+    val validator = new RecordTransactionContractValidator(contractStorage)
+    validator.validity(recordTx) shouldBe true
   }
 }
