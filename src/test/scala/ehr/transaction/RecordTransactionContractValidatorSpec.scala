@@ -12,7 +12,7 @@ class RecordTransactionContractValidatorSpec extends PropSpec
   with EhrGenerators {
 
   property("validate tx against an empty contract storage") {
-    val validator = new EhrRecordTransactionContractValidator(new InMemoryContractStorage())
+    val validator = new RecordTransactionContractValidator(new InMemoryContractStorage())
     forAll(ehrRecordTransactionGen) { b: RecordTransaction =>
       validator.validity(b) shouldBe false
     }
@@ -21,7 +21,7 @@ class RecordTransactionContractValidatorSpec extends PropSpec
   property("validate tx with valid contract in contract storage") {
     forAll(ehrTransactionPairGen) {
       case (contractTx: ContractTransaction) :: (recordTx: RecordTransaction) :: Nil =>
-          new EhrRecordTransactionContractValidator(
+          new RecordTransactionContractValidator(
             new InMemoryContractStorage().add(Seq(contractTx.contract)))
             .validity(recordTx) shouldBe true
       case _ => Failed(new Error("incorrect tx pair"))

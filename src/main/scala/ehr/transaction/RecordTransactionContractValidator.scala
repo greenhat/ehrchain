@@ -2,7 +2,7 @@ package ehr.transaction
 
 import ehr.contract.{AppendContract, ContractStorage, Unlimited, ValidUntil}
 
-class EhrRecordTransactionContractValidator(contractStorage: ContractStorage) {
+class RecordTransactionContractValidator(contractStorage: ContractStorage) {
 
   def validity(tx: RecordTransaction): Boolean =
     contractStorage.contractsForPatient(tx.patient).exists {

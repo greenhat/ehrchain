@@ -23,7 +23,7 @@ final case class EhrMinimalState(override val version: VersionTag,
 
   override type NVCT = this.type
 
-  private val ehrRecordTxContractValidator = new EhrRecordTransactionContractValidator(contractStorage)
+  private val ehrRecordTxContractValidator = new RecordTransactionContractValidator(contractStorage)
   private val ehrRecordTxFileValidator = new RecordTransactionFileValidator(recordFileStorage)
 
   override def applyModifier(mod: EhrBlock): Try[EhrMinimalState] =
