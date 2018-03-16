@@ -35,7 +35,7 @@ Store EHR (Electronic Health Records) in the public blockchain. The patients are
 - [x] provider reads patient's medical records;
 
 ### v 6.0
-- [ ] patient revokes append access for the provider(contract);
+- [x] patient revokes append access for the provider(contract);
 
 ### v 7.0 
 - [ ] requesting/retrieving files attached to record transactions;
@@ -112,4 +112,4 @@ Provider finds a read contracts(transactions) with it's own public key and decry
 Each patient's record file is then can be decrypted with the appropriate record key found by provider's public key from  record transaction.
 
 ## Patient revokes append contract
-Patient creates a transaction referencing an append contract (by transaction id) signed with the same secondary private key that was used in append contract.
+Patient creates a revoke append contract transaction where includes a provider which invalidates all active append contracts between this patient and this provider.
