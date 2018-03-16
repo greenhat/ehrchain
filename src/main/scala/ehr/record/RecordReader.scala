@@ -1,6 +1,6 @@
 package ehr.record
 
-import ehr.contract.ContractStorage
+import ehr.contract.{ContractStorage, ReadContract}
 import ehr.core._
 import ehr.crypto.{AesCipher, Curve25519KeyPair, EcdhDerivedKey}
 import ehr.transaction.RecordTransactionStorage
@@ -26,8 +26,7 @@ object RecordReader {
   private def recordKeysForPatient(patientPK: PublicKey25519Proposition,
                                    providerKeys: Curve25519KeyPair,
                                    contractStorage: ContractStorage): Try[Map[PublicKey25519Proposition, KeyAes256]] =
-    contractStorage.readContractsForPatient(patientPK)
-      .filter(_.providerPK == providerKeys.publicKey)
+    contractStorage.contractsForPatient[ReadContract](patientPK, providerKeys.publicKey)
       .map(_.decryptRecordKeysWithProviderSK(providerKeys.privateKey))
       .foldLeft(Try[Map[PublicKey25519Proposition, KeyAes256]](Map[PublicKey25519Proposition, KeyAes256]()))
       { (tryAccumKeys, tryRecordKeys) =>

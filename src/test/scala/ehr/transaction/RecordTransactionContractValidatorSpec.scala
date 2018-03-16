@@ -5,8 +5,6 @@ import ehr.contract._
 import ehr.crypto.Curve25519KeyPair
 import org.scalatest.{FlatSpec, Matchers}
 
-// todo add revoke contract test
-
 @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
 class RecordTransactionContractValidatorSpec extends FlatSpec
   with Matchers

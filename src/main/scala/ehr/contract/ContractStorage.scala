@@ -2,11 +2,13 @@ package ehr.contract
 
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 
+import scala.reflect.ClassTag
+
 trait ContractStorage {
 
   def add(contracts: Seq[Contract]): ContractStorage
-  def contractsForPatient(patientPK: PublicKey25519Proposition): Seq[Contract]
-  def readContractsForPatient(patientPK: PublicKey25519Proposition): Seq[ReadContract]
+  def contractsForPatient[T: ClassTag](patientPK: PublicKey25519Proposition,
+                          providerPK: PublicKey25519Proposition): Seq[T]
 }
 
 @SuppressWarnings(Array("org.wartremover.warts.DefaultArguments"))
@@ -19,12 +21,17 @@ class InMemoryContractStorage(store: Map[String, Seq[Contract]] = Map[String, Se
       }
     )
 
-  override def contractsForPatient(patientPK: PublicKey25519Proposition): Seq[Contract] =
-    store.getOrElse(patientPK.address, Seq[Contract]())
-
-  override def readContractsForPatient(patientPK: PublicKey25519Proposition): Seq[ReadContract] =
-    contractsForPatient(patientPK).flatMap {
-      case readContract: ReadContract => Seq(readContract)
-      case _ => Seq[ReadContract]()
-    }
+  @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf"))
+  override def contractsForPatient[T: ClassTag](patientPK: PublicKey25519Proposition,
+                                      providerPK: PublicKey25519Proposition): Seq[T] =
+    store.get(patientPK.address)
+      .map(_.filter(contract => contract.providerPK == providerPK))
+      .map(_.flatMap { contract: Contract =>
+        val clazz = implicitly[ClassTag[T]].runtimeClass
+        contract match {
+          case typedContract if clazz.isInstance(typedContract) => Seq[T](typedContract.asInstanceOf[T])
+          case _ => Seq[T]()
+        }
+      })
+      .getOrElse(Seq[T]())
 }
