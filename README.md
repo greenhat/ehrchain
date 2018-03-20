@@ -16,7 +16,9 @@ For health care providers:
 
 ## Overview
 Patient authorizes a provider for record creation via a contract (see append contract) on the blockchain. Records stored in the blockchain are encrypted with ECDH derived keys so that both patient and provider who made them can decrypt them. Patient can securely share these keys with any provider via contract (see read contract) on the blockchain.
+
 Encrypted records are stored on each full node as a part of the blockchain. Any organization with enough resources can run a full node. The full node exposes all available operations through the REST API for integration with existing systems (EMR, etc.). 
+
 Patients use lightweight node (as mobile app, etc.) to access their own records without any gateway server, directly from the blockchain. 
 
 ## Consensus protocol
