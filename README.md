@@ -1,17 +1,26 @@
 # EHRChain
-Proof-of-Concept of storing EHR in a blockchain.
+Proof-of-Concept for storing health records in a public blockchain.
 
 ## Goal
-Store EHR (Electronic Health Records) in the public blockchain. The patients are in control who can read and update their medical records.
+Store EHR (Electronic Health Records) in the public blockchain. Patients and authorized health care providers should have access to the records at any time. 
 
-## Benefits for patients:
-- All their medical records are in one place and shareable with any authorized health care provider;
+## Benefits
+For patients:
+- All their medical records are in one place and shareable with any health care provider(other organizations);
 - Full control of who can read and update their records;
-- Persistence. Inability to loose data;
+- Persistence. Records cannot be lost.
 
-## Benefits for health care providers:
-- All medical records from all health care providers for the patient are in one place;
+For health care providers:
+- All medical records from all health care providers for the patient are available in one place;
 - Eliminated security risks of loosing/leaking of patient's medical records;
+
+## Overview
+Patient authorizes a provider for record creation via a contract (see append contract) on the blockchain. Records stored in the blockchain are encrypted with ECDH derived keys so that both patient and provider who made them can decrypt them. Patient can securely share these keys with any provider via contract (see read contract) on the blockchain.
+Encrypted records are stored on each full node as a part of the blockchain. Any organization with enough resources can run a full node. The full node exposes all available operations through the REST API for integration with existing systems (EMR, etc.). 
+Patients use lightweight node (as mobile app, etc.) to access their own records without any gateway server, directly from the blockchain. 
+
+## Consensus protocol
+Proof-of-work.
 
 ## Roadmap
 ### v 1.0
