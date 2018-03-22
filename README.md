@@ -40,15 +40,15 @@ For each record transaction, all record files must be accessible by the local sy
 ## Block validation
 ### Semantic validity
 #### Signature
-The generator of the block (`generator` property with their public key) makes a signature of the block with their private key and includes it as `signature` in the block. See `EhrBlock.validity`.
+The generator of the block makes a signature of the block with their private key and includes it in the block ([src](src/main/scala/ehr/block/EhrBlock.scala#L60)).
 #### Proof-of-work
-Each block references the previous block and must have such `nonce` value, so hash of the block has X leading zeroes (determined by current difficulty). See `EhrBlock.powValidity` and `EhrBlock.generate`.
+Each block references the previous block and must have such `nonce` value, so hash of the block has X leading zeroes (determined by current difficulty) ([src](src/main/scala/ehr/block/EhrBlock.scala#L65)). Block generator(miner) when gathers broadcasted transaction into a block and finds `nonce` value so the hash have leading zeroes ([src](src/main/scala/ehr/mining/Miner.scala#L68)).
 
 ## Patient and providers registration
 Starts with a key pair generation. Since it is the core authentication mechanism, it's crucial not to lose them. Using the hierarchical deterministic wallet [BIP-0032](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) generate public/private key pair(s) from a seed phrase. Seed phrase should be stored in the safe place. The same key pair can be generated from the seed phrase at any time.
 
 ## Patient grants append access to the provider
-Patient creates a contract transaction(append contract) where puts their public key, a provider's public key and a statement for the access properties (term, etc.). See `AppendContract`.
+Patient creates a contract transaction(append contract) where puts their public key, a provider's public key and a statement for the access properties (term, etc.) ([src](src/main/scala/ehr/contract/AppendContract.scala#L13)).
 
 ## Provider appends a record for the patient
 Provider creates an AES-256 key by getting SHA-256 digest from the following items:
