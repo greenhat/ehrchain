@@ -30,12 +30,12 @@ Proof-of-work.
 ## Transaction validation
 ### Semantic validity 
 #### Signature 
-The originator of the transaction (`generator` property with their public key) makes a signature of the transaction with their private key and includes it as `signature` in the transaction. See `EhrTransaction`.
+The originator of the transaction makes a signature of the transaction with their private key and includes it in the transaction ([src](https://github.com/greenhat/ehrchain/blob/471b6756ea8f657461a1a44d6dcf9a45150fe710/src/main/scala/ehr/transaction/EhrTransaction.scala#L17)).
 ### Generic validity
 #### Record transaction authorization
-For each record transaction, a valid append contract issued by the same patient must be active (not expired or revoked). See `RecordTransactionContractValidator`.
+For each record transaction, a valid append contract issued by the same patient must be active (not expired or revoked) ([src](https://github.com/greenhat/ehrchain/blob/471b6756ea8f657461a1a44d6dcf9a45150fe710/src/main/scala/ehr/transaction/RecordTransactionContractValidator.scala#L7)).
 #### Record transaction included record files verification
-For each record transaction, all record files must be accessible by the local system. The file authenticity if verified with hash included in the transaction. See `RecordTransactionFileValidator`.
+For each record transaction, all record files must be accessible by the local system. The file authenticity if verified with hash included in the transaction ([src](https://github.com/greenhat/ehrchain/blob/471b6756ea8f657461a1a44d6dcf9a45150fe710/src/main/scala/ehr/transaction/RecordTransactionFileValidator.scala#L8)).
 
 ## Block validation
 ### Semantic validity
