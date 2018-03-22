@@ -15,7 +15,7 @@ For health care providers:
 - Eliminated security risks of loosing/leaking of patient's medical records;
 
 ## Overview
-Patient authorizes a provider for record creation via a contract (see append contract) on the blockchain. Records stored in the blockchain are encrypted with ECDH derived keys so that both patient and provider who made them can decrypt them. A patient can securely share these keys with any provider via contract (see read contract) on the blockchain.
+Patient authorizes a provider for record creation via a contract (see append contract) on the blockchain. Records stored in the blockchain are encrypted with [ECDH](https://en.wikipedia.org/wiki/Elliptic-curve_Diffie–Hellman) derived keys so that both patient and provider who made them can decrypt them. A patient can securely share these keys with any provider via contract (see read contract) on the blockchain.
 
 Encrypted record files are stored on each full node as a part of the blockchain. Any organization with enough resources can run a full node. The full node exposes all available operations through the REST API for integration with existing systems (EMR, etc.). 
 
@@ -63,7 +63,7 @@ The transaction is valid only if an append contract for this patient's public ke
 
 ## Patient grants read access to their records to a provider
 Patient creates a contract transaction with read contract (see `ContractTransaction` with `ReadContract`) with all AES-256 keys used in record transactions (record keys). For each record key provider's public key is stored to identify which AES-256 key to use for the particular encrypted record. Record keys are encrypted with an AES-256 key derived by getting SHA-256 digest from:
- - shared secret using ECDH from patient's private key and provider's public key;
+ - shared secret using [ECDH](https://en.wikipedia.org/wiki/Elliptic-curve_Diffie–Hellman) from patient's private key and provider's public key;
  - the patient's public key;
  - provider's public key;
  
@@ -73,7 +73,7 @@ When new provider gets append contract, the patient should create new read contr
 
 ## Provider reads patient's records
 Provider finds read contracts(transactions) with its own public key and decrypts included record keys with an AES-256 key derived by getting SHA-256 digest from:
- - shared secret using ECDH from provider's private key and patient's public key;
+ - shared secret using [ECDH](https://en.wikipedia.org/wiki/Elliptic-curve_Diffie–Hellman) from provider's private key and patient's public key;
  - provider's public key;
  - the patient's public key;
 Each patient's record file is then can be decrypted with the appropriate record key found by provider's public key from record transaction. See `AccessRecordsSpec`.
