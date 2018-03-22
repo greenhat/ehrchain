@@ -75,7 +75,7 @@ When new provider gets append contract, the patient should create new read contr
 ## Provider reads patient's records
 Provider finds read contracts(transactions) with its own public key and decrypts included record keys with an AES-256 key (see AES-256 key derivation) generated from its key pair and patient's public key.
 
-Each patient's record file is then can be decrypted with the appropriate record key found by provider's public key from record transaction([src](src/test/scala/ehr/AccessRecordsSpec.scala#L15)).
+Each patient's record file is then can be decrypted with the appropriate record key found by provider's public key from record transaction ([src](src/test/scala/ehr/AccessRecordsSpec.scala#L15)).
 
 ## Patient revokes append contract
 Patient creates a revoke append contract transaction where includes a provider which invalidates all active append contracts between this patient and this provider.
