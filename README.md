@@ -59,22 +59,23 @@ Patient creates a contract transaction(append contract) where puts their public 
 ## Provider appends a record for the patient
 Provider creates an AES-256 key (see AES-256 key derivation) from its key pair and patient's public key.
  
-This key is used to encrypt each record file. The hash of the encrypted record file is put in the record transaction (see `RecordTransaction`).
-Provider creates a transaction and signs it with its private key. 
+This key is used to encrypt each record file. The hash of the encrypted record file is put in the record transaction ([src](src/main/scala/ehr/transaction/RecordTransaction.scala#L16)).
 
-The transaction is valid only if an append contract for this patient's public key exists in the blockchain and is active. Contract is active if it's terms are valid and there is no revocation contract further in the blockchain that cancels it. Must be checked by a node mining a block as a part of transaction validity check. See `RecordTransactionContractValidator`.
+Provider creates a record transaction and signs it with its private key. 
+
+The transaction is valid only if an append contract for this patient's public key exists in the blockchain and is active. Contract is active if it's terms are valid and there is no revocation contract further in the blockchain that cancels it. Must be checked by a node mining a block as a part of transaction validity check ([src](src/main/scala/ehr/transaction/RecordTransactionContractValidator.scala#L7)).
 
 ## Patient grants read access to their records to a provider
-Patient creates a contract transaction with read contract (see `ContractTransaction` with `ReadContract`) with all AES-256 keys used in record transactions (record keys). For each record key provider's public key is stored to identify which AES-256 key to use for the particular encrypted record. Record keys are encrypted with an AES-256 key (see AES-256 key derivation) generated from patient's key pair and provider's public key.
+Patient creates a contract transaction ([src](src/main/scala/ehr/transaction/ContractTransaction.scala#L18)) with read contract ([src](src/main/scala/ehr/contract/ReadContract.scala#L16)) with all AES-256 keys used in record transactions (record keys). For each record key provider's public key is stored to identify which AES-256 key to use for the particular encrypted record. Record keys are encrypted with an AES-256 key (see AES-256 key derivation) generated from patient's key pair and provider's public key.
  
-This method gives provider access to the records created within existing append contracts with providers. See `AccessRecordsSpec`. 
+This method gives provider access to the records created within existing append contracts with providers ([src](src/test/scala/ehr/AccessRecordsSpec.scala#L15)).
 
 When new provider gets append contract, the patient should create new read contracts to give existing providers access to the records that would be created by this new provider.
 
 ## Provider reads patient's records
 Provider finds read contracts(transactions) with its own public key and decrypts included record keys with an AES-256 key (see AES-256 key derivation) generated from its key pair and patient's public key.
 
-Each patient's record file is then can be decrypted with the appropriate record key found by provider's public key from record transaction. See `AccessRecordsSpec`.
+Each patient's record file is then can be decrypted with the appropriate record key found by provider's public key from record transaction([src](src/test/scala/ehr/AccessRecordsSpec.scala#L15)).
 
 ## Patient revokes append contract
 Patient creates a revoke append contract transaction where includes a provider which invalidates all active append contracts between this patient and this provider.
