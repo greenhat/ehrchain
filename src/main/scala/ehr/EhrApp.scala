@@ -12,6 +12,8 @@ import scorex.core.api.http.{ApiRoute, NodeViewApiRoute, PeersApiRoute, UtilsApi
 import scorex.core.app.Application
 import scorex.core.network.NodeViewSynchronizer
 import scorex.core.network.message.MessageSpec
+import scorex.core.serialization.SerializerRegistry
+import scorex.core.serialization.SerializerRegistry.SerializerRecord
 import scorex.core.settings.ScorexSettings
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 
@@ -33,6 +35,8 @@ class EhrApp(val settingsFilename: String) extends Application {
   override protected lazy val additionalMessageSpecs: Seq[MessageSpec[_]] = Seq(EhrSyncInfoMessageSpec)
 
   override val nodeViewHolderRef: ActorRef = actorSystem.actorOf(EhrNodeViewHolder.props)
+
+  implicit val serializerReg: SerializerRegistry = SerializerRegistry(Seq(SerializerRecord(EhrTransaction.jsonEncoder)))
 
   override val apiRoutes: Seq[ApiRoute] = Seq[ApiRoute](
     UtilsApiRoute(settings.restApi),

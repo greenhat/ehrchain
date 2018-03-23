@@ -4,7 +4,7 @@ import ehr.EhrGenerators
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{FlatSpec, Matchers}
 import scorex.core.ModifierId
-import scorex.core.consensus.History.HistoryComparisonResult
+import scorex.core.consensus.History.{Equal, HistoryComparisonResult, Older, Younger}
 import scorex.crypto.hash.Blake2b256
 
 @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
@@ -90,18 +90,18 @@ class BlockStreamSpec extends FlatSpec
   it should "have compare Younger" in {
     val fullStream = generateBlockStream(3)
     val subStream = fullStream.drop(1)
-    fullStream.compare(subStream.syncInfo) shouldEqual HistoryComparisonResult.Younger
+    fullStream.compare(subStream.syncInfo) shouldEqual Younger
   }
 
   it should "have compare Older" in {
     val fullStream = generateBlockStream(3)
     val subStream = fullStream.drop(1)
-    subStream.compare(fullStream.syncInfo) shouldEqual HistoryComparisonResult.Older
+    subStream.compare(fullStream.syncInfo) shouldEqual Older
   }
 
   it should "have compare the same" in {
     val fullStream = generateBlockStream(3)
-    fullStream.compare(fullStream.syncInfo) shouldEqual HistoryComparisonResult.Equal
+    fullStream.compare(fullStream.syncInfo) shouldEqual Equal
   }
 
   it should "append a block with existing parent" in {

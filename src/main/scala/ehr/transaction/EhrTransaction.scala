@@ -2,6 +2,8 @@ package ehr.transaction
 
 import java.time.Instant
 
+import io.circe.Encoder
+import io.circe.syntax._
 import scorex.core.serialization.BytesSerializable
 import scorex.core.transaction.Transaction
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
@@ -16,4 +18,10 @@ trait EhrTransaction extends Transaction[PublicKey25519Proposition] with BytesSe
 
   def semanticValidity: Boolean =
     signature.isValid(generator, messageToSign)
+}
+
+object EhrTransaction {
+  implicit val jsonEncoder: Encoder[EhrTransaction] = {
+    case contract: ContractTransaction => contract.asJson
+  }
 }

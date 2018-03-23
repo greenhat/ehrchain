@@ -4,7 +4,7 @@ import java.time.Instant
 
 import com.google.common.primitives.Bytes
 import ehr.record.Record
-import io.circe.Json
+import io.circe.{Encoder, Json}
 import io.circe.syntax._
 import scorex.core.serialization.Serializer
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
@@ -23,17 +23,8 @@ import scorex.crypto.encode.Base58
 
     override def serializer: Serializer[M] = byteSerializer[M]
 
-  override lazy val json: Json = Map(
-    "id" -> Base58.encode(id).asJson,
-    "timestamp" -> timestamp.asJson,
-    "generator" -> Base58.encode(generator.bytes).asJson,
-    "patient" -> Base58.encode(patient.bytes).asJson,
-    "record" -> record.json,
-    "signature" -> Base58.encode(signature.bytes).asJson,
-  ).asJson
-
-  override lazy val messageToSign: Array[Byte] =
-    RecordTransaction.generateMessageToSign(timestamp, patient, generator, record)
+    override lazy val messageToSign: Array[Byte] =
+      RecordTransaction.generateMessageToSign(timestamp, patient, generator, record)
 
   override def semanticValidity: Boolean =
     super.semanticValidity && record.bytes.length <= RecordTransaction.MaxRecordSize
@@ -53,6 +44,17 @@ object RecordTransaction {
       provider.bytes,
       record.bytes
     )
+
+  implicit val jsonEncoder: Encoder[RecordTransaction] = (tx: RecordTransaction) => {
+    Map(
+      "id" -> Base58.encode(tx.id).asJson,
+      "timestamp" -> tx.timestamp.asJson,
+      "generator" -> Base58.encode(tx.generator.bytes).asJson,
+      "patient" -> Base58.encode(tx.patient.bytes).asJson,
+      "record" -> tx.record.asJson,
+      "signature" -> Base58.encode(tx.signature.bytes).asJson,
+    ).asJson
+  }
 }
 
 object EhrRecordTransactionCompanion {

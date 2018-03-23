@@ -1,8 +1,8 @@
 package ehr.history
 
 import ehr.block.EhrBlock
-import scorex.core.consensus.History.{HistoryComparisonResult, ModifierIds, ProgressInfo}
-import scorex.core.consensus.{History, ModifierSemanticValidity}
+import scorex.core.consensus.History._
+import scorex.core.consensus.{Absent, History, ModifierSemanticValidity, Valid}
 import scorex.core.utils.ScorexLogging
 import scorex.core.{ModifierId, ModifierTypeId, NodeViewModifier}
 import scorex.crypto.encode.Base58
@@ -82,10 +82,10 @@ trait BlockStream extends History[EhrBlock, EhrSyncInfo, BlockStream]
     * @param modifierId - modifier id to check
     * @return - Valid if found, Absent otherwise
     */
-  override def isSemanticallyValid(modifierId: ModifierId): ModifierSemanticValidity.Value =
+  override def isSemanticallyValid(modifierId: ModifierId): ModifierSemanticValidity =
     modifierById(modifierId).map { _ =>
-      ModifierSemanticValidity.Valid
-    }.getOrElse(ModifierSemanticValidity.Absent)
+      Valid
+    }.getOrElse(Absent)
 
   /**
     * @return - last/best block id
@@ -118,14 +118,14 @@ trait BlockStream extends History[EhrBlock, EhrSyncInfo, BlockStream]
     * @param other other's node sync info
     * @return Equal if nodes have the same history, Younger if another node is behind, Older if a new node is ahead
     */
-  override def compare(other: EhrSyncInfo): History.HistoryComparisonResult.Value = {
+  override def compare(other: EhrSyncInfo): History.HistoryComparisonResult = {
     other.startingPoints.headOption.map{ case (_, blockId) =>
       find(_.block.id.mkString == blockId.mkString) match {
-        case None => HistoryComparisonResult.Older
-        case Some(element) if element.blockHeight == headBlockHeight => HistoryComparisonResult.Equal
-        case _ => HistoryComparisonResult.Younger
+        case None => Older
+        case Some(element) if element.blockHeight == headBlockHeight => Equal
+        case _ => Younger
       }
-    }.getOrElse(History.HistoryComparisonResult.Nonsense)
+    }.getOrElse(Nonsense)
   }
 
   /**

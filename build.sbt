@@ -22,5 +22,5 @@ libraryDependencies ++= Seq(
   "org.scalacheck" %% "scalacheck" % "1.13.+" % "test",
 )
 
-wartremoverErrors ++= Warts.allBut(Wart.Equals, Wart.ImplicitParameter)
+wartremoverErrors ++= Warts.allBut(Wart.Equals, Wart.ImplicitParameter, Wart.Product, Wart.Serializable)
 

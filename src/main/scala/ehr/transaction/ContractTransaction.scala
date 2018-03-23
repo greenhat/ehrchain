@@ -6,7 +6,7 @@ import com.google.common.primitives.Bytes
 import ehr.serialization._
 import ehr.contract.Contract
 import ehr.crypto.Curve25519KeyPair
-import io.circe.Json
+import io.circe.{Encoder, Json}
 import io.circe.syntax._
 import scorex.core.serialization.Serializer
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
@@ -22,14 +22,6 @@ final case class ContractTransaction(generator: PublicKey25519Proposition,
   override type M = this.type
 
   override def serializer: Serializer[M] = byteSerializer[M]
-
-  override def json: Json = Map(
-    "id" -> Base58.encode(id).asJson,
-    "timestamp" -> timestamp.asJson,
-    "generator" -> Base58.encode(generator.bytes).asJson,
-//    "contract" -> contract.asJson,
-    "signature" -> Base58.encode(signature.bytes).asJson,
-  ).asJson
 
   override def semanticValidity: Boolean =
     super.semanticValidity && contract.semanticValidity.isSuccess
@@ -56,5 +48,15 @@ object ContractTransaction {
     val messageToSign = generateMessageToSign(timestamp, generatorKeys.publicKey, contract)
     val signature = PrivateKey25519Companion.sign(generatorKeys.privateKey, messageToSign)
     ContractTransaction(generatorKeys.publicKey, signature, contract, timestamp)
+  }
+
+  implicit val jsonEncoder: Encoder[ContractTransaction] = (tx: ContractTransaction) => {
+    Map(
+    "id" -> Base58.encode(tx.id).asJson,
+    "timestamp" -> tx.timestamp.asJson,
+    "generator" -> Base58.encode(tx.generator.bytes).asJson,
+    //    "contract" -> contract.asJson,
+    "signature" -> Base58.encode(tx.signature.bytes).asJson
+    ).asJson
   }
 }

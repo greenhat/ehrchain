@@ -3,10 +3,10 @@ package ehr.block
 import java.time.Instant
 
 import com.google.common.primitives.{Bytes, Ints}
-import ehr.transaction.EhrTransaction
+import ehr.transaction.{ContractTransaction, EhrTransaction}
 import ehr.serialization._
 import examples.commons.Nonce
-import io.circe.Json
+import io.circe.{Encoder, Json}
 import io.circe.syntax._
 import scorex.core.block.Block
 import scorex.core.block.Block.{BlockId, Timestamp, Version}
@@ -40,17 +40,7 @@ final class EhrBlock(val parentId: BlockId,
 
   override def timestamp: Timestamp = dateTime.toEpochMilli
 
-  override def json: Json = Map(
-    "id" -> Base58.encode(id).asJson,
-    "parentId" -> Base58.encode(parentId).asJson,
-    "timestamp" -> dateTime.asJson,
-    "nonce" -> nonce.toLong.asJson,
-    "transactions" -> transactions.map(_.json).asJson,
-    "signature" -> Base58.encode(signature.bytes).asJson,
-    "generator" -> Base58.encode(generator.bytes).asJson
-  ).asJson
-
-  override def toString: String = s"EhrBlock(${json.noSpaces}})"
+  override def toString: String = s"EhrBlock(${this.asJson.noSpaces}})"
 
   override def id: ModifierId =
     ModifierId @@ Blake2b256(parentId ++ serialize(dateTime) ++ generator.bytes)
@@ -102,5 +92,17 @@ object EhrBlock {
     val block = new EhrBlock(parentId, timestamp, nonce, transactions, signature, generatorPK, difficulty)
     if (block.validity) block
     else generate(parentId, timestamp, transactions, generatorKeys, difficulty)
+  }
+
+  implicit val jsonEncoder: Encoder[EhrBlock] = (block: EhrBlock) => {
+    Map(
+      "id" -> Base58.encode(block.id).asJson,
+      "parentId" -> Base58.encode(block.parentId).asJson,
+      "timestamp" -> block.dateTime.asJson,
+      "nonce" -> block.nonce.toLong.asJson,
+      "transactions" -> block.transactions.map(_.asJson).asJson,
+      "signature" -> Base58.encode(block.signature.bytes).asJson,
+      "generator" -> Base58.encode(block.generator.bytes).asJson
+    ).asJson
   }
 }
