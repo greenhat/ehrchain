@@ -47,7 +47,7 @@ class EhrApp(val settingsFilename: String) extends Application {
     UtilsApiRoute(settings.restApi),
     NodeViewApiRoute[P, TX](settings.restApi, nodeViewHolderRef),
     PeersApiRoute(peerManagerRef, networkControllerRef, settings.restApi),
-    FileApiRoute(settings.restApi, recordFileStorage, nodeViewHolderRef)
+    FileApiRoute(settings.restApi, recordFileStorage)
   )
 
   // todo generate

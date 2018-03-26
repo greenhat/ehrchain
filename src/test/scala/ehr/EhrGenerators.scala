@@ -25,7 +25,7 @@ with ExamplesCommonGenerators {
 
   val MiningDifficulty: Int = 0
 
-  val mockRecord: Record = Record(Seq(InMemoryRecordFileStorageMock.recordFile))
+  val mockRecord: Record = Record(Seq(InMemoryRecordFileStorageMock.recordFileHash))
 
   def genRecordFile(minSize: Int, maxSize: Int): Gen[(FileHash, FileSource)] =
     Gen.choose(minSize, maxSize) flatMap { sz =>

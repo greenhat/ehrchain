@@ -12,7 +12,7 @@ import scala.util.Try
 
 @SerialVersionUID(0L)
 final case class FileHash(hash: DigestSha256) {
-
+  override def toString: String = hash.toString
 }
 
 @SerialVersionUID(0L)

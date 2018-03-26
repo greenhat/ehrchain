@@ -14,8 +14,7 @@ import scala.util.{Failure, Success}
 
 
 final case class FileApiRoute(override val settings: RESTApiSettings,
-                              fileStore: RecordFileStorage,
-                              nodeViewHolderRef: ActorRef)
+                              fileStore: RecordFileStorage)
                              (implicit val context: ActorRefFactory) extends ApiRoute {
 
   override val route: Route = (pathPrefix("file") & withCors) {

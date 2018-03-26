@@ -18,9 +18,9 @@ final class InMemoryRecordFileStorage(store: Map[DigestSha256, FileSource] =
 @SuppressWarnings(Array("org.wartremover.warts.TryPartial"))
 object InMemoryRecordFileStorageMock {
 
-  private val bytes = "mock file".getBytes
-  val recordFile: FileHash = FileHash.generate(bytes).get
+  val recordFileBytes: Array[Byte] = "mock file".getBytes
+  val recordFileHash: FileHash = FileHash.generate(recordFileBytes).get
 
-  val storage: RecordFileStorage = new InMemoryRecordFileStorage().put(recordFile, bytes)
+  val storage: RecordFileStorage = new InMemoryRecordFileStorage().put(recordFileHash, recordFileBytes)
 }
 

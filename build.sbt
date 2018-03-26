@@ -17,9 +17,11 @@ lazy val root = (project in file("."))
   .dependsOn(scorexExamplesProject)
 
 libraryDependencies ++= Seq(
+  "com.typesafe.akka" %% "akka-http" % "10.1.+",
   "org.scalactic" %% "scalactic" % "3.0.4" % "test",
   "org.scalatest" %% "scalatest" % "3.0.4" % "test",
   "org.scalacheck" %% "scalacheck" % "1.13.+" % "test",
+  "com.typesafe.akka" %% "akka-http-testkit" % "10.1.+" % "test"
 )
 
 wartremoverErrors ++= Warts.allBut(Wart.Equals, Wart.ImplicitParameter, Wart.Product, Wart.Serializable)
