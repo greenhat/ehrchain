@@ -5,8 +5,8 @@ import java.time.Instant
 import akka.actor.Props
 import ehr.block.EhrBlock
 import ehr.contract.InMemoryContractStorage
-import ehr.history.{BlockStream, HistoryStorage, EhrSyncInfo}
-import ehr.record.{InMemoryRecordFileStorage, Record, FileHash}
+import ehr.history.{BlockStream, EhrSyncInfo, HistoryStorage}
+import ehr.record.{FileHash, InMemoryRecordFileStorage, Record, RecordFileStorage}
 import ehr.state.EhrMinimalState
 import ehr.transaction.{EhrRecordTransactionCompanion, EhrTransaction, InMemoryRecordTransactionStorage}
 import ehr.wallet.Wallet
@@ -18,7 +18,8 @@ import scorex.core.transaction.state.PrivateKey25519Companion
 import scorex.core.{ModifierTypeId, NodeViewHolder, NodeViewModifier, VersionTag}
 
 @SerialVersionUID(0L)
-class EhrNodeViewHolder extends NodeViewHolder[PublicKey25519Proposition, EhrTransaction, EhrBlock] {
+class EhrNodeViewHolder(val recordFileStorage: RecordFileStorage)
+  extends NodeViewHolder[PublicKey25519Proposition, EhrTransaction, EhrBlock] {
 
   override val networkChunkSize: Int = 10
 
@@ -37,7 +38,8 @@ class EhrNodeViewHolder extends NodeViewHolder[PublicKey25519Proposition, EhrTra
   /**
     * Hard-coded initial view all the honest nodes in a network are making progress from.
     */
-  override protected def genesisState: (HIS, MS, VL, MP) = EhrNodeViewHolder.generateGenesisState
+  override protected def genesisState: (HIS, MS, VL, MP) =
+    EhrNodeViewHolder.generateGenesisState(recordFileStorage)
 
   /**
     * Serializers for modifiers, to be provided by a concrete instantiation
@@ -49,15 +51,19 @@ class EhrNodeViewHolder extends NodeViewHolder[PublicKey25519Proposition, EhrTra
 
 object EhrNodeViewHolder {
 
-  def props: Props = Props(new EhrNodeViewHolder)
+  def props(recordFileStorage: RecordFileStorage): Props = Props(
+    new EhrNodeViewHolder(recordFileStorage))
 
   @SuppressWarnings(Array("org.wartremover.warts.TryPartial"))
-  def generateGenesisState: (BlockStream, EhrMinimalState, Wallet, TransactionMemPool) = {
+  def generateGenesisState(recordFileStorage: RecordFileStorage
+                          ): (BlockStream, EhrMinimalState, Wallet, TransactionMemPool) = {
     val genesisBlockAccount = PrivateKey25519Companion.generateKeys("genesis block".getBytes)
     val genesisPatientAccount = PrivateKey25519Companion.generateKeys("genesis patient".getBytes)
     val genesisProviderAccount = PrivateKey25519Companion.generateKeys("genesis provider".getBytes)
     val timestamp = Instant.ofEpochSecond(1518788012L)
-    val genesisRecord = Record(Seq(FileHash.generate("genesis record".getBytes).get))
+    val genesisRecordFileBytes = "genesis record".getBytes
+    val recordFileHash = FileHash.generate(genesisRecordFileBytes).get
+    val genesisRecord = Record(Seq(recordFileHash))
     val genesisTxs = Seq(
       EhrRecordTransactionCompanion.generate(genesisPatientAccount._2, genesisProviderAccount, genesisRecord,
         timestamp)
@@ -70,7 +76,7 @@ object EhrNodeViewHolder {
 
     val gs = EhrMinimalState(VersionTag @@ genesisBlock.id,
       new InMemoryContractStorage(),
-      new InMemoryRecordFileStorage(),
+      recordFileStorage.put(recordFileHash, genesisRecordFileBytes),
       new InMemoryRecordTransactionStorage())
     val gw = Wallet()
 

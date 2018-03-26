@@ -1,9 +1,11 @@
 package ehr
 
 import akka.actor.{ActorRef, Props}
+import ehr.api.http.FileApiRoute
 import ehr.block.EhrBlock
 import ehr.history.{BlockStream, EhrSyncInfo, EhrSyncInfoMessageSpec}
 import ehr.mining.Miner
+import ehr.record.InMemoryRecordFileStorage
 import ehr.settings.EhrAppSettings
 import ehr.transaction.EhrTransaction
 import ehr.wallet.TransactionGenerator
@@ -34,14 +36,18 @@ class EhrApp(val settingsFilename: String) extends Application {
 
   override protected lazy val additionalMessageSpecs: Seq[MessageSpec[_]] = Seq(EhrSyncInfoMessageSpec)
 
-  override val nodeViewHolderRef: ActorRef = actorSystem.actorOf(EhrNodeViewHolder.props)
+  private val recordFileStorage = new InMemoryRecordFileStorage()
+
+  override val nodeViewHolderRef: ActorRef =
+    actorSystem.actorOf(EhrNodeViewHolder.props(recordFileStorage))
 
   implicit val serializerReg: SerializerRegistry = SerializerRegistry(Seq(SerializerRecord(EhrTransaction.jsonEncoder)))
 
   override val apiRoutes: Seq[ApiRoute] = Seq[ApiRoute](
     UtilsApiRoute(settings.restApi),
     NodeViewApiRoute[P, TX](settings.restApi, nodeViewHolderRef),
-    PeersApiRoute(peerManagerRef, networkControllerRef, settings.restApi)
+    PeersApiRoute(peerManagerRef, networkControllerRef, settings.restApi),
+    FileApiRoute(settings.restApi, recordFileStorage, nodeViewHolderRef)
   )
 
   // todo generate
