@@ -1,9 +1,9 @@
 package ehr.record
 
-import ehr.serialization._
 import ehr.core.DigestSha256
 import ehr.crypto.Sha256
-import io.circe.{Encoder, Json}
+import ehr.serialization._
+import io.circe.Encoder
 import io.circe.syntax._
 import scorex.core.serialization.{BytesSerializable, Serializer}
 import scorex.crypto.encode.Base58
@@ -11,12 +11,12 @@ import scorex.crypto.encode.Base58
 import scala.util.Try
 
 @SerialVersionUID(0L)
-final case class RecordFile(hash: DigestSha256) {
+final case class FileHash(hash: DigestSha256) {
 
 }
 
 @SerialVersionUID(0L)
-final case class Record(files: Seq[RecordFile]) extends BytesSerializable {
+final case class Record(files: Seq[FileHash]) extends BytesSerializable {
 
   require(files.nonEmpty)
 
@@ -33,13 +33,13 @@ object Record {
   }
 }
 
-object RecordFile {
+object FileHash {
 
-  def generate(source: FileSource): Try[RecordFile] = {
-    Sha256.digest(source.inputStream).map(RecordFile(_))
+  def generate(source: FileSource): Try[FileHash] = {
+    Sha256.digest(source.inputStream).map(FileHash(_))
   }
 
-  implicit val jsonEncoder: Encoder[RecordFile] = (file: RecordFile) => {
+  implicit val jsonEncoder: Encoder[FileHash] = (file: FileHash) => {
     Map(
       "hash" -> Base58.encode(file.hash.bytes).asJson
     ).asJson

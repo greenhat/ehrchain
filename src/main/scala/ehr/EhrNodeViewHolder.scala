@@ -6,7 +6,7 @@ import akka.actor.Props
 import ehr.block.EhrBlock
 import ehr.contract.InMemoryContractStorage
 import ehr.history.{BlockStream, HistoryStorage, EhrSyncInfo}
-import ehr.record.{InMemoryRecordFileStorage, Record, RecordFile}
+import ehr.record.{InMemoryRecordFileStorage, Record, FileHash}
 import ehr.state.EhrMinimalState
 import ehr.transaction.{EhrRecordTransactionCompanion, EhrTransaction, InMemoryRecordTransactionStorage}
 import ehr.wallet.Wallet
@@ -57,7 +57,7 @@ object EhrNodeViewHolder {
     val genesisPatientAccount = PrivateKey25519Companion.generateKeys("genesis patient".getBytes)
     val genesisProviderAccount = PrivateKey25519Companion.generateKeys("genesis provider".getBytes)
     val timestamp = Instant.ofEpochSecond(1518788012L)
-    val genesisRecord = Record(Seq(RecordFile.generate("genesis record".getBytes).get))
+    val genesisRecord = Record(Seq(FileHash.generate("genesis record".getBytes).get))
     val genesisTxs = Seq(
       EhrRecordTransactionCompanion.generate(genesisPatientAccount._2, genesisProviderAccount, genesisRecord,
         timestamp)

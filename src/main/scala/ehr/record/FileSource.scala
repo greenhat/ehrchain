@@ -2,15 +2,8 @@ package ehr.record
 
 import java.io.{ByteArrayInputStream, InputStream}
 
-import ehr.core.DigestSha256
-import ehr.crypto.Sha256
-
-import scala.util.Try
-
 trait FileSource {
   def inputStream: InputStream
-
-  def hash: Try[DigestSha256] = Sha256.digest(inputStream)
 }
 
 @SuppressWarnings(Array("org.wartremover.warts.ArrayEquals"))

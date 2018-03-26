@@ -24,7 +24,7 @@ class ReadContractSpec extends FlatSpec
       encryptedRecordFileStream,
       EcdhDerivedKey.derivedKey(providerKeyPair, patientKeyPair.publicKey)) shouldEqual Success()
 
-    val recordFile = RecordFile.generate(ByteArrayFileSource(encryptedRecordFileStream.toByteArray)).get
+    val recordFile = FileHash.generate(ByteArrayFileSource(encryptedRecordFileStream.toByteArray)).get
 
     val transactions = Seq(EhrRecordTransactionCompanion.generate(
       patientKeyPair.publicKey,

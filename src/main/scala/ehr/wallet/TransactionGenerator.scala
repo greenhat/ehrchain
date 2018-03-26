@@ -6,7 +6,7 @@ import akka.actor.{Actor, ActorRef, Props}
 import ehr.TransactionMemPool
 import ehr.core.NodeViewHolderCurrentView
 import ehr.history.BlockStream
-import ehr.record.{Record, RecordFile}
+import ehr.record.{Record, FileHash}
 import ehr.state.EhrMinimalState
 import ehr.transaction.{RecordTransaction, EhrRecordTransactionCompanion}
 import scorex.core.LocallyGeneratedModifiersMessages.ReceivableMessages.LocallyGeneratedTransaction
@@ -53,6 +53,6 @@ object TransactionGenerator {
     EhrRecordTransactionCompanion.generate(
       wallet.patientPK,
       wallet.providerKeyPair,
-      Record(Seq(RecordFile.generate("generator record".getBytes).get)),
+      Record(Seq(FileHash.generate("generator record".getBytes).get)),
       Instant.now)
 }
