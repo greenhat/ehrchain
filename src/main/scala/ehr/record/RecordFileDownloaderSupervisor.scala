@@ -24,15 +24,13 @@ object RecordFileDownloaderSupervisor extends ScorexLogging {
             ctx.watch(downloader)
             downloader ! DownloadFile(hash)
           }
-          // todo stop if no missing files
-          Actor.same
+          if (ctx.children.isEmpty) Actor.stopped else Actor.same
       }
 
     } onSignal {
       case (ctx, Terminated(ref)) =>
         log.info(s"${ctx.self}: $ref is terminated")
-        if (ctx.children.isEmpty) Actor.stopped
-        else Actor.same
+        if (ctx.children.isEmpty) Actor.stopped else Actor.same
     }
 
   def missingFiles(block: EhrBlock, fileStorage: RecordFileStorage): Seq[FileHash] = {
