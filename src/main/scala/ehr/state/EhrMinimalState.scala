@@ -31,19 +31,15 @@ final case class EhrMinimalState(override val version: VersionTag,
       EhrMinimalState(VersionTag @@ mod.id,
         contractStorage.add(gatherContracts(mod.transactions)),
         recordFileStorage,
-        recordTransactionStorage.put(gatherRecordTransactions(mod.transactions)))
+        recordTransactionStorage.put(
+          mod.transactions.collect { case recTx: RecordTransaction => recTx }
+        ))
     }
 
   private def gatherContracts(txs: Seq[EhrTransaction]): Seq[Contract] =
     txs.flatMap {
       case contractTx: ContractTransaction => Seq(contractTx.contract)
       case _ => Seq[Contract]()
-    }
-
-  private def gatherRecordTransactions(txs: Seq[EhrTransaction]): Seq[RecordTransaction] =
-    txs.flatMap {
-      case recordTx: RecordTransaction => Seq(recordTx)
-      case _ => Seq[RecordTransaction]()
     }
 
   override def rollbackTo(version: VersionTag): Try[EhrMinimalState] = ???
@@ -61,7 +57,7 @@ final case class EhrMinimalState(override val version: VersionTag,
 
   override def validate(mod: EhrBlock): Try[Unit] =
     Try {
-    require(mod.parentId sameElements version, "modifier's parentId != version")
+      require(mod.parentId sameElements version, "modifier's parentId != version")
     }.map { _ =>
       mod.transactions.map(tx => validate(tx)).find(_.isFailure).getOrElse(Success())
     }.flatten
