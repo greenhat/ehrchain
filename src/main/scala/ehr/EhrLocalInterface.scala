@@ -36,9 +36,9 @@ class EhrLocalInterface(override val viewHolderRef: ActorRef,
     log.error("rollback failed")
   }
 
-  override protected def onSemanticallySuccessfulModification(mod: EhrBlock): Unit = {
-    context.spawn(recordFileDownloader, "RecordFileDownloaded") ! DownloadMissingFiles(mod)
-  }
+  @SuppressWarnings(Array("org.wartremover.warts.Nothing"))
+  override protected def onSemanticallySuccessfulModification(mod: EhrBlock): Unit =
+    context.spawn(recordFileDownloader, "RecordFileDownloaderSupervisor") ! DownloadMissingFiles(mod)
 
   override protected def onNoBetterNeighbour(): Unit = {
     minerRef ! StartMining
