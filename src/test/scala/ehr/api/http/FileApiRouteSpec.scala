@@ -19,7 +19,7 @@ class FileApiRouteSpec extends FlatSpec
   with ScalatestRouteTest
   with Stubs {
 
-  private implicit val timeout = RouteTestTimeout(15.seconds dilated)
+  private implicit val timeout: RouteTestTimeout = RouteTestTimeout(15.seconds dilated)
 
   private val addr = new InetSocketAddress("localhost", 8080)
   private val restApiSettings = RESTApiSettings(addr, None, None, 10 seconds)
@@ -38,14 +38,7 @@ class FileApiRouteSpec extends FlatSpec
 
   it should "fail on invalid hash" in {
     Get(prefix + s"/hash/1111") ~> routes ~> check {
-      status shouldBe StatusCodes.NotFound
-    }
-  }
-
-  it should "fail on empty hash" in {
-    Get(prefix + s"/hash/") ~> routes ~> check {
       status shouldBe StatusCodes.BadRequest
     }
   }
-
 }

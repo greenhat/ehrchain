@@ -1,16 +1,14 @@
 package ehr.api.http
 
-import akka.actor.{ActorRef, ActorRefFactory}
+import akka.actor.ActorRefFactory
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, StatusCodes}
 import akka.http.scaladsl.server.Route
 import com.google.common.io.ByteStreams
-import ehr.core.DigestSha256
-import ehr.record.{FileSource, FileHash, RecordFileStorage}
+import ehr.core._
+import ehr.record.{FileHash, FileSource, RecordFileStorage}
 import scorex.core.api.http.{ApiError, ApiRoute}
 import scorex.core.settings.RESTApiSettings
 import scorex.crypto.encode.Base58
-
-import scala.util.{Failure, Success}
 
 
 final case class FileApiRoute(override val settings: RESTApiSettings,
@@ -30,10 +28,13 @@ final case class FileApiRoute(override val settings: RESTApiSettings,
   }
 
   private def withFile(encodedHash: String)(fn: FileSource => Route): Route =
-    Base58.decode(encodedHash) match {
-      case Failure(e) => complete(ApiError(e.getLocalizedMessage, StatusCodes.NotFound))
-      case Success(hash) => fileStore.get(FileHash(DigestSha256(hash)))
-        .map(fn(_))
-        .getOrElse(complete(ApiError("file not found", StatusCodes.NotFound)))
-    }
+    Base58.decode(encodedHash)
+      .flatMap(DigestSha256.rawUnsafe)
+      .map(FileHash(_))
+      .toEither match {
+        case Left(e) => complete(ApiError(e.getLocalizedMessage, StatusCodes.BadRequest))
+        case Right(fileHash) => fileStore.get(fileHash)
+          .map(fn(_))
+          .getOrElse(complete(ApiError("file not found", StatusCodes.NotFound)))
+      }
 }
