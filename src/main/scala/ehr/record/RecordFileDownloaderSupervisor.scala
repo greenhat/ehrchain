@@ -26,7 +26,6 @@ object RecordFileDownloaderSupervisor extends ScorexLogging {
           }
           if (ctx.children.isEmpty) Actor.stopped else Actor.same
       }
-
     } onSignal {
       case (ctx, Terminated(ref)) =>
         log.info(s"${ctx.self}: $ref is terminated")
