@@ -5,7 +5,7 @@ import ehr.api.http.FileApiRoute
 import ehr.block.EhrBlock
 import ehr.history.{BlockStream, EhrSyncInfo, EhrSyncInfoMessageSpec}
 import ehr.mining.Miner
-import ehr.record.InMemoryRecordFileStorage
+import ehr.record.{InMemoryRecordFileStorage, RecordFileDownloaderSupervisor}
 import ehr.settings.EhrAppSettings
 import ehr.transaction.EhrTransaction
 import ehr.wallet.TransactionGenerator
@@ -56,7 +56,10 @@ class EhrApp(val settingsFilename: String) extends Application {
   val miner: ActorRef = actorSystem.actorOf(Miner.props(nodeViewHolderRef))
 
   override val localInterface: ActorRef =
-    actorSystem.actorOf(EhrLocalInterface.props(nodeViewHolderRef, miner))
+    actorSystem.actorOf(EhrLocalInterface.props(nodeViewHolderRef,
+      miner,
+      RecordFileDownloaderSupervisor.behavior(recordFileStorage, peerManagerRef)
+      ))
 
   override val nodeViewSynchronizer: ActorRef =
     actorSystem.actorOf(Props(

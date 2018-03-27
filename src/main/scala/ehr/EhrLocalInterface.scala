@@ -1,15 +1,19 @@
 package ehr
 
 import akka.actor.{ActorRef, Props}
+import akka.typed.Behavior
 import ehr.block.EhrBlock
 import ehr.mining.Miner.{MineBlock, StartMining, StopMining}
+import ehr.record.RecordFileDownloaderSupervisor
 import ehr.transaction.EhrTransaction
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scorex.core.{LocalInterface, ModifierId}
+import akka.typed.scaladsl.adapter._
+import ehr.record.RecordFileDownloaderSupervisor.DownloadMissingFiles
 
-@SuppressWarnings(Array("org.wartremover.warts.Var"))
 class EhrLocalInterface(override val viewHolderRef: ActorRef,
-                        minerRef: ActorRef)
+                        minerRef: ActorRef,
+                        recordFileDownloader: Behavior[RecordFileDownloaderSupervisor.DownloadMissingFiles])
   extends LocalInterface[PublicKey25519Proposition, EhrTransaction, EhrBlock] {
 
   override protected def onSuccessfulTransaction(tx: EhrTransaction): Unit = {
@@ -32,7 +36,9 @@ class EhrLocalInterface(override val viewHolderRef: ActorRef,
     log.error("rollback failed")
   }
 
-  override protected def onSemanticallySuccessfulModification(mod: EhrBlock): Unit = {}
+  override protected def onSemanticallySuccessfulModification(mod: EhrBlock): Unit = {
+    context.spawn(recordFileDownloader, "RecordFileDownloaded") ! DownloadMissingFiles(mod)
+  }
 
   override protected def onNoBetterNeighbour(): Unit = {
     minerRef ! StartMining
@@ -45,6 +51,8 @@ class EhrLocalInterface(override val viewHolderRef: ActorRef,
 
 object EhrLocalInterface {
 
-  def props(nodeViewHolderRef: ActorRef, minerRef: ActorRef) : Props =
-    Props(new EhrLocalInterface(nodeViewHolderRef, minerRef))
+  def props(nodeViewHolderRef: ActorRef,
+            minerRef: ActorRef,
+            recordFileDownloader: Behavior[RecordFileDownloaderSupervisor.DownloadMissingFiles]) : Props =
+    Props(new EhrLocalInterface(nodeViewHolderRef, minerRef, recordFileDownloader))
 }
