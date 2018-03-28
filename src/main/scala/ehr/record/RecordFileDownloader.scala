@@ -16,6 +16,7 @@ import ehr.record.FileDownloader._
 import scala.annotation.tailrec
 import scala.concurrent.duration._
 import scala.util.Try
+import scala.language.postfixOps
 
 object RecordFileDownloader extends ScorexLogging {
 

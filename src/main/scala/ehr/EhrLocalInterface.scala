@@ -5,7 +5,7 @@ import akka.typed.Behavior
 import ehr.block.EhrBlock
 import ehr.mining.Miner.{MineBlock, StartMining, StopMining}
 import ehr.record.RecordFileDownloaderSupervisor
-import ehr.transaction.EhrTransaction
+import ehr.transaction.{EhrTransaction, RecordTransaction}
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scorex.core.{LocalInterface, ModifierId}
 import akka.typed.scaladsl.adapter._
@@ -38,7 +38,8 @@ class EhrLocalInterface(override val viewHolderRef: ActorRef,
 
   @SuppressWarnings(Array("org.wartremover.warts.Nothing"))
   override protected def onSemanticallySuccessfulModification(mod: EhrBlock): Unit =
-    context.spawn(recordFileDownloader, "RecordFileDownloaderSupervisor") ! DownloadMissingFiles(mod)
+    context.spawn(recordFileDownloader, "RecordFileDownloaderSupervisor") !
+      DownloadMissingFiles(mod.transactions.collect { case recTx: RecordTransaction => recTx })
 
   override protected def onNoBetterNeighbour(): Unit = {
     minerRef ! StartMining
