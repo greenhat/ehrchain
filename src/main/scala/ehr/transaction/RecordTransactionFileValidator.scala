@@ -1,7 +1,7 @@
 package ehr.transaction
 
 import ehr.crypto.Sha256
-import ehr.record.RecordFileStorage
+import ehr.record.{FileHash, RecordFileStorage}
 
 class RecordTransactionFileValidator(recordFileStorage: RecordFileStorage) {
 
@@ -11,4 +11,8 @@ class RecordTransactionFileValidator(recordFileStorage: RecordFileStorage) {
         .map(hash => hash == recordFile.hash).getOrElse(false)
       )
   }
+
+  def findMissingFile(txs: Seq[RecordTransaction]): Seq[FileHash] =
+    txs.flatMap(_.record.files.filter(recordFileStorage.get(_).isEmpty))
+
 }

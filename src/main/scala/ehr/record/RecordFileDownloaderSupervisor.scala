@@ -11,6 +11,7 @@ import scorex.core.utils.ScorexLogging
 @SuppressWarnings(Array("org.wartremover.warts.Nothing"))
 object RecordFileDownloaderSupervisor extends ScorexLogging {
 
+  // todo reduce to FileHash
   final case class DownloadMissingFiles(txs: Seq[RecordTransaction])
 
   def behavior(fileStorage: RecordFileStorage,
