@@ -5,15 +5,16 @@ import akka.actor.typed.scaladsl.adapter._
 import akka.actor.{ActorRef, Props}
 import ehr.block.EhrBlock
 import ehr.mining.Miner.{MineBlock, StartMining, StopMining}
-import ehr.record.RecordFileDownloaderSupervisor
-import ehr.transaction.{EhrTransaction, RecordTransaction}
+import ehr.record.{RecordFileDownloaderSupervisor, RecordFileStorage}
+import ehr.transaction.{EhrTransaction, RecordTransaction, RecordTransactionFileValidator}
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scorex.core.{LocalInterface, ModifierId}
-import ehr.record.RecordFileDownloaderSupervisor.DownloadMissingFiles
+import ehr.record.RecordFileDownloaderSupervisor.DownloadFiles
 
 class EhrLocalInterface(override val viewHolderRef: ActorRef,
                         minerRef: ActorRef,
-                        recordFileDownloader: Behavior[RecordFileDownloaderSupervisor.DownloadMissingFiles])
+                        recordFileDownloader: Behavior[RecordFileDownloaderSupervisor.DownloadFiles],
+                        recordFileStorage: RecordFileStorage)
   extends LocalInterface[PublicKey25519Proposition, EhrTransaction, EhrBlock] {
 
   override protected def onSuccessfulTransaction(tx: EhrTransaction): Unit = {
@@ -39,7 +40,10 @@ class EhrLocalInterface(override val viewHolderRef: ActorRef,
   @SuppressWarnings(Array("org.wartremover.warts.Nothing"))
   override protected def onSemanticallySuccessfulModification(mod: EhrBlock): Unit =
     context.spawn(recordFileDownloader, "RecordFileDownloaderSupervisor") !
-      DownloadMissingFiles(mod.transactions.collect { case recTx: RecordTransaction => recTx })
+      DownloadFiles(
+        new RecordTransactionFileValidator(recordFileStorage)
+          .findMissingFiles(mod.transactions.collect { case recTx: RecordTransaction => recTx })
+      )
 
   override protected def onNoBetterNeighbour(): Unit = {
     minerRef ! StartMining
@@ -54,6 +58,8 @@ object EhrLocalInterface {
 
   def props(nodeViewHolderRef: ActorRef,
             minerRef: ActorRef,
-            recordFileDownloader: Behavior[RecordFileDownloaderSupervisor.DownloadMissingFiles]) : Props =
-    Props(new EhrLocalInterface(nodeViewHolderRef, minerRef, recordFileDownloader))
+            recordFileDownloader: Behavior[RecordFileDownloaderSupervisor.DownloadFiles],
+            recordFileStorage: RecordFileStorage) : Props =
+    Props(new EhrLocalInterface(nodeViewHolderRef, minerRef, recordFileDownloader,
+      recordFileStorage))
 }

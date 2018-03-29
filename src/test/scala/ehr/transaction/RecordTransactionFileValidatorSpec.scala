@@ -28,14 +28,14 @@ class RecordTransactionFileValidatorSpec extends PropSpec
   property("no missing files") {
     val validator = new RecordTransactionFileValidator(InMemoryRecordFileStorageMock.storage)
     forAll(ehrRecordTransactionGen) { b: RecordTransaction =>
-      validator.findMissingFile(Seq(b)).isEmpty shouldBe true
+      validator.findMissingFiles(Seq(b)).isEmpty shouldBe true
     }
   }
 
   property("missing file (empty file storage)") {
     val validator = new RecordTransactionFileValidator(new InMemoryRecordFileStorage())
     forAll(ehrRecordTransactionGen) { b: RecordTransaction =>
-      validator.findMissingFile(Seq(b)).isEmpty shouldBe false
+      validator.findMissingFiles(Seq(b)).isEmpty shouldBe false
     }
   }
 }

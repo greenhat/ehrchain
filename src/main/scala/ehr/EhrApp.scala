@@ -58,7 +58,8 @@ class EhrApp(val settingsFilename: String) extends Application {
   override val localInterface: ActorRef =
     actorSystem.actorOf(EhrLocalInterface.props(nodeViewHolderRef,
       miner,
-      RecordFileDownloaderSupervisor.behavior(recordFileStorage, peerManagerRef)
+      RecordFileDownloaderSupervisor.behavior(recordFileStorage, peerManagerRef),
+      recordFileStorage
       ))
 
   override val nodeViewSynchronizer: ActorRef =

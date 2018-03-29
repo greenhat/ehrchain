@@ -12,7 +12,7 @@ class RecordTransactionFileValidator(recordFileStorage: RecordFileStorage) {
       )
   }
 
-  def findMissingFile(txs: Seq[RecordTransaction]): Seq[FileHash] =
+  def findMissingFiles(txs: Seq[RecordTransaction]): Seq[FileHash] =
     txs.flatMap(_.record.files.filter(recordFileStorage.get(_).isEmpty))
 
 }
