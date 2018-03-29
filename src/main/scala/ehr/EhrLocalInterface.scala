@@ -1,14 +1,14 @@
 package ehr
 
+import akka.actor.typed.Behavior
+import akka.actor.typed.scaladsl.adapter._
 import akka.actor.{ActorRef, Props}
-import akka.typed.Behavior
 import ehr.block.EhrBlock
 import ehr.mining.Miner.{MineBlock, StartMining, StopMining}
 import ehr.record.RecordFileDownloaderSupervisor
 import ehr.transaction.{EhrTransaction, RecordTransaction}
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scorex.core.{LocalInterface, ModifierId}
-import akka.typed.scaladsl.adapter._
 import ehr.record.RecordFileDownloaderSupervisor.DownloadMissingFiles
 
 class EhrLocalInterface(override val viewHolderRef: ActorRef,

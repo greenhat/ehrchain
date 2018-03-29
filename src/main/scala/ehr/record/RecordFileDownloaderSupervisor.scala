@@ -1,8 +1,9 @@
 package ehr.record
 
 import akka.actor.ActorRef
-import akka.typed.scaladsl.Actor
-import akka.typed.{Behavior, Terminated}
+import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.scaladsl.Behaviors.{same, stopped}
+import akka.actor.typed.{Behavior, Terminated}
 import ehr.record.RecordFileDownloader.DownloadFile
 import ehr.transaction.RecordTransaction
 import scorex.core.utils.ScorexLogging
@@ -14,7 +15,7 @@ object RecordFileDownloaderSupervisor extends ScorexLogging {
 
   def behavior(fileStorage: RecordFileStorage,
                peerManager: ActorRef): Behavior[DownloadMissingFiles] =
-    akka.typed.scaladsl.Actor.immutable[DownloadMissingFiles] { (ctx, msg) =>
+    Behaviors.immutable[DownloadMissingFiles] { (ctx, msg) =>
       msg match {
         case DownloadMissingFiles(transactions) =>
           missingFiles(transactions, fileStorage).foreach { hash =>
@@ -23,15 +24,16 @@ object RecordFileDownloaderSupervisor extends ScorexLogging {
             ctx.watch(downloader)
             downloader ! DownloadFile(hash)
           }
-          if (ctx.children.isEmpty) Actor.stopped else Actor.same
+          if (ctx.children.isEmpty) stopped else same
       }
     } onSignal {
       case (ctx, Terminated(ref)) =>
         log.info(s"${ctx.self}: $ref is terminated")
-        if (ctx.children.isEmpty) Actor.stopped else Actor.same
+        if (ctx.children.isEmpty) stopped else same
     }
 
-  def missingFiles(txs: Seq[RecordTransaction], fileStorage: RecordFileStorage): Seq[FileHash] = {
+  def missingFiles(txs: Seq[RecordTransaction],
+                   fileStorage: RecordFileStorage): Seq[FileHash] = {
       txs.flatMap(_.record.files.filter(fileStorage.get(_).isEmpty))
   }
 }
