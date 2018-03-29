@@ -27,4 +27,17 @@ implicit lazy val system: ActorSystem = ActorSystem()
     testKit.retrieveEffect() shouldEqual Effects.NoEffects
     testKit.isAlive shouldBe false
   }
+
+  it should "spawn a downloader and terminate" in {
+    val peerManager = TestProbe()
+    val fileStorage = new InMemoryRecordFileStorage()
+    val testKit = BehaviorTestKit(
+      RecordFileDownloaderSupervisor.behavior(
+        fileStorage,
+        peerManager.ref)
+    )
+    testKit.run(DownloadFiles(Seq(InMemoryRecordFileStorageMock.recordFileHash)))
+    testKit.retrieveEffect() should not be Effects.NoEffects
+    testKit.isAlive shouldBe true
+  }
 }
