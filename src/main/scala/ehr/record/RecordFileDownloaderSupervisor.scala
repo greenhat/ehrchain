@@ -17,7 +17,7 @@ object RecordFileDownloaderSupervisor extends ScorexLogging {
 
   sealed trait FailureReason
   final case object NoPeers extends FailureReason
-  final case class Error(errors: Seq[Throwable]) extends FailureReason
+  final case class DownloadErrors(errors: Seq[Throwable]) extends FailureReason
   final case class DownloadFailed(fileHash: FileHash, reason: FailureReason) extends Command
 
   def behavior(fileStorage: RecordFileStorage,
@@ -32,6 +32,12 @@ object RecordFileDownloaderSupervisor extends ScorexLogging {
             downloader ! DownloadFile(hash, ctx.self)
           }
           if (ctx.children.isEmpty) stopped else same
+        case DownloadFailed(fileHash, reason) =>
+          log.info(s"failed to download file $fileHash: $reason")
+          same
+        case DownloadSucceeded(fileHash) =>
+          log.info(s"downloaded file $fileHash")
+          same
       }
     } onSignal {
       case (ctx, Terminated(ref)) =>

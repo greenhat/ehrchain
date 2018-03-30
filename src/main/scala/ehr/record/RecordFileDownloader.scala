@@ -9,7 +9,7 @@ import akka.actor.{ActorRef, typed}
 import akka.pattern.ask
 import akka.util.Timeout
 import ehr.record.DownloadFileEffect.downloadFileEffect
-import ehr.record.RecordFileDownloaderSupervisor.{DownloadFailed, DownloadSucceeded, NoPeers}
+import ehr.record.RecordFileDownloaderSupervisor.{DownloadFailed, DownloadSucceeded, DownloadErrors, NoPeers}
 import scorex.core.network.Handshake
 import scorex.core.network.peer.PeerManager.ReceivableMessages.GetConnectedPeers
 import scorex.core.utils.ScorexLogging
@@ -44,17 +44,20 @@ object RecordFileDownloader extends ScorexLogging {
           stopped
         case AskPeers(peers, fileHash, replyTo) =>
           @tailrec
-          def loop(rest: List[InetSocketAddress]): Behavior[Command] = rest match {
-            case h::t =>
-              downloadEffect(h, fileHash, fileStorage) match {
-                case Left(e) => loop(t)
-                case Right(()) =>
-                  replyTo ! DownloadSucceeded(fileHash)
-                  stopped
-              }
-            case Nil => stopped
+          def loop(rest: List[InetSocketAddress], errors: List[Throwable]): Behavior[Command] =
+            rest match {
+              case h::t =>
+                downloadEffect(h, fileHash, fileStorage) match {
+                  case Left(e) => loop(t, e :: errors)
+                  case Right(()) =>
+                    replyTo ! DownloadSucceeded(fileHash)
+                    stopped
+                }
+            case Nil =>
+              replyTo ! DownloadFailed(fileHash, DownloadErrors(errors))
+              stopped
           }
-          loop(peers.toList)
+          loop(peers.toList, List())
       }
     }
 
