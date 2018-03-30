@@ -13,7 +13,7 @@ import ehr.record.RecordFileDownloaderSupervisor.DownloadFiles
 
 class EhrLocalInterface(override val viewHolderRef: ActorRef,
                         minerRef: ActorRef,
-                        recordFileDownloader: Behavior[RecordFileDownloaderSupervisor.DownloadFiles],
+                        recordFileDownloader: Behavior[RecordFileDownloaderSupervisor.Command],
                         recordFileStorage: RecordFileStorage)
   extends LocalInterface[PublicKey25519Proposition, EhrTransaction, EhrBlock] {
 
@@ -58,7 +58,7 @@ object EhrLocalInterface {
 
   def props(nodeViewHolderRef: ActorRef,
             minerRef: ActorRef,
-            recordFileDownloader: Behavior[RecordFileDownloaderSupervisor.DownloadFiles],
+            recordFileDownloader: Behavior[RecordFileDownloaderSupervisor.Command],
             recordFileStorage: RecordFileStorage) : Props =
     Props(new EhrLocalInterface(nodeViewHolderRef, minerRef, recordFileDownloader,
       recordFileStorage))

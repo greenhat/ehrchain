@@ -1,10 +1,14 @@
 package ehr.record
 
+import java.net.InetSocketAddress
+
 import akka.actor.ActorSystem
-import akka.testkit.TestProbe
-import akka.testkit.typed.scaladsl.ActorTestKit
+import akka.testkit
+import akka.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
 import ehr.EhrGenerators
+import ehr.record.RecordFileDownloaderSupervisor.{DownloadFailed, DownloadSucceeded, NoPeers}
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
+import scorex.core.app.Version
 import scorex.core.network.Handshake
 import scorex.core.network.peer.PeerManager.ReceivableMessages.GetConnectedPeers
 
@@ -21,7 +25,8 @@ class RecordFileDownloaderSpec extends FlatSpec
   implicit lazy val untypedSystem: ActorSystem = ActorSystem()
 
   it should "terminate if no peers" in {
-    val peerManager = TestProbe()
+    val peerManager = testkit.TestProbe()
+    val supervisor = TestProbe[RecordFileDownloaderSupervisor.Command]()
     val fileStorage = new InMemoryRecordFileStorage()
     val actor = spawn(
       RecordFileDownloader.behavior(
@@ -30,8 +35,31 @@ class RecordFileDownloaderSpec extends FlatSpec
         fail("download effect is called")
       }
     )
-    actor ! RecordFileDownloader.DownloadFile(InMemoryRecordFileStorageMock.recordFileHash)
+    val fileHash = InMemoryRecordFileStorageMock.recordFileHash
+    actor ! RecordFileDownloader.DownloadFile(fileHash, supervisor.ref)
     peerManager.expectMsg(GetConnectedPeers)
     peerManager.reply(Seq[Handshake]())
+    supervisor.expectMessage(DownloadFailed(fileHash, NoPeers))
+  }
+
+  it should "successful download" in {
+    val peerManager = testkit.TestProbe()
+    val supervisor = TestProbe[RecordFileDownloaderSupervisor.Command]()
+    val fileStorage = new InMemoryRecordFileStorage()
+    val actor = spawn(
+      RecordFileDownloader.behavior(
+        fileStorage,
+        peerManager.ref) { (_, _, _) =>
+        Right()
+      }
+    )
+    val fileHash = InMemoryRecordFileStorageMock.recordFileHash
+    actor ! RecordFileDownloader.DownloadFile(fileHash,
+      supervisor.ref)
+    peerManager.expectMsg(GetConnectedPeers)
+    peerManager.reply(Seq[Handshake](
+      Handshake("", Version(1, 2, 3), "",
+        Some(new InetSocketAddress("92.92.92.92",27017)), 0L)))
+    supervisor.expectMessage(DownloadSucceeded(fileHash))
   }
 }
