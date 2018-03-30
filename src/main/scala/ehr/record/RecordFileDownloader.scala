@@ -2,14 +2,14 @@ package ehr.record
 
 import java.net.{InetSocketAddress, URL}
 
-import akka.actor.{ActorRef, typed}
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors.{same, stopped}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
+import akka.actor.{ActorRef, typed}
 import akka.pattern.ask
 import akka.util.Timeout
 import ehr.record.DownloadFileEffect.downloadFileEffect
-import ehr.record.RecordFileDownloaderSupervisor.{DownloadFailed, NoPeers}
+import ehr.record.RecordFileDownloaderSupervisor.{DownloadFailed, DownloadSucceeded, NoPeers}
 import scorex.core.network.Handshake
 import scorex.core.network.peer.PeerManager.ReceivableMessages.GetConnectedPeers
 import scorex.core.utils.ScorexLogging
@@ -45,8 +45,14 @@ object RecordFileDownloader extends ScorexLogging {
         case AskPeers(peers, fileHash, replyTo) =>
           @tailrec
           def loop(rest: List[InetSocketAddress]): Behavior[Command] = rest match {
-            case h::t if downloadEffect(h, fileHash, fileStorage).isLeft => loop(t)
-            case _ => stopped
+            case h::t =>
+              downloadEffect(h, fileHash, fileStorage) match {
+                case Left(e) => loop(t)
+                case Right(()) =>
+                  replyTo ! DownloadSucceeded(fileHash)
+                  stopped
+              }
+            case Nil => stopped
           }
           loop(peers.toList)
       }
