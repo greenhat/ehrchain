@@ -49,7 +49,6 @@ final case class EhrMinimalState(override val version: VersionTag,
     tx match {
       case recordTx: RecordTransaction => {
         require(ehrRecordTxContractValidator.validity(recordTx), s"contract validation failed for: $recordTx")
-        require(ehrRecordTxFileValidator.validity(recordTx), s"file validation failed for: $recordTx")
       }
       case _ => ()
     }
