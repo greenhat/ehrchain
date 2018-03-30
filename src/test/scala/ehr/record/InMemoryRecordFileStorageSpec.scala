@@ -13,7 +13,8 @@ class InMemoryRecordFileStorageSpec extends PropSpec
     property("put and get") {
       val storage = new InMemoryRecordFileStorage()
       forAll(genRecordFile(10, 100)) { case (recordFile, inputStream) =>
-        storage.put(recordFile, inputStream).get(recordFile) shouldEqual Some(inputStream)
+        storage.put(recordFile, inputStream)
+        storage.get(recordFile) shouldEqual Some(inputStream)
       }
     }
 

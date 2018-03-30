@@ -63,6 +63,7 @@ object EhrNodeViewHolder {
     val timestamp = Instant.ofEpochSecond(1518788012L)
     val genesisRecordFileBytes = "genesis record".getBytes
     val recordFileHash = FileHash.generate(genesisRecordFileBytes).get
+    recordFileStorage.put(recordFileHash, genesisRecordFileBytes)
     val genesisRecord = Record(Seq(recordFileHash))
     val genesisTxs = Seq(
       EhrRecordTransactionCompanion.generate(genesisPatientAccount._2, genesisProviderAccount, genesisRecord,
@@ -73,10 +74,9 @@ object EhrNodeViewHolder {
 
     // todo loadOrGenerate
     val history = BlockStream.load(new HistoryStorage()).append(genesisBlock).get._1
-
     val gs = EhrMinimalState(VersionTag @@ genesisBlock.id,
       new InMemoryContractStorage(),
-      recordFileStorage.put(recordFileHash, genesisRecordFileBytes),
+      recordFileStorage,
       new InMemoryRecordTransactionStorage())
     val gw = Wallet()
 

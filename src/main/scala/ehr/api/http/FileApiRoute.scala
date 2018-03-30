@@ -17,11 +17,11 @@ final case class FileApiRoute(override val settings: RESTApiSettings,
                               fileStore: RecordFileStorage)
                              (implicit val context: ActorRefFactory) extends ApiRoute {
 
-  override val route: Route = (pathPrefix("file") & withCors) {
+  override val route: Route = (pathPrefix(FileApiRoute.pathPrefix) & withCors) {
     request
   }
 
-  def request: Route = (get & path("hash" / Segment)) { encodedHash =>
+  def request: Route = (get & path(FileApiRoute.requestPath / Segment)) { encodedHash =>
     withFile(encodedHash) { fileSource =>
       complete(
         HttpEntity(ContentTypes.`application/octet-stream`,
@@ -38,4 +38,9 @@ final case class FileApiRoute(override val settings: RESTApiSettings,
           .map(fn(_))
           .getOrElse(complete(ApiError("file not found", StatusCodes.NotFound)))
       }
+}
+
+object FileApiRoute {
+  val pathPrefix = "file"
+  val requestPath = "hash"
 }

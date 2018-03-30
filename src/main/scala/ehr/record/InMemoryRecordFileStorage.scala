@@ -13,10 +13,8 @@ final class InMemoryRecordFileStorage() extends RecordFileStorage {
   override def get(recordFile: FileHash): Option[FileSource] =
     store.get(recordFile.hash)
 
-  override def put(recordFile: FileHash, source: FileSource): RecordFileStorage = {
+  override def put(recordFile: FileHash, source: FileSource): Unit =
     store.update(recordFile.hash, source)
-    this
-  }
 }
 
 @SuppressWarnings(Array("org.wartremover.warts.TryPartial"))
@@ -25,6 +23,10 @@ object InMemoryRecordFileStorageMock {
   val recordFileBytes: Array[Byte] = "mock file".getBytes
   val recordFileHash: FileHash = FileHash.generate(recordFileBytes).get
 
-  val storage: RecordFileStorage = new InMemoryRecordFileStorage().put(recordFileHash, recordFileBytes)
+  val storage: RecordFileStorage = {
+    val s = new InMemoryRecordFileStorage()
+    s.put(recordFileHash, recordFileBytes)
+    s
+  }
 }
 

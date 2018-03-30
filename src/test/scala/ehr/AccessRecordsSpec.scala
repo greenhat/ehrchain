@@ -6,7 +6,7 @@ import com.google.common.io.ByteStreams
 import ehr.contract.{InMemoryContractStorage, ReadContract, RecordKeys}
 import ehr.crypto.{AesCipher, Curve25519KeyPair, EcdhDerivedKey}
 import ehr.record._
-import ehr.transaction.{ContractTransaction, EhrRecordTransactionCompanion, InMemoryRecordTransactionStorage}
+import ehr.transaction.{EhrRecordTransactionCompanion, InMemoryRecordTransactionStorage}
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.util.Success
@@ -29,7 +29,8 @@ class AccessRecordsSpec extends FlatSpec
     val recordFileSource = ByteArrayFileSource(encryptedRecordFileStream.toByteArray)
     val recordFile = FileHash.generate(recordFileSource).get
 
-    val recordFileStorage = new InMemoryRecordFileStorage().put(recordFile, recordFileSource)
+    val recordFileStorage = new InMemoryRecordFileStorage()
+    recordFileStorage.put(recordFile, recordFileSource)
 
     val transactions = Seq(EhrRecordTransactionCompanion.generate(
       patientKeyPair.publicKey,
@@ -57,7 +58,8 @@ class AccessRecordsSpec extends FlatSpec
     val recordFileSource = ByteArrayFileSource(encryptedRecordFileStream.toByteArray)
     val recordFile = FileHash.generate(recordFileSource).get
 
-    val recordFileStorage = new InMemoryRecordFileStorage().put(recordFile, recordFileSource)
+    val recordFileStorage = new InMemoryRecordFileStorage()
+    recordFileStorage.put(recordFile, recordFileSource)
 
     val transactions = Seq(EhrRecordTransactionCompanion.generate(
       patientKeyPair.publicKey,
