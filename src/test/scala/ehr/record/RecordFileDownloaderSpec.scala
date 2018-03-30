@@ -6,11 +6,13 @@ import akka.actor.ActorSystem
 import akka.testkit
 import akka.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
 import ehr.EhrGenerators
-import ehr.record.RecordFileDownloaderSupervisor.{DownloadFailed, DownloadSucceeded, DownloadErrors, NoPeers}
+import ehr.record.RecordFileDownloaderSupervisor.{DownloadErrors, DownloadFailed, DownloadSucceeded, NoPeers}
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
 import scorex.core.app.Version
 import scorex.core.network.Handshake
 import scorex.core.network.peer.PeerManager.ReceivableMessages.GetConnectedPeers
+
+import scala.util.{Failure, Success}
 
 @SuppressWarnings(Array("org.wartremover.warts.Nothing", "org.wartremover.warts.NonUnitStatements",
   "org.wartremover.warts.OptionPartial"))
@@ -50,7 +52,7 @@ class RecordFileDownloaderSpec extends FlatSpec
       RecordFileDownloader.behavior(
         fileStorage,
         peerManager.ref) { (_, _, _) =>
-        Right()
+        Success()
       }
     )
     val fileHash = InMemoryRecordFileStorageMock.recordFileHash
@@ -72,7 +74,7 @@ class RecordFileDownloaderSpec extends FlatSpec
       RecordFileDownloader.behavior(
         fileStorage,
         peerManager.ref) { (_, _, _) =>
-        Left(expectedException)
+        Failure(expectedException)
       }
     )
     val fileHash = InMemoryRecordFileStorageMock.recordFileHash

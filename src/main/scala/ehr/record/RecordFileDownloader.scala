@@ -20,7 +20,7 @@ import scorex.core.utils.ScorexLogging
 import scala.annotation.tailrec
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 object RecordFileDownloader extends ScorexLogging {
 
@@ -31,7 +31,7 @@ object RecordFileDownloader extends ScorexLogging {
   private final case class AskPeers(peers: Seq[InetSocketAddress], hash: FileHash,
                             replyTo: ReplyToActor) extends Command
 
-  type DownloadEffect = (InetSocketAddress, FileHash, RecordFileStorage) => Either[Throwable, Unit]
+  type DownloadEffect = (InetSocketAddress, FileHash, RecordFileStorage) => Try[Unit]
 
   @SuppressWarnings(Array("org.wartremover.warts.DefaultArguments"))
   def behavior(fileStorage: RecordFileStorage, peerManager: ActorRef)
@@ -52,8 +52,8 @@ object RecordFileDownloader extends ScorexLogging {
             rest match {
               case h::t =>
                 downloadEffect(h, fileHash, fileStorage) match {
-                  case Left(e) => loop(t, e :: errors)
-                  case Right(()) =>
+                  case Failure(e) => loop(t, e :: errors)
+                  case Success(()) =>
                     replyTo ! DownloadSucceeded(fileHash)
                     stopped
                 }
@@ -90,12 +90,12 @@ object DownloadFileEffect {
 
   private def downloadFile(url: URL,
                            fileStorage: RecordFileStorage,
-                           fileHash: FileHash): Either[Throwable, Unit] =
-    (for {
+                           fileHash: FileHash): Try[Unit] =
+    for {
         bytes <- Try[Array[Byte]] { ByteStreams.toByteArray(url.openStream()) }
         fileSource = FileSource.fromByteArray(bytes)
         computedHash <- FileHash.generate(fileSource)
         _ <- Try[Unit] { if (computedHash != fileHash) new RuntimeException("invalid hash") }
-    } yield fileStorage.put(fileHash, fileSource)).toEither
+    } yield fileStorage.put(fileHash, fileSource)
 
 }
