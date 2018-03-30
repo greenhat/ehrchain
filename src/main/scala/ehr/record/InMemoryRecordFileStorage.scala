@@ -2,17 +2,21 @@ package ehr.record
 
 import ehr.core.DigestSha256
 
-@SuppressWarnings(Array("org.wartremover.warts.DefaultArguments"))
-final class InMemoryRecordFileStorage(store: Map[DigestSha256, FileSource] =
-                                      Map[DigestSha256, FileSource]()
-                                     ) extends RecordFileStorage {
+import scala.collection.mutable
+
+@SuppressWarnings(Array("org.wartremover.warts.DefaultArguments",
+  "org.wartremover.warts.MutableDataStructures"))
+final class InMemoryRecordFileStorage() extends RecordFileStorage {
+
+  val store: mutable.Map[DigestSha256, FileSource] = mutable.Map[DigestSha256, FileSource]()
 
   override def get(recordFile: FileHash): Option[FileSource] =
     store.get(recordFile.hash)
 
-  override def put(recordFile: FileHash, source: FileSource): RecordFileStorage =
-    new InMemoryRecordFileStorage(
-      store + (recordFile.hash -> source))
+  override def put(recordFile: FileHash, source: FileSource): RecordFileStorage = {
+    store.update(recordFile.hash, source)
+    this
+  }
 }
 
 @SuppressWarnings(Array("org.wartremover.warts.TryPartial"))
