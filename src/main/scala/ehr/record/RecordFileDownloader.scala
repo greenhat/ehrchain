@@ -20,7 +20,7 @@ import scorex.core.utils.ScorexLogging
 import scala.annotation.tailrec
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 object RecordFileDownloader extends ScorexLogging {
 
@@ -91,9 +91,13 @@ object DownloadFileEffect {
   private def downloadFile(url: URL,
                            fileStorage: RecordFileStorage,
                            fileHash: FileHash): Either[Throwable, Unit] =
-    // todo check the hash of the downloaded file to be the same
     Try {
       ByteStreams.toByteArray(url.openStream())
+    }.flatMap { fileSource =>
+      FileHash.generate(fileSource).flatMap { computedHash =>
+        if (computedHash == fileHash) Success[FileSource](fileSource)
+        else Failure[FileSource](new RuntimeException("invalid hash"))
+      }
     }.map(fileStorage.put(fileHash, _)).toEither
 
 }
