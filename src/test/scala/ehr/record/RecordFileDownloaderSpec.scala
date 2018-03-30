@@ -84,4 +84,10 @@ class RecordFileDownloaderSpec extends FlatSpec
         Some(new InetSocketAddress("92.92.92.92",27017)), 0L)))
     supervisor.expectMessage(DownloadFailed(fileHash, DownloadErrors(Seq(expectedException))))
   }
+
+  "file URL" should "be valid against our File API" in {
+    val fileHash = InMemoryRecordFileStorageMock.recordFileHash
+    DownloadFileEffect.fileUrl(new InetSocketAddress("92.92.92.92",27017),
+      fileHash).toString shouldEqual s"http://92.92.92.92:27017/file/hash/$fileHash"
+  }
 }

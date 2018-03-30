@@ -8,8 +8,11 @@ import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import akka.actor.{ActorRef, typed}
 import akka.pattern.ask
 import akka.util.Timeout
+import com.google.common.io.ByteStreams
+import ehr.api.http.FileApiRoute
 import ehr.record.DownloadFileEffect.downloadFileEffect
-import ehr.record.RecordFileDownloaderSupervisor.{DownloadFailed, DownloadSucceeded, DownloadErrors, NoPeers}
+import ehr.record.RecordFileDownloader.DownloadEffect
+import ehr.record.RecordFileDownloaderSupervisor.{DownloadErrors, DownloadFailed, DownloadSucceeded, NoPeers}
 import scorex.core.network.Handshake
 import scorex.core.network.peer.PeerManager.ReceivableMessages.GetConnectedPeers
 import scorex.core.utils.ScorexLogging
@@ -17,6 +20,7 @@ import scorex.core.utils.ScorexLogging
 import scala.annotation.tailrec
 import scala.concurrent.duration._
 import scala.language.postfixOps
+import scala.util.Try
 
 object RecordFileDownloader extends ScorexLogging {
 
@@ -74,12 +78,22 @@ object RecordFileDownloader extends ScorexLogging {
 
 object DownloadFileEffect {
 
-  def downloadFileEffect(address: InetSocketAddress,
-                         fileHash: FileHash,
-                         fileStorage: RecordFileStorage): Either[Throwable, Unit] =
-    downloadFile(fileUrl(address, fileHash), fileStorage)
+  val downloadFileEffect: DownloadEffect = { (addr, fileHash, fileStorage) =>
+    downloadFile(fileUrl(addr, fileHash), fileStorage, fileHash)
+  }
 
-  def fileUrl(address: InetSocketAddress, fileHash: FileHash): URL = ???
+  def fileUrl(address: InetSocketAddress, fileHash: FileHash): URL =
+    new URL("http",
+      address.getHostString,
+      address.getPort,
+      s"/${FileApiRoute.pathPrefix}/${FileApiRoute.requestPath}/$fileHash")
 
-  private def downloadFile(url: URL, fileStorage: RecordFileStorage): Either[Throwable, Unit] = ???
+  private def downloadFile(url: URL,
+                           fileStorage: RecordFileStorage,
+                           fileHash: FileHash): Either[Throwable, Unit] =
+    // todo check the hash of the downloaded file to be the same
+    Try {
+      ByteStreams.toByteArray(url.openStream())
+    }.map(fileStorage.put(fileHash, _)).toEither
+
 }
