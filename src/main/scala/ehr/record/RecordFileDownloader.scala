@@ -57,10 +57,10 @@ object RecordFileDownloader extends ScorexLogging {
                     replyTo ! DownloadSucceeded(fileHash)
                     stopped
                 }
-            case Nil =>
-              replyTo ! DownloadFailed(fileHash, DownloadErrors(errors))
-              stopped
-          }
+              case Nil =>
+                replyTo ! DownloadFailed(fileHash, DownloadErrors(errors))
+                stopped
+            }
           loop(peers.toList, List())
       }
     }
