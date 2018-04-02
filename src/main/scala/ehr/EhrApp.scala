@@ -22,7 +22,8 @@ import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scala.concurrent.duration._
 import scala.io.Source
 
-class EhrApp(val settingsFilename: String) extends Application {
+class EhrApp(val settingsFilename: String,
+             roleName: String) extends Application {
 
   override type P = PublicKey25519Proposition
   override type TX = EhrTransaction
@@ -74,6 +75,7 @@ class EhrApp(val settingsFilename: String) extends Application {
 
 object EhrApp extends App {
   val settingsFilename: String = args.headOption.getOrElse("settings.conf")
-  new EhrApp(settingsFilename).run()
+  val roleName: String = args.lastOption.getOrElse("patient")
+  new EhrApp(settingsFilename, roleName).run()
 }
 
