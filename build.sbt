@@ -1,7 +1,7 @@
 
 name := "ehrchain"
 
-version := "7.0"
+version := "8.0"
 
 scalaVersion := "2.12.3"
 

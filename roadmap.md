@@ -23,7 +23,7 @@
 - [x] patient revokes append access for the provider(contract);
 
 ### v 7.0 
-- [ ] requesting/retrieving files attached to record transactions;
+- [x] requesting/retrieving files attached to record transactions;
 
 ### v 8.0
 - [ ] run three instances with demo scenario: patient (makes append and read contracts), provider1 (makes record tx), provider2 (reads the record) scripted with actors;
