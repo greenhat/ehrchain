@@ -21,6 +21,7 @@ import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 
 import scala.io.Source
 
+@SuppressWarnings(Array("org.wartremover.warts.Throw"))
 class EhrApp(val settingsFilename: String,
              roleName: String) extends Application {
 
@@ -69,9 +70,9 @@ class EhrApp(val settingsFilename: String,
 
   log.debug("Starting transactions generation")
   val transactionGenerator: ActorRef = roleName match {
-      //todo enum?
     case "patient" => actorSystem.actorOf(TypedActorWrapper.props(nodeViewHolderRef,
         PatientTransactionGenerator.behavior(nodeViewHolderRef)) )
+    case _ => throw new IllegalArgumentException(s"unsupported role: $roleName")
   }
 
   transactionGenerator ! Call

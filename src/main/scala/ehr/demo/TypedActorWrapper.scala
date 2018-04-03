@@ -34,7 +34,6 @@ class TypedActorWrapper(viewHolderRef: ActorRef,
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   override def receive: Receive = {
-    // todo extract Schedule message
     case Schedule(duration) =>
       val _ = context.system.scheduler.schedule(duration, duration, viewHolderRef, getRequiredData)
     case Call =>
@@ -46,7 +45,8 @@ class TypedActorWrapper(viewHolderRef: ActorRef,
 
 object TypedActorWrapper {
 
-  def props(nodeViewHolder: ActorRef, behavior: Behavior[NodeViewHolderCallback]): Props = Props(new TypedActorWrapper(nodeViewHolder, behavior))
+  def props(nodeViewHolder: ActorRef, behavior: Behavior[NodeViewHolderCallback]): Props =
+    Props(new TypedActorWrapper(nodeViewHolder, behavior))
 
   final case object Call
   final case class Schedule(delay: FiniteDuration)
