@@ -73,7 +73,7 @@ class AccessRecordsSpec extends FlatSpec
     val readContract = ReadContract.generate(patientKeyPair,
       provider2KeyPair.publicKey,
       currentTimestamp,
-      RecordKeys.build(patientKeyPair, recordTxStorage)).get
+      RecordKeys.buildFromRecordTxs(patientKeyPair, recordTxStorage)).get
 
     val contractStorage = new InMemoryContractStorage().add(Seq(readContract))
 

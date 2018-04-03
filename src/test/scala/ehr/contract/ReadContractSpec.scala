@@ -36,7 +36,7 @@ class ReadContractSpec extends FlatSpec
     val expectedRecordKeys = RecordKeys(
       Map(providerKeyPair.publicKey -> EcdhDerivedKey.derivedKey(patientKeyPair, providerKeyPair.publicKey)))
 
-    val recordKeys = RecordKeys.build(patientKeyPair, recordTxStorage)
+    val recordKeys = RecordKeys.buildFromRecordTxs(patientKeyPair, recordTxStorage)
     recordKeys shouldEqual expectedRecordKeys
 
     ReadContract.generate(patientKeyPair, providerKeyPair.publicKey, currentTimestamp, recordKeys)

@@ -58,13 +58,17 @@ object RecordKeys {
       recordKeys <- deserializeFromBytes[RecordKeys](decryptedBytes)
     } yield recordKeys
 
+  def buildFromRecordTxs(patientKeyPair: Curve25519KeyPair,
+                         recordTxStorage: RecordTransactionStorage): RecordKeys =
+    build(patientKeyPair, recordTxStorage.getByPatient(patientKeyPair.publicKey).map(_.generator))
+
   def build(patientKeyPair: Curve25519KeyPair,
-            recordTxStorage: RecordTransactionStorage): RecordKeys =
+            providerPKs: Seq[PublicKey25519Proposition]): RecordKeys =
     RecordKeys(
-      recordTxStorage.getByPatient(patientKeyPair.publicKey)
-        .foldLeft(Map[PublicKey25519Proposition, KeyAes256]()) { case (keyMap, tx) =>
-          if (keyMap.get(tx.generator).isDefined) keyMap
-          else keyMap + (tx.generator -> EcdhDerivedKey.derivedKey(patientKeyPair, tx.generator))
+      providerPKs
+        .foldLeft(Map[PublicKey25519Proposition, KeyAes256]()) { case (keyMap, providerPK) =>
+          if (keyMap.get(providerPK).isDefined) keyMap
+          else keyMap + (providerPK -> EcdhDerivedKey.derivedKey(patientKeyPair, providerPK))
         }
     )
 }
