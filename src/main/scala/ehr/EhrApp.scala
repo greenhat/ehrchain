@@ -3,13 +3,13 @@ package ehr
 import akka.actor.{ActorRef, Props}
 import ehr.api.http.FileApiRoute
 import ehr.block.EhrBlock
+import ehr.demo.TypedActorWrapper.Call
+import ehr.demo.{PatientTransactionGenerator, TypedActorWrapper}
 import ehr.history.{BlockStream, EhrSyncInfo, EhrSyncInfoMessageSpec}
 import ehr.mining.Miner
 import ehr.record.{InMemoryRecordFileStorage, RecordFileDownloaderSupervisor}
 import ehr.settings.EhrAppSettings
 import ehr.transaction.EhrTransaction
-import ehr.wallet.TransactionGenerator
-import ehr.wallet.TransactionGenerator.StartGeneration
 import scorex.core.api.http.{ApiRoute, NodeViewApiRoute, PeersApiRoute, UtilsApiRoute}
 import scorex.core.app.Application
 import scorex.core.network.NodeViewSynchronizer
@@ -19,7 +19,6 @@ import scorex.core.serialization.SerializerRegistry.SerializerRecord
 import scorex.core.settings.ScorexSettings
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 
-import scala.concurrent.duration._
 import scala.io.Source
 
 class EhrApp(val settingsFilename: String,
@@ -69,8 +68,13 @@ class EhrApp(val settingsFilename: String,
     (networkControllerRef, nodeViewHolderRef, localInterface, EhrSyncInfoMessageSpec, settings.network, timeProvider)))
 
   log.debug("Starting transactions generation")
-  val transactionGenerator: ActorRef = actorSystem.actorOf(TransactionGenerator.props(nodeViewHolderRef))
-  transactionGenerator ! StartGeneration(2 seconds)
+  val transactionGenerator: ActorRef = roleName match {
+      //todo enum?
+    case "patient" => actorSystem.actorOf(TypedActorWrapper.props(nodeViewHolderRef,
+        PatientTransactionGenerator.behavior(nodeViewHolderRef)) )
+  }
+
+  transactionGenerator ! Call
 }
 
 object EhrApp extends App {
