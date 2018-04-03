@@ -21,6 +21,11 @@ object PatientTransactionGenerator {
   val providerAKeyPair: Curve25519KeyPair =
     PrivateKey25519Companion.generateKeys("provider A seed".getBytes)
 
+  val appendTx: ContractTransaction =
+    ContractTransaction.generate(patientKeyPair,
+      AppendContract(patientKeyPair.publicKey, providerAKeyPair.publicKey, now, Unlimited),
+      now)
+
   def behavior(viewHolderRef: ActorRef): Behavior[NodeViewHolderCallback] =
     Behaviors.immutable[NodeViewHolderCallback] { (ctx, msg) =>
       msg match {
@@ -30,12 +35,6 @@ object PatientTransactionGenerator {
           same
       }
     }
-
-  def appendTx: ContractTransaction =
-    ContractTransaction.generate(patientKeyPair,
-      AppendContract(patientKeyPair.publicKey, providerAKeyPair.publicKey, now, Unlimited),
-      now)
-
 }
 
 
