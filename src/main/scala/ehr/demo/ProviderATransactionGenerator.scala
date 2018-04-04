@@ -14,6 +14,10 @@ import ehr.transaction.{EhrRecordTransactionCompanion, RecordTransaction}
 import scorex.core.LocallyGeneratedModifiersMessages.ReceivableMessages.LocallyGeneratedTransaction
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 
+import scala.concurrent.duration._
+import scala.language.postfixOps
+import scala.concurrent.ExecutionContext.Implicits.global
+
 @SuppressWarnings(Array("org.wartremover.warts.TryPartial"))
 object ProviderATransactionGenerator {
 
@@ -34,11 +38,12 @@ object ProviderATransactionGenerator {
   }
 
   def behavior(viewHolderRef: ActorRef): Behavior[NodeViewHolderCallback] =
-    Behaviors.immutable[NodeViewHolderCallback] { (_, msg) =>
+    Behaviors.immutable[NodeViewHolderCallback] { (ctx, msg) =>
       msg match {
         case NodeViewHolderCallback(_) =>
-          viewHolderRef !
-            LocallyGeneratedTransaction[PublicKey25519Proposition, RecordTransaction](recordTx)
+          val _ = ctx.system.scheduler.scheduleOnce(10 seconds,
+            viewHolderRef,
+            LocallyGeneratedTransaction[PublicKey25519Proposition, RecordTransaction](recordTx))
           same
       }
     }
