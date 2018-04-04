@@ -6,23 +6,20 @@ import scorex.core.consensus.SyncInfo
 import scorex.core.network.message.SyncInfoMessageSpec
 import scorex.core.serialization.Serializer
 import scorex.core.{ModifierId, ModifierTypeId}
+import ehr.serialization._
 
-import scala.util.Try
 
+@SerialVersionUID(0L)
 final class EhrSyncInfo(blockId: Option[ModifierId]) extends SyncInfo {
 
   override type M = EhrSyncInfo
 
   override def startingPoints: ModifierIds =
-    blockId.map(id => Seq((EhrBlock.ModifierType, id))).getOrElse(Seq[(ModifierTypeId, ModifierId)]())
+    blockId.map(id => Seq((EhrBlock.ModifierType, id)))
+      .getOrElse(Seq[(ModifierTypeId, ModifierId)]())
 
-  override def serializer: Serializer[EhrSyncInfo] = EhrSyncInfoSerializer
+  override def serializer: Serializer[M] = byteSerializer[M]
 }
 
-object EhrSyncInfoSerializer extends Serializer[EhrSyncInfo] {
-  override def toBytes(obj: EhrSyncInfo): Array[Byte] = ???
-
-  override def parseBytes(bytes: Array[Byte]): Try[EhrSyncInfo] = ???
-}
-
-object EhrSyncInfoMessageSpec extends SyncInfoMessageSpec[EhrSyncInfo](EhrSyncInfoSerializer.parseBytes)
+object EhrSyncInfoMessageSpec
+  extends SyncInfoMessageSpec[EhrSyncInfo](byteSerializer[EhrSyncInfo].parseBytes)
