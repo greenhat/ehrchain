@@ -61,6 +61,7 @@ object EhrNodeViewHolder {
     val genesisPatientAccount = PrivateKey25519Companion.generateKeys("genesis patient".getBytes)
     val genesisProviderAccount = PrivateKey25519Companion.generateKeys("genesis provider".getBytes)
     val timestamp = Instant.ofEpochSecond(1518788012L)
+    // todo encrypt? or put a contract instead
     val genesisRecordFileBytes = "genesis record".getBytes
     val recordFileHash = FileHash.generate(genesisRecordFileBytes).get
     recordFileStorage.put(recordFileHash, genesisRecordFileBytes)

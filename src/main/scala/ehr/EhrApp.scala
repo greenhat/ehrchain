@@ -4,7 +4,7 @@ import akka.actor.{ActorRef, Props}
 import ehr.api.http.FileApiRoute
 import ehr.block.EhrBlock
 import ehr.demo.TypedActorWrapper.Call
-import ehr.demo.{PatientTransactionGenerator, TypedActorWrapper}
+import ehr.demo.{PatientTransactionGenerator, ProviderATransactionGenerator, TypedActorWrapper}
 import ehr.history.{BlockStream, EhrSyncInfo, EhrSyncInfoMessageSpec}
 import ehr.mining.Miner
 import ehr.record.{InMemoryRecordFileStorage, RecordFileDownloaderSupervisor}
@@ -73,7 +73,7 @@ class EhrApp(val settingsFilename: String,
     case "patient" => actorSystem.actorOf(TypedActorWrapper.props(nodeViewHolderRef,
         PatientTransactionGenerator.behavior(nodeViewHolderRef)) )
     case "providerA" => actorSystem.actorOf(TypedActorWrapper.props(nodeViewHolderRef,
-      PatientTransactionGenerator.behavior(nodeViewHolderRef)) )
+      ProviderATransactionGenerator.behavior(nodeViewHolderRef)) )
     case "providerB" => actorSystem.actorOf(TypedActorWrapper.props(nodeViewHolderRef,
       PatientTransactionGenerator.behavior(nodeViewHolderRef)) )
     case _ => throw new IllegalArgumentException(s"unsupported role: $roleName")
