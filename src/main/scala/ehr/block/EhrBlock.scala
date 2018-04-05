@@ -60,7 +60,7 @@ final class EhrBlock(override val parentId: BlockId,
         transactions,
         generator,
         difficulty)), "invalid signature")
-    require(powValidity, s"invalid PoW (difficulty: $difficulty, bytes: ${Base58.encode(bytes)})")
+    require(powValidity, s"invalid PoW (difficulty: $difficulty)})")
   }
 
   lazy val powValidity: Boolean = {
