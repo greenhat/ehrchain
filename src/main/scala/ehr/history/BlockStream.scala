@@ -8,8 +8,8 @@ import scorex.core.{ModifierId, ModifierTypeId, NodeViewModifier}
 import scorex.crypto.encode.Base58
 
 import scala.annotation.tailrec
+import scala.util.Try
 import scala.util.control.TailCalls.{TailRec, done, tailcall}
-import scala.util.{Failure, Try}
 
 /**
   * Lazy evaluated list of the blocks presenting a blockchain.
@@ -53,18 +53,18 @@ trait BlockStream extends History[EhrBlock, EhrSyncInfo, BlockStream]
     */
   override def append(block: EhrBlock): Try[(BlockStream, History.ProgressInfo[EhrBlock])] = {
     log.debug(s"Trying to append block ${Base58.encode(block.id)} to history")
-    if (block.validity
-      && (isGenesisBlock(block) || storage.modifierById(block.parentId).nonEmpty)) {
+    Try {
+      require(block.validity, "block validation failed")
+      require(isGenesisBlock(block) || storage.modifierById(block.parentId).nonEmpty,
+        "previous block is missing")
       storage.append(block)
-      Try {
-        (cons(EhrBlockStreamElement(block, storage.heightOf(block.id).getOrElse(0L)), this),
-          ProgressInfo(branchPoint = None,
-            toRemove = Seq[EhrBlock](),
-            toApply = Some(block),
-            toDownload = Seq[(ModifierTypeId, ModifierId)]())
-        )
-      }
-    } else Failure[(BlockStream, History.ProgressInfo[EhrBlock])](new Exception("block is not valid"))
+      (cons(EhrBlockStreamElement(block, storage.heightOf(block.id).getOrElse(0L)), this),
+        ProgressInfo(branchPoint = None,
+          toRemove = Seq[EhrBlock](),
+          toApply = Some(block),
+          toDownload = Seq[(ModifierTypeId, ModifierId)]())
+      )
+    }
   }
 
   /**
