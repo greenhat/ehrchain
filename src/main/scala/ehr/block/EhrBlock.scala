@@ -19,7 +19,7 @@ import scorex.crypto.encode.Base58
 import scorex.crypto.hash.Blake2b256
 
 import scala.annotation.tailrec
-import scala.util.Random
+import scala.util.{Random, Try}
 
 final class EhrBlock(val parentId: BlockId,
                      val dateTime: Instant,
@@ -47,10 +47,17 @@ final class EhrBlock(val parentId: BlockId,
 
   override def serializer: Serializer[M] = byteSerializer[M]
 
-  lazy val validity: Boolean =
-    transactions.nonEmpty &&
-      signature.isValid(generator, EhrBlock.generateMessageToSign(parentId, dateTime, nonce, transactions, generator, difficulty)) &&
-      powValidity
+  lazy val validity: Try[Unit] = Try {
+    require(transactions.nonEmpty, "no transactions")
+    require(signature.isValid(generator,
+      EhrBlock.generateMessageToSign(parentId,
+        dateTime,
+        nonce,
+        transactions,
+        generator,
+        difficulty)), "invalid signature")
+    require(powValidity, "invalid PoW")
+  }
 
   lazy val powValidity: Boolean = {
     (difficulty == 0) || Blake2b256(bytes).startsWith(Array.fill[Byte](difficulty)(0))
@@ -90,7 +97,7 @@ object EhrBlock {
       generatorPK, difficulty)
     val signature = PrivateKey25519Companion.sign(generatorSK, msgToSign)
     val block = new EhrBlock(parentId, timestamp, nonce, transactions, signature, generatorPK, difficulty)
-    if (block.validity) block
+    if (block.validity.isSuccess) block
     else generate(parentId, timestamp, transactions, generatorKeys, difficulty)
   }
 

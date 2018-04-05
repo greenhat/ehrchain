@@ -23,5 +23,6 @@ trait EhrTransaction extends Transaction[PublicKey25519Proposition] with BytesSe
 object EhrTransaction {
   implicit val jsonEncoder: Encoder[EhrTransaction] = {
     case contract: ContractTransaction => contract.asJson
+    case record: RecordTransaction => record.asJson
   }
 }

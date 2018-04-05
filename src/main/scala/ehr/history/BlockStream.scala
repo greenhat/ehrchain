@@ -53,10 +53,11 @@ trait BlockStream extends History[EhrBlock, EhrSyncInfo, BlockStream]
     */
   override def append(block: EhrBlock): Try[(BlockStream, History.ProgressInfo[EhrBlock])] = {
     log.debug(s"Trying to append block ${Base58.encode(block.id)} to history")
-    Try {
-      require(block.validity, "block validation failed")
-      require(isGenesisBlock(block) || storage.modifierById(block.parentId).nonEmpty,
-        "previous block is missing")
+    for {
+      _ <- block.validity
+      _ <- Try { require(isGenesisBlock(block) || storage.modifierById(block.parentId).nonEmpty,
+        "previous block is missing") }
+    } yield {
       storage.append(block)
       (cons(EhrBlockStreamElement(block, storage.heightOf(block.id).getOrElse(0L)), this),
         ProgressInfo(branchPoint = None,
