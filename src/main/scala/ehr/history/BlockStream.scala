@@ -55,9 +55,8 @@ trait BlockStream extends History[EhrBlock, EhrSyncInfo, BlockStream]
     log.debug(s"Trying to append block ${Base58.encode(block.id)} to history")
     for {
       _ <- block.validity
-      // todo parent block must be the best block
-      _ <- Try { require(isGenesisBlock(block) || storage.modifierById(block.parentId).nonEmpty,
-        "previous block is missing") }
+      _ <- Try { require(isGenesisBlock(block) || headOption.exists(_.block.id sameElements block.parentId),
+        s"previous block id is missing (best block id: ${storage.bestBlockId.map(Base58.encode(_))}") }
     } yield {
       storage.append(block)
       (cons(EhrBlockStreamElement(block, storage.heightOf(block.id).getOrElse(0L)), this),

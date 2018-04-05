@@ -106,7 +106,7 @@ object EhrBlock extends ScorexLogging {
         log.debug(s"Generated block: $block")
         block
       case Failure(e) =>
-        log.debug(s"Generated invalid block (error: ${e.getLocalizedMessage}). Trying next nonce.")
+//        log.debug(s"Generated invalid block (error: ${e.getLocalizedMessage}). Trying next nonce.")
         generate(parentId, timestamp, transactions, generatorKeys, difficulty)
     }
   }
