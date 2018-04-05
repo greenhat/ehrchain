@@ -14,21 +14,24 @@ import scorex.core.serialization.Serializer
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scorex.core.transaction.proof.Signature25519
 import scorex.core.transaction.state.{PrivateKey25519, PrivateKey25519Companion}
+import scorex.core.utils.ScorexLogging
 import scorex.core.{ModifierId, ModifierTypeId}
 import scorex.crypto.encode.Base58
 import scorex.crypto.hash.Blake2b256
 
 import scala.annotation.tailrec
-import scala.util.{Random, Try}
+import scala.util.{Failure, Random, Success, Try}
 
-final class EhrBlock(val parentId: BlockId,
+@SerialVersionUID(0L)
+final class EhrBlock(override val parentId: BlockId,
                      val dateTime: Instant,
                      val nonce: Nonce,
                      val transactions: Seq[EhrTransaction],
                      val signature: Signature25519,
                      val generator: PublicKey25519Proposition,
                      val difficulty: Int)
-  extends Block[PublicKey25519Proposition, EhrTransaction] {
+  extends Block[PublicKey25519Proposition, EhrTransaction]
+  with ScorexLogging {
 
   require(transactions.nonEmpty)
 
@@ -42,6 +45,7 @@ final class EhrBlock(val parentId: BlockId,
 
   override def toString: String = s"EhrBlock(${this.asJson.noSpaces}})"
 
+  // todo add the signature?
   override def id: ModifierId =
     ModifierId @@ Blake2b256(parentId ++ serialize(dateTime) ++ generator.bytes)
 
@@ -56,7 +60,7 @@ final class EhrBlock(val parentId: BlockId,
         transactions,
         generator,
         difficulty)), "invalid signature")
-    require(powValidity, "invalid PoW")
+    require(powValidity, s"invalid PoW (difficulty: $difficulty, bytes: ${Base58.encode(bytes)})")
   }
 
   lazy val powValidity: Boolean = {
@@ -64,7 +68,7 @@ final class EhrBlock(val parentId: BlockId,
   }
 }
 
-object EhrBlock {
+object EhrBlock extends ScorexLogging {
 
   val MaxBlockSize: Int = 512 * 1024  //512K
   val ModifierType: ModifierTypeId = ModifierTypeId @@ 1.toByte
@@ -97,8 +101,14 @@ object EhrBlock {
       generatorPK, difficulty)
     val signature = PrivateKey25519Companion.sign(generatorSK, msgToSign)
     val block = new EhrBlock(parentId, timestamp, nonce, transactions, signature, generatorPK, difficulty)
-    if (block.validity.isSuccess) block
-    else generate(parentId, timestamp, transactions, generatorKeys, difficulty)
+    block.validity match {
+      case Success(()) =>
+        log.debug(s"Generated block: $block")
+        block
+      case Failure(e) =>
+        log.debug(s"Generated invalid block (error: ${e.getLocalizedMessage}). Trying next nonce.")
+        generate(parentId, timestamp, transactions, generatorKeys, difficulty)
+    }
   }
 
   implicit val jsonEncoder: Encoder[EhrBlock] = (block: EhrBlock) => {
