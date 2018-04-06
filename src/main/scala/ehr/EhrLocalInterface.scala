@@ -19,6 +19,7 @@ class EhrLocalInterface(override val viewHolderRef: ActorRef,
 
   override protected def onSuccessfulTransaction(tx: EhrTransaction): Unit = {
     minerRef ! MineBlock
+    // todo request missing files (if any)
   }
 
   override protected def onFailedTransaction(tx: EhrTransaction): Unit = {}

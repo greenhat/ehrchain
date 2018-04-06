@@ -73,7 +73,7 @@ class EhrApp(val settingsFilename: String,
     case "patient" => actorSystem.actorOf(TypedActorWrapper.props(nodeViewHolderRef,
         PatientTransactionGenerator.behavior(nodeViewHolderRef)) )
     case "providerA" => actorSystem.actorOf(TypedActorWrapper.props(nodeViewHolderRef,
-      ProviderATransactionGenerator.behavior(nodeViewHolderRef)) )
+      ProviderATransactionGenerator.behavior(nodeViewHolderRef, recordFileStorage)) )
     case "providerB" => actorSystem.actorOf(TypedActorWrapper.props(nodeViewHolderRef,
       PatientTransactionGenerator.behavior(nodeViewHolderRef)) )
     case _ => throw new IllegalArgumentException(s"unsupported role: $roleName")

@@ -25,11 +25,12 @@ object RecordFileDownloaderSupervisor extends ScorexLogging {
     Behaviors.immutable[Command] { (ctx, msg) =>
       msg match {
         case DownloadFiles(files) =>
-          files.foreach { hash =>
+          files.foreach { fileHash =>
             val downloader = ctx.spawn(RecordFileDownloader.behavior(fileStorage, peerManager),
               "RecordFileDownloader")
             ctx.watch(downloader)
-            downloader ! DownloadFile(hash, ctx.self)
+            log.info(s"request to download file $fileHash")
+            downloader ! DownloadFile(fileHash, ctx.self)
           }
           if (ctx.children.isEmpty) stopped else same
         case DownloadFailed(fileHash, reason) =>
