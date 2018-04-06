@@ -40,6 +40,8 @@ final case class TransactionMemPool(unconfirmed: TrieMap[ByteArrayWrapper, EhrTr
     this
   }
 
+  def purge(txs: Seq[EhrTransaction]): Unit = ???
+
   override def take(limit: Int): Iterable[EhrTransaction] =
     unconfirmed.values.toSeq.sortBy(_.timestamp).take(limit)
 
