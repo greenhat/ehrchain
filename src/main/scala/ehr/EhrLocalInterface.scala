@@ -45,6 +45,7 @@ class EhrLocalInterface(override val viewHolderRef: ActorRef,
         new RecordTransactionFileValidator(recordFileStorage)
           .findMissingFiles(mod.transactions.collect { case recTx: RecordTransaction => recTx })
       )
+  // todo remove txs from this block from the pool
 
   override protected def onNoBetterNeighbour(): Unit = {
     minerRef ! StartMining

@@ -29,7 +29,7 @@ class TypedActorWrapper(viewHolderRef: ActorRef,
     TransactionMemPool,
     NodeViewHolderCallback]
     {  view: NodeViewHolderCurrentView =>
-      NodeViewHolderCallback(view.vault)
+      NodeViewHolderCallback(view)
     }
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
@@ -38,8 +38,8 @@ class TypedActorWrapper(viewHolderRef: ActorRef,
       val _ = context.system.scheduler.schedule(duration, duration, viewHolderRef, getRequiredData)
     case Call =>
       viewHolderRef ! getRequiredData
-    case NodeViewHolderCallback(wallet) =>
-      typedActor ! NodeViewHolderCallback(wallet)
+    case NodeViewHolderCallback(view) =>
+      typedActor ! NodeViewHolderCallback(view)
   }
 }
 
@@ -51,7 +51,7 @@ object TypedActorWrapper {
   final case object Call
   final case class Schedule(delay: FiniteDuration)
 
-  final case class NodeViewHolderCallback(wallet: Wallet)
+  final case class NodeViewHolderCallback(view: NodeViewHolderCurrentView)
 }
 
 

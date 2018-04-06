@@ -71,7 +71,6 @@ object Miner extends App {
     memPool.take(10).filter(_.semanticValidity) match {
       case Nil => Left[Throwable, EhrBlock](new Exception("no valid transactions found"))
       case ref@ _ =>
-        // todo remove txs included in this block from the pool
         Right[Throwable, EhrBlock](EhrBlock.generate(
           bestBlockId,
           Instant.now,
