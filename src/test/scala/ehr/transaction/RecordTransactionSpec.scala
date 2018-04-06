@@ -23,6 +23,4 @@ class RecordTransactionSpec extends PropSpec
       b.semanticValidity shouldBe true
     }
   }
-
-  // todo test invalid signature
 }

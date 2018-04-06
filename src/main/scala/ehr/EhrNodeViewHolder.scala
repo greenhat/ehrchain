@@ -74,7 +74,6 @@ object EhrNodeViewHolder {
     val genesisBlock = EhrBlock.generate(BlockStream.GenesisParentId, timestamp, genesisTxs,
       genesisBlockAccount, 0)
 
-    // todo loadOrGenerate
     val history = BlockStream.load(new HistoryStorage()).append(genesisBlock).get._1
     val gs = EhrMinimalState(VersionTag @@ genesisBlock.id,
       new InMemoryContractStorage(),

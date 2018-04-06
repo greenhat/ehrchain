@@ -52,7 +52,6 @@ class EhrApp(val settingsFilename: String,
     FileApiRoute(settings.restApi, recordFileStorage)
   )
 
-  // todo generate
   override val swaggerConfig: String = Source.fromResource("api/testApi.yaml").getLines.mkString("\n")
 
   val miner: ActorRef = actorSystem.actorOf(Miner.props(nodeViewHolderRef))
