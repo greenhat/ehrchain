@@ -51,21 +51,22 @@ final class EhrBlock(override val parentId: BlockId,
 
   override def serializer: Serializer[M] = byteSerializer[M]
 
+  lazy val messageToSign: Array[Byte] =
+    EhrBlock.generateMessageToSign(parentId,
+      dateTime,
+      nonce,
+      transactions,
+      generator,
+      difficulty)
+
   lazy val validity: Try[Unit] = Try {
     require(transactions.nonEmpty, "no transactions")
-    require(signature.isValid(generator,
-      EhrBlock.generateMessageToSign(parentId,
-        dateTime,
-        nonce,
-        transactions,
-        generator,
-        difficulty)), "invalid signature")
-    require(powValidity, s"invalid PoW (difficulty: $difficulty)})")
+    require(signature.isValid(generator, messageToSign), "invalid signature")
+    require(powValidity, s"invalid PoW (difficulty: $difficulty)}), block blake: ${Base58.encode(Blake2b256(messageToSign))}")
   }
 
-  lazy val powValidity: Boolean = {
-    (difficulty == 0) || Blake2b256(bytes).startsWith(Array.fill[Byte](difficulty)(0))
-  }
+  lazy val powValidity: Boolean =
+    (difficulty == 0) || Blake2b256(messageToSign).startsWith(Array.fill[Byte](difficulty)(0))
 }
 
 object EhrBlock extends ScorexLogging {
@@ -104,6 +105,7 @@ object EhrBlock extends ScorexLogging {
     block.validity match {
       case Success(()) =>
         log.debug(s"Generated block: $block")
+        log.debug(s"Generated block blake: ${Base58.encode(Blake2b256(block.messageToSign))}")
         block
       case Failure(e) =>
 //        log.debug(s"Generated invalid block (error: ${e.getLocalizedMessage}). Trying next nonce.")
@@ -119,7 +121,8 @@ object EhrBlock extends ScorexLogging {
       "nonce" -> block.nonce.toLong.asJson,
       "transactions" -> block.transactions.map(_.asJson).asJson,
       "signature" -> Base58.encode(block.signature.bytes).asJson,
-      "generator" -> Base58.encode(block.generator.bytes).asJson
+      "generator" -> Base58.encode(block.generator.bytes).asJson,
+      "difficulty" -> block.difficulty.asJson
     ).asJson
   }
 }
