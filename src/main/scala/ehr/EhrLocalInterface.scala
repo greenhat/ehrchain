@@ -4,6 +4,9 @@ import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.adapter._
 import akka.actor.{ActorRef, Props}
 import ehr.block.EhrBlock
+import ehr.demo.TypedActorWrapper
+import ehr.demo.TypedActorWrapper.Call
+import ehr.mempool.PurgeTransactionMempool
 import ehr.mining.Miner.{MineBlock, StartMining, StopMining}
 import ehr.record.{RecordFileDownloaderSupervisor, RecordFileStorage}
 import ehr.transaction.{EhrTransaction, RecordTransaction, RecordTransactionFileValidator}
@@ -39,13 +42,15 @@ class EhrLocalInterface(override val viewHolderRef: ActorRef,
   }
 
   @SuppressWarnings(Array("org.wartremover.warts.Nothing"))
-  override protected def onSemanticallySuccessfulModification(mod: EhrBlock): Unit =
+  override protected def onSemanticallySuccessfulModification(mod: EhrBlock): Unit = {
     context.spawn(recordFileDownloader, "RecordFileDownloaderSupervisor") !
       DownloadFiles(
         new RecordTransactionFileValidator(recordFileStorage)
           .findMissingFiles(mod.transactions.collect { case recTx: RecordTransaction => recTx })
       )
-  // todo remove txs from this block from the pool
+    context.actorOf(TypedActorWrapper.props(viewHolderRef,
+      PurgeTransactionMempool.behavior(mod))) ! Call
+  }
 
   override protected def onNoBetterNeighbour(): Unit = {
     minerRef ! StartMining

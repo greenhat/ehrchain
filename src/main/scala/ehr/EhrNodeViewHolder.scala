@@ -6,6 +6,7 @@ import akka.actor.Props
 import ehr.block.EhrBlock
 import ehr.contract.InMemoryContractStorage
 import ehr.history.{BlockStream, EhrSyncInfo, HistoryStorage}
+import ehr.mempool.TransactionMemPool
 import ehr.record.{FileHash, InMemoryRecordFileStorage, Record, RecordFileStorage}
 import ehr.state.EhrMinimalState
 import ehr.transaction.{EhrRecordTransactionCompanion, EhrTransaction, InMemoryRecordTransactionStorage}

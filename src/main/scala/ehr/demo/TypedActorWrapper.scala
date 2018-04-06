@@ -3,10 +3,10 @@ package ehr.demo
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.adapter._
 import akka.actor.{Actor, ActorRef, Props}
-import ehr.TransactionMemPool
 import ehr.core.NodeViewHolderCurrentView
 import ehr.demo.TypedActorWrapper.NodeViewHolderCallback
 import ehr.history.BlockStream
+import ehr.mempool.TransactionMemPool
 import ehr.state.EhrMinimalState
 import ehr.wallet.Wallet
 import scorex.core.NodeViewHolder.ReceivableMessages.GetDataFromCurrentView

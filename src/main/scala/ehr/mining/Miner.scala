@@ -3,10 +3,10 @@ package ehr.mining
 import java.time.Instant
 
 import akka.actor.{Actor, ActorRef, Props}
-import ehr.TransactionMemPool
 import ehr.block.EhrBlock
 import ehr.core.NodeViewHolderCurrentView
 import ehr.history.BlockStream
+import ehr.mempool.TransactionMemPool
 import ehr.mining.Miner.{CreateBlock, MineBlock, StartMining, StopMining}
 import ehr.state.EhrMinimalState
 import ehr.wallet.Wallet

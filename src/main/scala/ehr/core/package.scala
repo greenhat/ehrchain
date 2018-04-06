@@ -1,6 +1,7 @@
 package ehr
 
 import ehr.history.BlockStream
+import ehr.mempool.TransactionMemPool
 import ehr.state.EhrMinimalState
 import ehr.wallet.Wallet
 import scorex.core.NodeViewHolder.CurrentView

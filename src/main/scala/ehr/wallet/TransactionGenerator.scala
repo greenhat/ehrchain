@@ -3,12 +3,12 @@ package ehr.wallet
 import java.time.Instant
 
 import akka.actor.{Actor, ActorRef, Props}
-import ehr.TransactionMemPool
 import ehr.core.NodeViewHolderCurrentView
 import ehr.history.BlockStream
-import ehr.record.{Record, FileHash}
+import ehr.mempool.TransactionMemPool
+import ehr.record.{FileHash, Record}
 import ehr.state.EhrMinimalState
-import ehr.transaction.{RecordTransaction, EhrRecordTransactionCompanion}
+import ehr.transaction.{EhrRecordTransactionCompanion, RecordTransaction}
 import scorex.core.LocallyGeneratedModifiersMessages.ReceivableMessages.LocallyGeneratedTransaction
 import scorex.core.NodeViewHolder.ReceivableMessages.GetDataFromCurrentView
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition

@@ -1,4 +1,4 @@
-package ehr
+package ehr.mempool
 
 import ehr.transaction.EhrTransaction
 import io.iohk.iodb.ByteArrayWrapper

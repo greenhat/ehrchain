@@ -6,6 +6,7 @@ import ehr.block.EhrBlock
 import ehr.demo.TypedActorWrapper.Call
 import ehr.demo.{PatientTransactionGenerator, ProviderATransactionGenerator, TypedActorWrapper}
 import ehr.history.{BlockStream, EhrSyncInfo, EhrSyncInfoMessageSpec}
+import ehr.mempool.TransactionMemPool
 import ehr.mining.Miner
 import ehr.record.{InMemoryRecordFileStorage, RecordFileDownloaderSupervisor}
 import ehr.settings.EhrAppSettings
