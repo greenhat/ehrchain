@@ -43,7 +43,7 @@ final class EhrBlock(override val parentId: BlockId,
 
   override def timestamp: Timestamp = dateTime.toEpochMilli
 
-  override def toString: String = s"EhrBlock(${this.asJson.noSpaces}})"
+  override def toString: String = s"EhrBlock(${this.asJson}})"
 
   // todo add the signature?
   override def id: ModifierId =

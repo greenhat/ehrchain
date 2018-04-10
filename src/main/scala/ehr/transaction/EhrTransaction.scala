@@ -18,6 +18,9 @@ trait EhrTransaction extends Transaction[PublicKey25519Proposition] with BytesSe
 
   def semanticValidity: Boolean =
     signature.isValid(generator, messageToSign)
+
+  override def toString: String = s"EhrTransaction(${this.asJson}})"
+
 }
 
 object EhrTransaction {
