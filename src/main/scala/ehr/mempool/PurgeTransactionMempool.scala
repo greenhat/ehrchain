@@ -14,7 +14,7 @@ object PurgeTransactionMempool {
     Behaviors.immutable[NodeViewHolderCallback] { (_, msg) =>
       msg match {
         case NodeViewHolderCallback(view) =>
-          view.pool.purge(block.transactions)
+          val _ = view.pool.purge(block.transactions)
           stopped
       }
     }
