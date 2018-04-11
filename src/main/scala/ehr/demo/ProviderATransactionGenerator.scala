@@ -37,14 +37,14 @@ object ProviderATransactionGenerator {
         PatientTransactionGenerator.providerAKeyPair, Record(Seq(fileHash)), now)
   }
 
-  def behavior(viewHolderRef: ActorRef,
-               fileStorage: RecordFileStorage): Behavior[NodeViewHolderCallback] =
+  def behavior(viewHolderRef: ActorRef): Behavior[NodeViewHolderCallback] =
     Behaviors.immutable[NodeViewHolderCallback] { (ctx, msg) =>
       msg match {
-        case NodeViewHolderCallback(_) =>
+        case NodeViewHolderCallback(view) =>
           val _ = ctx.system.scheduler.scheduleOnce(10 seconds,
             viewHolderRef,
-            LocallyGeneratedTransaction[PublicKey25519Proposition, RecordTransaction](recordTx(fileStorage).get))
+            LocallyGeneratedTransaction[PublicKey25519Proposition, RecordTransaction](
+              recordTx(view.history.storage.recordFileStorage).get))
           same
       }
     }

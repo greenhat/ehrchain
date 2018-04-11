@@ -8,31 +8,32 @@ import ehr.contract.ContractStorage
 import ehr.demo.TypedActorWrapper.NodeViewHolderCallback
 import ehr.record._
 import ehr.transaction.RecordTransactionStorage
+import scorex.core.utils.ScorexLogging
 
 import scala.language.postfixOps
 
-object ProviderBTransactionGenerator {
+object ProviderBTransactionGenerator extends ScorexLogging {
 
   def readRecords(contractStorage: ContractStorage,
                   recordTxStorage: RecordTransactionStorage,
                   recordFileStorage: RecordFileStorage): Unit = {
-    RecordReader.decryptRecordsInMemoryWithProviderKeys(
+    val _ = RecordReader.decryptRecordsInMemoryWithProviderKeys(
       PatientTransactionGenerator.patientKeyPair.publicKey,
       PatientTransactionGenerator.providerBKeyPair,
       contractStorage,
       recordTxStorage,
       recordFileStorage)
+    log.info("show decrypted records")
     // todo print records content
   }
 
-  def behavior(viewHolderRef: ActorRef,
-               contractStorage: ContractStorage,
-               recordTxStorage: RecordTransactionStorage,
-               fileStorage: RecordFileStorage): Behavior[NodeViewHolderCallback] =
-    Behaviors.immutable[NodeViewHolderCallback] { (ctx, msg) =>
+  def behavior(viewHolderRef: ActorRef): Behavior[NodeViewHolderCallback] =
+    Behaviors.immutable[NodeViewHolderCallback] { (_, msg) =>
       msg match {
-        case NodeViewHolderCallback(_) =>
-          readRecords(contractStorage, recordTxStorage, fileStorage)
+        case NodeViewHolderCallback(view) =>
+          readRecords(view.history.storage.contractStorage,
+            view.history.storage.recordTransactionStorage,
+            view.history.storage.recordFileStorage)
           same
       }
     }

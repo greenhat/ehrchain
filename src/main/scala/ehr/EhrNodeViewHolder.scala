@@ -74,12 +74,12 @@ object EhrNodeViewHolder {
     val genesisBlock = EhrBlock.generate(BlockStream.GenesisParentId, timestamp, genesisTxs,
       genesisBlockAccount, 0)
 
-    val history = BlockStream.load(new HistoryStorage()).append(genesisBlock).get._1
+    val historyStorage = new HistoryStorage(recordFileStorage)
+    val history = BlockStream.load(historyStorage).append(genesisBlock).get._1
     // todo move *Storages to BlockStream
     val gs = EhrMinimalState(VersionTag @@ genesisBlock.id,
-      new InMemoryContractStorage(),
-      recordFileStorage,
-      new InMemoryRecordTransactionStorage())
+      historyStorage.contractStorage,
+      historyStorage.recordTransactionStorage)
     val gw = Wallet()
 
     (history, gs, gw, TransactionMemPool.emptyPool)

@@ -27,7 +27,6 @@ class EhrMinimalStateFlatSpec extends FlatSpec
     val initialState = EhrMinimalState(
       VersionTag @@ BlockStream.GenesisParentId,
       new InMemoryContractStorage(),
-      InMemoryRecordFileStorageMock.storage,
       new InMemoryRecordTransactionStorage())
     validBlockstream.toList.foldRight(Try {initialState}) { case (element, state) =>
       state.flatMap(_.applyModifier(element.block))
@@ -38,7 +37,6 @@ class EhrMinimalStateFlatSpec extends FlatSpec
     val initialState = EhrMinimalState(
       VersionTag @@ BlockStream.GenesisParentId,
       new InMemoryContractStorage(),
-      new InMemoryRecordFileStorage(),
       new InMemoryRecordTransactionStorage())
     ehrRecordTransactionGen.sample.map { tx =>
       initialState.validate(tx).isSuccess

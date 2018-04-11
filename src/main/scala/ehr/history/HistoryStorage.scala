@@ -1,10 +1,16 @@
 package ehr.history
 
 import ehr.block.EhrBlock
+import ehr.contract.{ContractStorage, InMemoryContractStorage}
+import ehr.record.{InMemoryRecordFileStorage, RecordFileStorage}
+import ehr.transaction.{InMemoryRecordTransactionStorage, RecordTransactionStorage}
 import scorex.core.ModifierId
 
-@SuppressWarnings(Array("org.wartremover.warts.MutableDataStructures", "org.wartremover.warts.Var"))
-class HistoryStorage {
+@SuppressWarnings(Array("org.wartremover.warts.MutableDataStructures", "org.wartremover.warts.Var", "org.wartremover.warts.DefaultArguments"))
+class HistoryStorage(val recordFileStorage: RecordFileStorage = new InMemoryRecordFileStorage()) {
+
+  val contractStorage: ContractStorage = new InMemoryContractStorage()
+  val recordTransactionStorage: RecordTransactionStorage = new InMemoryRecordTransactionStorage()
 
   private val store: scala.collection.mutable.Map[String, EhrBlock] = scala.collection.mutable.Map()
   private val heightStore: scala.collection.mutable.Map[String, Long] = scala.collection.mutable.Map()

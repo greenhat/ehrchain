@@ -13,8 +13,6 @@ import scala.util.{Failure, Success, Try}
 
 final case class EhrMinimalState(override val version: VersionTag,
                                  contractStorage: ContractStorage,
-                                // todo remove
-                                 recordFileStorage: RecordFileStorage,
                                  recordTransactionStorage: RecordTransactionStorage)
   extends MinimalState[EhrBlock, EhrMinimalState]
   with TransactionValidation[PublicKey25519Proposition, EhrTransaction]
@@ -30,7 +28,6 @@ final case class EhrMinimalState(override val version: VersionTag,
     validate(mod).map { _ =>
       EhrMinimalState(VersionTag @@ mod.id,
         contractStorage.add(gatherContracts(mod.transactions)),
-        recordFileStorage,
         recordTransactionStorage.put(
           mod.transactions.collect { case recTx: RecordTransaction => recTx }
         ))
