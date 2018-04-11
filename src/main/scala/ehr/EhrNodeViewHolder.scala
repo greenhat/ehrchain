@@ -75,6 +75,7 @@ object EhrNodeViewHolder {
       genesisBlockAccount, 0)
 
     val history = BlockStream.load(new HistoryStorage()).append(genesisBlock).get._1
+    // todo move *Storages to BlockStream
     val gs = EhrMinimalState(VersionTag @@ genesisBlock.id,
       new InMemoryContractStorage(),
       recordFileStorage,

@@ -13,6 +13,7 @@ import scala.util.{Failure, Success, Try}
 
 final case class EhrMinimalState(override val version: VersionTag,
                                  contractStorage: ContractStorage,
+                                // todo remove
                                  recordFileStorage: RecordFileStorage,
                                  recordTransactionStorage: RecordTransactionStorage)
   extends MinimalState[EhrBlock, EhrMinimalState]
@@ -24,7 +25,6 @@ final case class EhrMinimalState(override val version: VersionTag,
   override type NVCT = this.type
 
   private val ehrRecordTxContractValidator = new RecordTransactionContractValidator(contractStorage)
-  private val ehrRecordTxFileValidator = new RecordTransactionFileValidator(recordFileStorage)
 
   override def applyModifier(mod: EhrBlock): Try[EhrMinimalState] =
     validate(mod).map { _ =>
