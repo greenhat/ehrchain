@@ -4,6 +4,7 @@ import akka.actor.ActorRef
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.Behaviors.same
+import com.google.common.io.ByteStreams
 import ehr.contract.ContractStorage
 import ehr.demo.TypedActorWrapper.NodeViewHolderCallback
 import ehr.record._
@@ -14,17 +15,18 @@ import scala.language.postfixOps
 
 object ProviderBTransactionGenerator extends ScorexLogging {
 
+  @SuppressWarnings(Array("org.wartremover.warts.TryPartial"))
   def readRecords(contractStorage: ContractStorage,
                   recordTxStorage: RecordTransactionStorage,
                   recordFileStorage: RecordFileStorage): Unit = {
-    val _ = RecordReader.decryptRecordsInMemoryWithProviderKeys(
+    RecordReader.decryptRecordsInMemoryWithProviderKeys(
       PatientTransactionGenerator.patientKeyPair.publicKey,
       PatientTransactionGenerator.providerBKeyPair,
       contractStorage,
       recordTxStorage,
       recordFileStorage)
-    log.info("show decrypted records")
-    // todo print records content
+        .map(fileSource => ByteStreams.toByteArray(fileSource.get.inputStream))
+        .foreach(bytes => log.info(s"record: $bytes.toString"))
   }
 
   def behavior(viewHolderRef: ActorRef): Behavior[NodeViewHolderCallback] =

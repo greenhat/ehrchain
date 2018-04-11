@@ -3,7 +3,7 @@ package ehr
 import akka.actor.{ActorRef, Props}
 import ehr.api.http.FileApiRoute
 import ehr.block.EhrBlock
-import ehr.demo.TypedActorWrapper.Call
+import ehr.demo.TypedActorWrapper.{Call, Schedule}
 import ehr.demo.{PatientTransactionGenerator, ProviderATransactionGenerator, ProviderBTransactionGenerator, TypedActorWrapper}
 import ehr.history.{BlockStream, EhrSyncInfo, EhrSyncInfoMessageSpec}
 import ehr.mempool.TransactionMemPool
@@ -19,10 +19,12 @@ import scorex.core.serialization.SerializerRegistry
 import scorex.core.serialization.SerializerRegistry.SerializerRecord
 import scorex.core.settings.ScorexSettings
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
 import scala.io.Source
 
-@SuppressWarnings(Array("org.wartremover.warts.Throw"))
+@SuppressWarnings(Array("org.wartremover.warts.Throw", "org.wartremover.warts.Any"))
 class EhrApp(val settingsFilename: String,
              roleName: String) extends Application {
 
@@ -69,17 +71,23 @@ class EhrApp(val settingsFilename: String,
     (networkControllerRef, nodeViewHolderRef, localInterface, EhrSyncInfoMessageSpec, settings.network, timeProvider)))
 
   log.debug("Starting transactions generation")
-  val transactionGenerator: ActorRef = roleName match {
-    case "patient" => actorSystem.actorOf(TypedActorWrapper.props(nodeViewHolderRef,
-        PatientTransactionGenerator.behavior(nodeViewHolderRef)) )
-    case "providerA" => actorSystem.actorOf(TypedActorWrapper.props(nodeViewHolderRef,
-      ProviderATransactionGenerator.behavior(nodeViewHolderRef)) )
-    case "providerB" => actorSystem.actorOf(TypedActorWrapper.props(nodeViewHolderRef,
-      ProviderBTransactionGenerator.behavior(nodeViewHolderRef)) )
+  val (transactionGenerator: ActorRef, msg: Any) = roleName match {
+    case "patient" => (
+      actorSystem.actorOf(TypedActorWrapper.props(nodeViewHolderRef,
+        PatientTransactionGenerator.behavior(nodeViewHolderRef))),
+      Call)
+    case "providerA" => (
+      actorSystem.actorOf(TypedActorWrapper.props(nodeViewHolderRef,
+        ProviderATransactionGenerator.behavior(nodeViewHolderRef))),
+      Call)
+    case "providerB" => (
+      actorSystem.actorOf(TypedActorWrapper.props(nodeViewHolderRef,
+        ProviderBTransactionGenerator.behavior(nodeViewHolderRef))),
+      Schedule(15 seconds))
     case _ => throw new IllegalArgumentException(s"unsupported role: $roleName")
   }
 
-  transactionGenerator ! Call
+  transactionGenerator ! msg
 }
 
 object EhrApp extends App {
