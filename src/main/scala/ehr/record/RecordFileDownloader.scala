@@ -74,7 +74,7 @@ object RecordFileDownloader extends ScorexLogging {
 
 }
 
-object DownloadFileEffect {
+object DownloadFileEffect extends ScorexLogging {
 
   val downloadFileEffect: DownloadEffect = { (addr, fileHash, fileStorage) =>
     downloadFile(fileUrl(addr, fileHash), fileStorage, fileHash)
@@ -83,17 +83,18 @@ object DownloadFileEffect {
   def fileUrl(address: InetSocketAddress, fileHash: FileHash): URL =
     new URL("http",
       address.getHostString,
-      address.getPort,
+      address.getPort + 1, // rest API port
       s"/${FileApiRoute.pathPrefix}/${FileApiRoute.requestPath}/$fileHash")
 
   private def downloadFile(url: URL,
                            fileStorage: RecordFileStorage,
                            fileHash: FileHash): Try[Unit] =
     for {
-        bytes <- Try[Array[Byte]] { ByteStreams.toByteArray(url.openStream()) }
-        fileSource = FileSource.fromByteArray(bytes)
-        computedHash <- FileHash.generate(fileSource)
-        _ <- Try[Unit] { if (computedHash != fileHash) new RuntimeException("invalid hash") }
+      _ <- Try { log.debug(s"loading file: $url") }
+      bytes <- Try[Array[Byte]] { ByteStreams.toByteArray(url.openStream()) }
+      fileSource = FileSource.fromByteArray(bytes)
+      computedHash <- FileHash.generate(fileSource)
+      _ <- Try[Unit] { if (computedHash != fileHash) new RuntimeException("invalid hash") }
     } yield fileStorage.put(fileHash, fileSource)
 
 }
