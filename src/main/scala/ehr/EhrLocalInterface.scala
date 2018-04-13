@@ -25,7 +25,9 @@ class EhrLocalInterface(override val viewHolderRef: ActorRef,
     // todo request missing files (if any)
   }
 
-  override protected def onFailedTransaction(tx: EhrTransaction): Unit = {}
+  override protected def onFailedTransaction(tx: EhrTransaction): Unit = {
+    log.error(s"failed tx: $tx")
+  }
 
   override protected def onStartingPersistentModifierApplication(pmod: EhrBlock): Unit = {}
 

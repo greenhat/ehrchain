@@ -13,8 +13,7 @@ import ehr.api.http.FileApiRoute
 import ehr.record.DownloadFileEffect.downloadFileEffect
 import ehr.record.RecordFileDownloader.DownloadEffect
 import ehr.record.RecordFileDownloaderSupervisor.{DownloadErrors, DownloadFailed, DownloadSucceeded, NoPeers}
-import scorex.core.network.Handshake
-import scorex.core.network.peer.PeerManager.ReceivableMessages.GetConnectedPeers
+import scorex.core.network.peer.PeerManager.ReceivableMessages.KnownPeers
 import scorex.core.utils.ScorexLogging
 
 import scala.annotation.tailrec
@@ -69,9 +68,8 @@ object RecordFileDownloader extends ScorexLogging {
 
   private def withPeers(peerManager: ActorRef)(f: Seq[InetSocketAddress] => Unit)
                        (implicit actorContext: ActorContext[Command]): Unit =
-    (peerManager ? GetConnectedPeers)
-    .mapTo[Seq[Handshake]]
-    .map(_.flatMap(_.declaredAddress.toList))(actorContext.executionContext)
+    (peerManager ? KnownPeers)
+    .mapTo[Seq[InetSocketAddress]]
     .foreach(f)(actorContext.executionContext)
 
 }
