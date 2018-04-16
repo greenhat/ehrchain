@@ -79,7 +79,7 @@ class EhrApp(val settingsFilename: String,
     case "providerA" => (
       actorSystem.actorOf(TypedActorWrapper.props(nodeViewHolderRef,
         ProviderATransactionGenerator.behavior(nodeViewHolderRef))),
-      Call)
+      Schedule(10 seconds))
     case "providerB" => (
       actorSystem.actorOf(TypedActorWrapper.props(nodeViewHolderRef,
         ProviderBTransactionGenerator.behavior(nodeViewHolderRef))),
