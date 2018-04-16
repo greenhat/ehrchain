@@ -1,5 +1,7 @@
 package ehr.demo
 
+import java.nio.charset.StandardCharsets
+
 import akka.actor.ActorRef
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
@@ -24,9 +26,13 @@ object ProviderBTransactionGenerator extends ScorexLogging {
       PatientTransactionGenerator.providerBKeyPair,
       contractStorage,
       recordTxStorage,
-      recordFileStorage)
+      recordFileStorage) match {
+      case files@_ if files.isEmpty => log.error("no files")
+      case files@_ => files
         .map(fileSource => ByteStreams.toByteArray(fileSource.get.inputStream))
-        .foreach(bytes => log.info(s"record: $bytes.toString"))
+        .foreach(bytes =>
+          log.info(s"provider B reads record: ${new String(bytes, StandardCharsets.UTF_8)}"))
+    }
   }
 
   def behavior(viewHolderRef: ActorRef): Behavior[NodeViewHolderCallback] =
