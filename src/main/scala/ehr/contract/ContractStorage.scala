@@ -20,7 +20,7 @@ final class InMemoryContractStorage() extends ContractStorage {
   override def add(contracts: Seq[Contract]): Unit =
     contracts.foreach { contract =>
       store.update(contract.patientPK.address,
-        store.get(contract.patientPK.address).map(_ :+ contract).getOrElse(Seq(contract))
+        store.getOrElse(contract.patientPK.address, Seq[Contract]()) :+ contract
       )
     }
 
