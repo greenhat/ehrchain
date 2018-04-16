@@ -38,7 +38,8 @@ class AccessRecordsSpec extends FlatSpec
       Record(Seq(recordFile)),
       currentTimestamp))
 
-    val recordTxStorage = new InMemoryRecordTransactionStorage().put(transactions)
+    val recordTxStorage = new InMemoryRecordTransactionStorage()
+    recordTxStorage.put(transactions)
 
     RecordReader.decryptRecordsInMemoryWithPatientKeys(patientKeyPair, recordTxStorage, recordFileStorage)
       .map(fileSource => ByteStreams.toByteArray(fileSource.get.inputStream))
@@ -67,7 +68,8 @@ class AccessRecordsSpec extends FlatSpec
       Record(Seq(recordFile)),
       currentTimestamp))
 
-    val recordTxStorage = new InMemoryRecordTransactionStorage().put(transactions)
+    val recordTxStorage = new InMemoryRecordTransactionStorage()
+    recordTxStorage.put(transactions)
 
     val provider2KeyPair: Curve25519KeyPair = key25519Gen.sample.get
     val readContract = ReadContract.generate(patientKeyPair,

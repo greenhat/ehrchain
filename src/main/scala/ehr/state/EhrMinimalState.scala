@@ -27,11 +27,9 @@ final case class EhrMinimalState(override val version: VersionTag,
   override def applyModifier(mod: EhrBlock): Try[EhrMinimalState] =
     validate(mod).map { _ =>
       contractStorage.add(gatherContracts(mod.transactions))
-      EhrMinimalState(VersionTag @@ mod.id,
-        contractStorage,
-        recordTransactionStorage.put(
-          mod.transactions.collect { case recTx: RecordTransaction => recTx }
-        ))
+      recordTransactionStorage.put(
+        mod.transactions.collect { case recTx: RecordTransaction => recTx })
+      EhrMinimalState(VersionTag @@ mod.id, contractStorage, recordTransactionStorage)
     }
 
   private def gatherContracts(txs: Seq[EhrTransaction]): Seq[Contract] =

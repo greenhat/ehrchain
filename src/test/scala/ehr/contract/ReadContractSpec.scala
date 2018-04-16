@@ -32,7 +32,8 @@ class ReadContractSpec extends FlatSpec
       Record(Seq(recordFile)),
       currentTimestamp))
 
-    val recordTxStorage = new InMemoryRecordTransactionStorage().put(transactions)
+    val recordTxStorage = new InMemoryRecordTransactionStorage()
+    recordTxStorage.put(transactions)
     val expectedRecordKeys = RecordKeys(
       Map(providerKeyPair.publicKey -> EcdhDerivedKey.derivedKey(patientKeyPair, providerKeyPair.publicKey)))
 
