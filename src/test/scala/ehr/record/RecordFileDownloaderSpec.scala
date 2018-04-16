@@ -8,9 +8,7 @@ import akka.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
 import ehr.EhrGenerators
 import ehr.record.RecordFileDownloaderSupervisor.{DownloadErrors, DownloadFailed, DownloadSucceeded, NoPeers}
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
-import scorex.core.app.Version
-import scorex.core.network.Handshake
-import scorex.core.network.peer.PeerManager.ReceivableMessages.GetConnectedPeers
+import scorex.core.network.peer.PeerManager.ReceivableMessages.KnownPeers
 
 import scala.util.{Failure, Success}
 
@@ -39,8 +37,8 @@ class RecordFileDownloaderSpec extends FlatSpec
     )
     val fileHash = InMemoryRecordFileStorageMock.recordFileHash
     actor ! RecordFileDownloader.DownloadFile(fileHash, supervisor.ref)
-    peerManager.expectMsg(GetConnectedPeers)
-    peerManager.reply(Seq[Handshake]())
+    peerManager.expectMsg(KnownPeers)
+    peerManager.reply(Seq[InetSocketAddress]())
     supervisor.expectMessage(DownloadFailed(fileHash, NoPeers))
   }
 
@@ -58,10 +56,8 @@ class RecordFileDownloaderSpec extends FlatSpec
     val fileHash = InMemoryRecordFileStorageMock.recordFileHash
     actor ! RecordFileDownloader.DownloadFile(fileHash,
       supervisor.ref)
-    peerManager.expectMsg(GetConnectedPeers)
-    peerManager.reply(Seq[Handshake](
-      Handshake("", Version(1, 2, 3), "",
-        Some(new InetSocketAddress("92.92.92.92",27017)), 0L)))
+    peerManager.expectMsg(KnownPeers)
+    peerManager.reply(Seq[InetSocketAddress](new InetSocketAddress("92.92.92.92",27017)))
     supervisor.expectMessage(DownloadSucceeded(fileHash))
   }
 
@@ -80,16 +76,14 @@ class RecordFileDownloaderSpec extends FlatSpec
     val fileHash = InMemoryRecordFileStorageMock.recordFileHash
     actor ! RecordFileDownloader.DownloadFile(fileHash,
       supervisor.ref)
-    peerManager.expectMsg(GetConnectedPeers)
-    peerManager.reply(Seq[Handshake](
-      Handshake("", Version(1, 2, 3), "",
-        Some(new InetSocketAddress("92.92.92.92",27017)), 0L)))
+    peerManager.expectMsg(KnownPeers)
+    peerManager.reply(Seq[InetSocketAddress](new InetSocketAddress("92.92.92.92",27017)))
     supervisor.expectMessage(DownloadFailed(fileHash, DownloadErrors(Seq(expectedException))))
   }
 
   "file URL" should "be valid against our File API" in {
     val fileHash = InMemoryRecordFileStorageMock.recordFileHash
     DownloadFileEffect.fileUrl(new InetSocketAddress("92.92.92.92",27017),
-      fileHash).toString shouldEqual s"http://92.92.92.92:27017/file/hash/$fileHash"
+      fileHash).toString shouldEqual s"http://92.92.92.92:27018/file/hash/$fileHash"
   }
 }
