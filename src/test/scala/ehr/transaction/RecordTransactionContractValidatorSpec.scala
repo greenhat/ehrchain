@@ -20,7 +20,8 @@ class RecordTransactionContractValidatorSpec extends FlatSpec
     val providerKeyPair: Curve25519KeyPair = key25519Gen.sample.get
 
     val appendContract = AppendContract(patientKeyPair.publicKey, providerKeyPair.publicKey, currentTimestamp, Unlimited)
-    val contractStorage = new InMemoryContractStorage().add(Seq(appendContract))
+    val contractStorage = new InMemoryContractStorage()
+    contractStorage.add(Seq(appendContract))
     val recordTx = EhrRecordTransactionCompanion.generate(patientKeyPair.publicKey,
       providerKeyPair, mockRecord, currentTimestamp)
 
@@ -35,7 +36,8 @@ class RecordTransactionContractValidatorSpec extends FlatSpec
     val appendContract = AppendContract(patientKeyPair.publicKey, providerKeyPair.publicKey, currentTimestamp, Unlimited)
     val revokeContract = RevokeAppendContract(patientKeyPair.publicKey, providerKeyPair.publicKey,
       currentTimestamp.plusSeconds(1), currentTimestamp.plusSeconds(1))
-    val contractStorage = new InMemoryContractStorage().add(Seq[Contract](appendContract, revokeContract))
+    val contractStorage = new InMemoryContractStorage()
+    contractStorage.add(Seq[Contract](appendContract, revokeContract))
     val recordTx = EhrRecordTransactionCompanion.generate(patientKeyPair.publicKey,
       providerKeyPair, mockRecord, currentTimestamp.plusSeconds(2))
 

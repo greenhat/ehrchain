@@ -4,8 +4,7 @@ import ehr.core.DigestSha256
 
 import scala.collection.mutable
 
-@SuppressWarnings(Array("org.wartremover.warts.DefaultArguments",
-  "org.wartremover.warts.MutableDataStructures"))
+@SuppressWarnings(Array("org.wartremover.warts.MutableDataStructures"))
 final class InMemoryRecordFileStorage() extends RecordFileStorage {
 
   val store: mutable.Map[DigestSha256, FileSource] = mutable.Map[DigestSha256, FileSource]()

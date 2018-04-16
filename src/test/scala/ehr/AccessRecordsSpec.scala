@@ -75,7 +75,8 @@ class AccessRecordsSpec extends FlatSpec
       currentTimestamp,
       RecordKeys.buildFromRecordTxs(patientKeyPair, recordTxStorage)).get
 
-    val contractStorage = new InMemoryContractStorage().add(Seq(readContract))
+    val contractStorage = new InMemoryContractStorage()
+    contractStorage.add(Seq(readContract))
 
     RecordReader.decryptRecordsInMemoryWithProviderKeys(patientKeyPair.publicKey,
       provider2KeyPair,

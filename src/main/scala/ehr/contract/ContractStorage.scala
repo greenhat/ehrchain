@@ -2,28 +2,31 @@ package ehr.contract
 
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 
+import scala.collection.mutable
 import scala.reflect.ClassTag
 
 trait ContractStorage {
 
-  def add(contracts: Seq[Contract]): ContractStorage
+  def add(contracts: Seq[Contract]): Unit
   def contractsForPatient[T: ClassTag](patientPK: PublicKey25519Proposition,
                           providerPK: PublicKey25519Proposition): Seq[T]
 }
 
-@SuppressWarnings(Array("org.wartremover.warts.DefaultArguments"))
-class InMemoryContractStorage(store: Map[String, Seq[Contract]] = Map[String, Seq[Contract]]()) extends ContractStorage {
+@SuppressWarnings(Array("org.wartremover.warts.MutableDataStructures"))
+final class InMemoryContractStorage() extends ContractStorage {
 
-  override def add(contracts: Seq[Contract]): ContractStorage =
-    new InMemoryContractStorage(
-      contracts.foldLeft(store) { case (s, contract) =>
-        s + (contract.patientPK.address -> s.get(contract.patientPK.address).map(_ :+ contract).getOrElse(Seq(contract)))
-      }
-    )
+  val store: mutable.Map[String, Seq[Contract]] = mutable.Map[String, Seq[Contract]]()
+
+  override def add(contracts: Seq[Contract]): Unit =
+    contracts.foreach { contract =>
+      store.update(contract.patientPK.address,
+        store.get(contract.patientPK.address).map(_ :+ contract).getOrElse(Seq(contract))
+      )
+    }
 
   @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf"))
   override def contractsForPatient[T: ClassTag](patientPK: PublicKey25519Proposition,
-                                      providerPK: PublicKey25519Proposition): Seq[T] =
+                                                providerPK: PublicKey25519Proposition): Seq[T] =
     store.get(patientPK.address)
       .map(_.filter(contract => contract.providerPK == providerPK))
       .map(_.flatMap { contract: Contract =>
