@@ -40,11 +40,6 @@ final case class TransactionMemPool(unconfirmed: TrieMap[ByteArrayWrapper, EhrTr
     this
   }
 
-  def purge(txsToPurge: Seq[EhrTransaction]): TransactionMemPool =
-    filter { tx =>
-      !txsToPurge.exists(tp => tp.id sameElements tx.id)
-    }
-
   override def take(limit: Int): Iterable[EhrTransaction] =
     unconfirmed.values.toSeq.sortBy(_.timestamp).take(limit)
 

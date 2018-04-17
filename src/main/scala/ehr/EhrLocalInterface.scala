@@ -4,15 +4,12 @@ import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.adapter._
 import akka.actor.{ActorRef, Props}
 import ehr.block.EhrBlock
-import ehr.demo.TypedActorWrapper
-import ehr.demo.TypedActorWrapper.Call
-import ehr.mempool.PurgeTransactionMempool
 import ehr.mining.Miner.{MineBlock, StartMining, StopMining}
+import ehr.record.RecordFileDownloaderSupervisor.DownloadFiles
 import ehr.record.{RecordFileDownloaderSupervisor, RecordFileStorage}
 import ehr.transaction.{EhrTransaction, RecordTransaction, RecordTransactionFileValidator}
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scorex.core.{LocalInterface, ModifierId}
-import ehr.record.RecordFileDownloaderSupervisor.DownloadFiles
 
 class EhrLocalInterface(override val viewHolderRef: ActorRef,
                         minerRef: ActorRef,
@@ -50,8 +47,6 @@ class EhrLocalInterface(override val viewHolderRef: ActorRef,
         new RecordTransactionFileValidator(recordFileStorage)
           .findMissingFiles(mod.transactions.collect { case recTx: RecordTransaction => recTx })
       )
-    context.actorOf(TypedActorWrapper.props(viewHolderRef,
-      PurgeTransactionMempool.behavior(mod))) ! Call
   }
 
   override protected def onNoBetterNeighbour(): Unit = {
