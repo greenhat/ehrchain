@@ -11,6 +11,7 @@ import ehr.crypto.Curve25519KeyPair
 import ehr.demo.TypedActorWrapper.NodeViewHolderCallback
 import ehr.transaction.ContractTransaction
 import scorex.core.LocallyGeneratedModifiersMessages.ReceivableMessages.LocallyGeneratedTransaction
+import scorex.core.NodeViewHolder.ReceivableMessages.LocallyGeneratedTransaction
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scorex.core.transaction.state.PrivateKey25519Companion
 
@@ -39,7 +40,7 @@ object PatientTransactionGenerator {
     )
 
   def behavior(viewHolderRef: ActorRef): Behavior[NodeViewHolderCallback] =
-    Behaviors.immutable[NodeViewHolderCallback] { (_, msg) =>
+    Behaviors.receive[NodeViewHolderCallback] { (_, msg) =>
       msg match {
         case NodeViewHolderCallback(_) =>
           viewHolderRef !

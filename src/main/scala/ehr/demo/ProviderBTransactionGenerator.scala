@@ -36,7 +36,7 @@ object ProviderBTransactionGenerator extends ScorexLogging {
   }
 
   def behavior(viewHolderRef: ActorRef): Behavior[NodeViewHolderCallback] =
-    Behaviors.immutable[NodeViewHolderCallback] { (_, msg) =>
+    Behaviors.receive[NodeViewHolderCallback] { (_, msg) =>
       msg match {
         case NodeViewHolderCallback(view) =>
           readRecords(view.history.storage.contractStorage,

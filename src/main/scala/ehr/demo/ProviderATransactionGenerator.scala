@@ -12,6 +12,7 @@ import ehr.demo.TypedActorWrapper.NodeViewHolderCallback
 import ehr.record.{ByteArrayFileSource, FileHash, Record, RecordFileStorage}
 import ehr.transaction.{EhrRecordTransactionCompanion, RecordTransaction}
 import scorex.core.LocallyGeneratedModifiersMessages.ReceivableMessages.LocallyGeneratedTransaction
+import scorex.core.NodeViewHolder.ReceivableMessages.LocallyGeneratedTransaction
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 
 import scala.concurrent.duration._
@@ -38,7 +39,7 @@ object ProviderATransactionGenerator {
   }
 
   def behavior(viewHolderRef: ActorRef): Behavior[NodeViewHolderCallback] =
-    Behaviors.immutable[NodeViewHolderCallback] { (ctx, msg) =>
+    Behaviors.receive[NodeViewHolderCallback] { (ctx, msg) =>
       msg match {
         case NodeViewHolderCallback(view) =>
           val _ = ctx.system.scheduler.scheduleOnce(10 seconds,

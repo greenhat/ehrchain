@@ -35,7 +35,7 @@ object RecordFileDownloader extends ScorexLogging {
   @SuppressWarnings(Array("org.wartremover.warts.DefaultArguments"))
   def behavior(fileStorage: RecordFileStorage, peerManager: ActorRef)
               (implicit downloadEffect: DownloadEffect = downloadFileEffect): Behavior[Command] =
-    Behaviors.immutable[Command] { (ctx, msg) =>
+    Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case DownloadFile(fileHash, replyTo) =>
           withPeers(peerManager) { peers =>

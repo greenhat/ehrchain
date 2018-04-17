@@ -22,7 +22,7 @@ object RecordFileDownloaderSupervisor extends ScorexLogging {
 
   def behavior(fileStorage: RecordFileStorage,
                peerManager: ActorRef): Behavior[Command] =
-    Behaviors.immutable[Command] { (ctx, msg) =>
+    Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case DownloadFiles(files) =>
           files.foreach { fileHash =>
@@ -40,7 +40,7 @@ object RecordFileDownloaderSupervisor extends ScorexLogging {
           log.info(s"downloaded file $fileHash")
           same
       }
-    } onSignal {
+    } receiveSignal {
       case (ctx, Terminated(ref)) =>
         log.info(s"${ctx.self}: $ref is terminated")
         if (ctx.children.isEmpty) stopped else same
