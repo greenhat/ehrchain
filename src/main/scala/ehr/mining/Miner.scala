@@ -10,8 +10,7 @@ import ehr.mempool.TransactionMemPool
 import ehr.mining.Miner.{CreateBlock, MineBlock, StartMining, StopMining}
 import ehr.state.EhrMinimalState
 import ehr.wallet.Wallet
-import scorex.core.LocallyGeneratedModifiersMessages.ReceivableMessages.LocallyGeneratedModifier
-import scorex.core.NodeViewHolder.ReceivableMessages.GetDataFromCurrentView
+import scorex.core.NodeViewHolder.ReceivableMessages.{GetDataFromCurrentView, LocallyGeneratedModifier}
 import scorex.core.block.Block.BlockId
 import scorex.core.utils.ScorexLogging
 

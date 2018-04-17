@@ -9,8 +9,7 @@ import ehr.mempool.TransactionMemPool
 import ehr.record.{FileHash, Record}
 import ehr.state.EhrMinimalState
 import ehr.transaction.{EhrRecordTransactionCompanion, RecordTransaction}
-import scorex.core.LocallyGeneratedModifiersMessages.ReceivableMessages.LocallyGeneratedTransaction
-import scorex.core.NodeViewHolder.ReceivableMessages.GetDataFromCurrentView
+import scorex.core.NodeViewHolder.ReceivableMessages.{GetDataFromCurrentView, LocallyGeneratedTransaction}
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 
 import scala.concurrent.ExecutionContext.Implicits.global

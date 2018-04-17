@@ -10,7 +10,6 @@ import ehr.contract.{AppendContract, ReadContract, RecordKeys, Unlimited}
 import ehr.crypto.Curve25519KeyPair
 import ehr.demo.TypedActorWrapper.NodeViewHolderCallback
 import ehr.transaction.ContractTransaction
-import scorex.core.LocallyGeneratedModifiersMessages.ReceivableMessages.LocallyGeneratedTransaction
 import scorex.core.NodeViewHolder.ReceivableMessages.LocallyGeneratedTransaction
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 import scorex.core.transaction.state.PrivateKey25519Companion

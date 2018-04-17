@@ -2,59 +2,50 @@ package ehr
 
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.adapter._
-import akka.actor.{ActorRef, Props}
+import akka.actor.{Actor, ActorRef, Props}
 import ehr.block.EhrBlock
 import ehr.mining.Miner.{MineBlock, StartMining, StopMining}
 import ehr.record.RecordFileDownloaderSupervisor.DownloadFiles
 import ehr.record.{RecordFileDownloaderSupervisor, RecordFileStorage}
-import ehr.transaction.{EhrTransaction, RecordTransaction, RecordTransactionFileValidator}
-import scorex.core.transaction.box.proposition.PublicKey25519Proposition
-import scorex.core.{LocalInterface, ModifierId}
+import ehr.transaction.{RecordTransaction, RecordTransactionFileValidator}
+import scorex.core.network.NodeViewSynchronizer.Events.{BetterNeighbourAppeared, NoBetterNeighbour, NodeViewSynchronizerEvent}
+import scorex.core.network.NodeViewSynchronizer.ReceivableMessages._
+import scorex.core.utils.ScorexLogging
 
-class EhrLocalInterface(override val viewHolderRef: ActorRef,
+@SuppressWarnings(Array("org.wartremover.warts.Any", "org.wartremover.warts.NonUnitStatements", "org.wartremover.warts.Nothing", "org.wartremover.warts.ToString"))
+class EhrLocalInterface(viewHolderRef: ActorRef,
                         minerRef: ActorRef,
                         recordFileDownloader: Behavior[RecordFileDownloaderSupervisor.Command],
                         recordFileStorage: RecordFileStorage)
-  extends LocalInterface[PublicKey25519Proposition, EhrTransaction, EhrBlock] {
+  extends Actor with ScorexLogging {
 
-  override protected def onSuccessfulTransaction(tx: EhrTransaction): Unit = {
-    minerRef ! MineBlock
+  override def preStart(): Unit = {
+    context.system.eventStream.subscribe(self, classOf[NodeViewHolderEvent])
+    context.system.eventStream.subscribe(self, classOf[NodeViewSynchronizerEvent])
+  }
+
+  override def receive: Receive = {
+    case RollbackFailed => log.error("rollback failed")
+
+    case FailedTransaction(tx, error) =>
+      log.error(s"transaction ${tx.toString} failed: ${error.getLocalizedMessage}")
+
+    case SuccessfulTransaction =>
+      minerRef ! MineBlock
     // todo request missing files (if any)
-  }
 
-  override protected def onFailedTransaction(tx: EhrTransaction): Unit = {
-    log.error(s"failed tx: $tx")
-  }
+    case SemanticallySuccessfulModifier(mod: EhrBlock) =>
+      context.spawn(recordFileDownloader, "RecordFileDownloaderSupervisor") !
+        DownloadFiles(
+          new RecordTransactionFileValidator(recordFileStorage)
+            .findMissingFiles(
+              mod.transactions.collect { case recTx: RecordTransaction => recTx }))
 
-  override protected def onStartingPersistentModifierApplication(pmod: EhrBlock): Unit = {}
+    case NoBetterNeighbour =>
+      minerRef ! StartMining
 
-  override protected def onSyntacticallySuccessfulModification(mod: EhrBlock): Unit = {}
-
-  override protected def onSyntacticallyFailedModification(mod: EhrBlock): Unit = {}
-
-  override protected def onSemanticallyFailedModification(mod: EhrBlock): Unit = {}
-
-  override protected def onNewSurface(newSurface: Seq[ModifierId]): Unit = {}
-
-  override protected def onRollbackFailed(): Unit = {
-    log.error("rollback failed")
-  }
-
-  @SuppressWarnings(Array("org.wartremover.warts.Nothing"))
-  override protected def onSemanticallySuccessfulModification(mod: EhrBlock): Unit = {
-    context.spawn(recordFileDownloader, "RecordFileDownloaderSupervisor") !
-      DownloadFiles(
-        new RecordTransactionFileValidator(recordFileStorage)
-          .findMissingFiles(mod.transactions.collect { case recTx: RecordTransaction => recTx })
-      )
-  }
-
-  override protected def onNoBetterNeighbour(): Unit = {
-    minerRef ! StartMining
-  }
-
-  override protected def onBetterNeighbourAppeared(): Unit = {
-    minerRef ! StopMining
+    case BetterNeighbourAppeared =>
+      minerRef ! StopMining
   }
 }
 

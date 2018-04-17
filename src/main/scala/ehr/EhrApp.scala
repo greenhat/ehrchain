@@ -58,7 +58,7 @@ class EhrApp(val settingsFilename: String,
 
   val miner: ActorRef = actorSystem.actorOf(Miner.props(nodeViewHolderRef))
 
-  override val localInterface: ActorRef =
+  val localInterface: ActorRef =
     actorSystem.actorOf(EhrLocalInterface.props(nodeViewHolderRef,
       miner,
       RecordFileDownloaderSupervisor.behavior(recordFileStorage, peerManagerRef),
@@ -68,7 +68,7 @@ class EhrApp(val settingsFilename: String,
   override val nodeViewSynchronizer: ActorRef =
     actorSystem.actorOf(Props(
       new NodeViewSynchronizer[P, TX, EhrSyncInfo, EhrSyncInfoMessageSpec.type, PMOD, BlockStream, TransactionMemPool]
-    (networkControllerRef, nodeViewHolderRef, localInterface, EhrSyncInfoMessageSpec, settings.network, timeProvider)))
+    (networkControllerRef, nodeViewHolderRef, EhrSyncInfoMessageSpec, settings.network, timeProvider)))
 
   log.debug("Starting transactions generation")
   val (transactionGenerator: ActorRef, msg: Any) = roleName match {

@@ -62,19 +62,34 @@ trait BlockStream extends History[EhrBlock, EhrSyncInfo, BlockStream]
       (cons(EhrBlockStreamElement(block, storage.heightOf(block.id).getOrElse(0L)), this),
         ProgressInfo(branchPoint = None,
           toRemove = Seq[EhrBlock](),
-          toApply = Some(block),
+          toApply = Seq(block),
           toDownload = Seq[(ModifierTypeId, ModifierId)]())
       )
     }
   }
 
   /**
-    * Report that modifier is valid from other nodeViewHolder components point of view
+    * Report that modifier is valid from point of view of the state component
+    *
+    * @param modifier - valid modifier
+    * @return modified history
     */
-  override def reportSemanticValidity(modifier: EhrBlock, valid: Boolean, lastApplied: ModifierId): (BlockStream, History.ProgressInfo[EhrBlock]) =
+  override def reportModifierIsValid(modifier: EhrBlock): BlockStream = this
+
+  /**
+    * Report that modifier is invalid from other nodeViewHolder components point of view
+    *
+    * @param modifier     - invalid modifier
+    * @param progressInfo - what suffix failed to be applied because of an invalid modifier
+    * @return modified history and new progress info
+    */
+  override def reportModifierIsInvalid(modifier: EhrBlock,
+                                       progressInfo: ProgressInfo[EhrBlock]
+                                      ): (BlockStream, ProgressInfo[EhrBlock]) =
+  // todo remove the sub-chain(prefix) starting with invalid modifier
     this -> ProgressInfo(branchPoint = None,
       toRemove = Seq[EhrBlock](),
-      toApply = None,
+      toApply = Seq[EhrBlock](),
       toDownload = Seq[(ModifierTypeId, ModifierId)]())
 
   /**

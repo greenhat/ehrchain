@@ -11,7 +11,6 @@ import ehr.crypto.{AesCipher, EcdhDerivedKey}
 import ehr.demo.TypedActorWrapper.NodeViewHolderCallback
 import ehr.record.{ByteArrayFileSource, FileHash, Record, RecordFileStorage}
 import ehr.transaction.{EhrRecordTransactionCompanion, RecordTransaction}
-import scorex.core.LocallyGeneratedModifiersMessages.ReceivableMessages.LocallyGeneratedTransaction
 import scorex.core.NodeViewHolder.ReceivableMessages.LocallyGeneratedTransaction
 import scorex.core.transaction.box.proposition.PublicKey25519Proposition
 
