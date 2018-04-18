@@ -2,7 +2,7 @@
 Proof-of-Concept for storing health records in a public blockchain.
 
 ## Goal
-Store EHR (Electronic Health Records) in the public blockchain. Patients and authorized health care providers should have access to the records at any time. 
+Store EHR (Electronic Health Records) in the public blockchain. Only patients and authorized health care providers should be able to read and append the records. 
 
 ## Benefits
 For patients:
