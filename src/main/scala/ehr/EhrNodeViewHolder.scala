@@ -4,12 +4,13 @@ import java.time.Instant
 
 import akka.actor.Props
 import ehr.block.EhrBlock
-import ehr.contract.InMemoryContractStorage
+import ehr.contract.{AppendContract, InMemoryContractStorage, Unlimited}
+import ehr.crypto.Curve25519KeyPair
 import ehr.history.{BlockStream, EhrSyncInfo, HistoryStorage}
 import ehr.mempool.TransactionMemPool
 import ehr.record.{FileHash, InMemoryRecordFileStorage, Record, RecordFileStorage}
 import ehr.state.EhrMinimalState
-import ehr.transaction.{EhrRecordTransactionCompanion, EhrTransaction, InMemoryRecordTransactionStorage}
+import ehr.transaction.{ContractTransaction, EhrRecordTransactionCompanion, EhrTransaction, InMemoryRecordTransactionStorage}
 import ehr.wallet.Wallet
 import ehr.serialization._
 import scorex.core.serialization.Serializer
@@ -59,16 +60,15 @@ object EhrNodeViewHolder {
   def generateGenesisState(recordFileStorage: RecordFileStorage
                           ): (BlockStream, EhrMinimalState, Wallet, TransactionMemPool) = {
     val genesisBlockAccount = PrivateKey25519Companion.generateKeys("genesis block".getBytes)
-    val genesisPatientAccount = PrivateKey25519Companion.generateKeys("genesis patient".getBytes)
-    val genesisProviderAccount = PrivateKey25519Companion.generateKeys("genesis provider".getBytes)
+    val genesisPatientAccount: Curve25519KeyPair =
+      PrivateKey25519Companion.generateKeys("genesis patient".getBytes)
+    val genesisProviderAccount: Curve25519KeyPair =
+      PrivateKey25519Companion.generateKeys("genesis provider".getBytes)
     val timestamp = Instant.ofEpochSecond(1518788012L)
-    // todo encrypt? or put a contract instead
-    val genesisRecordFileBytes = "genesis record".getBytes
-    val recordFileHash = FileHash.generate(genesisRecordFileBytes).get
-    recordFileStorage.put(recordFileHash, genesisRecordFileBytes)
-    val genesisRecord = Record(Seq(recordFileHash))
     val genesisTxs = Seq(
-      EhrRecordTransactionCompanion.generate(genesisPatientAccount._2, genesisProviderAccount, genesisRecord,
+      ContractTransaction.generate(genesisPatientAccount,
+        AppendContract(genesisPatientAccount.publicKey, genesisProviderAccount.publicKey,
+          timestamp, Unlimited),
         timestamp)
     )
     val genesisBlock = EhrBlock.generate(BlockStream.GenesisParentId, timestamp, genesisTxs,
