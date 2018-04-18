@@ -86,7 +86,6 @@ trait BlockStream extends History[EhrBlock, EhrSyncInfo, BlockStream]
   override def reportModifierIsInvalid(modifier: EhrBlock,
                                        progressInfo: ProgressInfo[EhrBlock]
                                       ): (BlockStream, ProgressInfo[EhrBlock]) =
-  // todo remove the sub-chain(prefix) starting with invalid modifier
     this -> ProgressInfo(branchPoint = None,
       toRemove = Seq[EhrBlock](),
       toApply = Seq[EhrBlock](),

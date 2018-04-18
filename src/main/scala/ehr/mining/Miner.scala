@@ -75,7 +75,6 @@ object Miner extends App {
           Instant.now,
           ref.toSeq,
           wallet.blockGeneratorKeyPair,
-          // todo difficulty = blockchain.height / X ?
           1))
     }
 }
