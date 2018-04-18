@@ -24,22 +24,27 @@ class EhrLocalInterface(viewHolderRef: ActorRef,
     context.system.eventStream.subscribe(self, classOf[NodeViewSynchronizerEvent])
   }
 
+  private def downloadMissingFiles(txs: Seq[RecordTransaction]): Unit =
+    context.spawn(recordFileDownloader, "RecordFileDownloaderSupervisor") !
+      DownloadFiles(
+        new RecordTransactionFileValidator(recordFileStorage)
+          .findMissingFiles(txs))
+
   override def receive: Receive = {
     case RollbackFailed => log.error("rollback failed")
 
     case FailedTransaction(tx, error) =>
       log.error(s"transaction ${tx.toString} failed: ${error.getLocalizedMessage}")
 
-    case SuccessfulTransaction =>
+    case SuccessfulTransaction(tx) =>
+      // todo restore after fix in Scorex ([P] -> [+P])
+//      tx match {
+//        case recordTx: RecordTransaction => downloadMissingFiles(Seq(recordTx))
+//      }
       minerRef ! MineBlock
-    // todo request missing files (if any)
 
     case SemanticallySuccessfulModifier(mod: EhrBlock) =>
-      context.spawn(recordFileDownloader, "RecordFileDownloaderSupervisor") !
-        DownloadFiles(
-          new RecordTransactionFileValidator(recordFileStorage)
-            .findMissingFiles(
-              mod.transactions.collect { case recTx: RecordTransaction => recTx }))
+      downloadMissingFiles(mod.transactions.collect { case recTx: RecordTransaction => recTx })
 
     case NoBetterNeighbour =>
       minerRef ! StartMining
