@@ -46,8 +46,7 @@ final class EhrBlock(override val parentId: BlockId,
   override def toString: String = s"EhrBlock(${this.asJson}})"
 
   override def id: ModifierId =
-    ModifierId @@ Blake2b256(parentId ++ serialize(dateTime) ++ generator.bytes ++
-      signature.bytes)
+    ModifierId @@ Blake2b256(parentId ++ serialize(dateTime) ++ generator.bytes)
 
   override def serializer: Serializer[M] = byteSerializer[M]
 
