@@ -19,7 +19,9 @@ To run 256-bit encryption you need to download and install 'Java Cryptography Ex
 ### Run
 Open three shell sessions pointing to source root folder and run the following commands (each in its own shell):
 `sbt "runMain ehr.EhrApp src/main/resources/settingsPatient.conf patient"`
+
 `sbt "runMain ehr.EhrApp src/main/resources/settingsProviderA.conf providerA"`
+
 `sbt "runMain ehr.EhrApp src/main/resources/settingsProviderB.conf providerB"`
 
 Check the logs to see generated transactions and blocks synced to all participants.  
