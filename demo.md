@@ -17,6 +17,12 @@ Reads and decrypts patient's records every X seconds.
 To run 256-bit encryption you need to download and install 'Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files 6' from [JCE](http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html)
 
 ### Run
+Open three shell sessions pointing to source root folder and run the following commands (each in its own shell):
+`sbt "runMain ehr.EhrApp src/main/resources/settingsPatient.conf patient"`
+`sbt "runMain ehr.EhrApp src/main/resources/settingsProviderA.conf providerA"`
+`sbt "runMain ehr.EhrApp src/main/resources/settingsProviderB.conf providerB"`
+
+Check the logs to see generated transactions and blocks synced to all participants.  
  
 
 
