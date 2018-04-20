@@ -52,7 +52,7 @@ class Miner(viewHolderRef: ActorRef) extends Actor with ScorexLogging {
   }
 }
 
-object Miner extends App {
+object Miner {
 
   def props(nodeViewHolderRef: ActorRef): Props = Props(new Miner(nodeViewHolderRef))
 
