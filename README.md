@@ -33,7 +33,7 @@ Proof-of-work.
 ## Transaction validation
 ### Semantic validity 
 #### Signature 
-The originator of the transaction makes a signature of the transaction with their private key and includes it in the transaction ([src](src/main/scala/ehr/transaction/EhrTransaction.scala#L17)).
+The originator of the transaction makes a signature of the transaction with their private key and includes it in the transaction ([src](src/main/scala/ehr/transaction/EhrTransaction.scala#L19)).
 ### Generic validity
 #### Record transaction authorization
 For each record transaction, a valid append contract issued by the same patient must be active (not expired or revoked) ([src](src/main/scala/ehr/transaction/RecordTransactionContractValidator.scala#L7)).
@@ -41,12 +41,12 @@ For each record transaction, a valid append contract issued by the same patient 
 ## Block validation
 ### Semantic validity
 #### Signature
-The generator of the block makes a signature of the block with their private key and includes it in the block ([src](src/main/scala/ehr/block/EhrBlock.scala#L60)).
+The generator of the block makes a signature of the block with their private key and includes it in the block ([src](src/main/scala/ehr/block/EhrBlock.scala#L61)).
 #### Proof-of-work
-Each block references the previous block and must have such `nonce` value, so hash of the block has X leading zeroes (determined by current difficulty) ([src](src/main/scala/ehr/block/EhrBlock.scala#L65)). Block generator(miner) when gathers broadcasted transaction into a block and finds `nonce` value so the hash have leading zeroes ([src](src/main/scala/ehr/mining/Miner.scala#L68)).
+Each block references the previous block and must have such `nonce` value, so hash of the block has X leading zeroes (determined by current difficulty) ([src](src/main/scala/ehr/block/EhrBlock.scala#L67)). Block generator(miner) when gathers broadcasted transaction into a block and finds `nonce` value so the hash have leading zeroes ([src](src/main/scala/ehr/mining/Miner.scala#L67)).
 
 ## Record file availability
-For each record transaction, all record files must be accessible by the local system. Upon receiving a block node checks included record transactions to have record files available locally. For missing record files node queries peer nodes.
+For each record transaction, all record files must be accessible by the local system. Upon receiving a block node checks included record transactions to have record files available locally. For missing record files node queries peer nodes. ([src](https://github.com/greenhat/ehrchain/blob/85729be2821aee9f67acae6773799ebdfdb9de1c/src/main/scala/ehr/EhrLocalInterface.scala#L28))
 The file authenticity if verified with hash included in the transaction ([src](src/main/scala/ehr/transaction/RecordTransactionFileValidator.scala#L8)).
 
 ## AES-256 key derivation ([src](src/main/scala/ehr/crypto/EcdhDerivedKey.scala#L12))
