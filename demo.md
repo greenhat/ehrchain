@@ -26,6 +26,4 @@ Open three shell sessions pointing to source root folder and run the following c
 `sbt "runMain ehr.EhrApp src/main/resources/settingsProviderB.conf providerB"`
 
 Check the logs to see generated transactions and blocks synced to all participants.  
- 
-
-
+See [sources](https://github.com/greenhat/ehrchain/tree/master/src/main/scala/ehr/demo) for the designated behaviour for each role. 
