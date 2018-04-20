@@ -14,7 +14,7 @@ Reads and decrypts patient's records every X seconds.
 
 ## How to run this demo
 ### Requirements
-To run 256-bit encryption you need to download and install 'Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files 6' from [JCE](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+To run 256-bit encryption you need to download and install 'Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files 6' from [JCE](http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html)
 
 ### Run
  
