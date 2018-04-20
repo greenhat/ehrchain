@@ -26,7 +26,7 @@ class EhrLocalInterface(viewHolderRef: ActorRef,
   }
 
   private def downloadMissingFiles(txs: Seq[RecordTransaction]): Unit =
-    context.spawn(recordFileDownloader, "RecordFileDownloaderSupervisor") !
+    context.spawnAnonymous(recordFileDownloader) !
       DownloadFiles(
         new RecordTransactionFileValidator(recordFileStorage)
           .findMissingFiles(txs))
