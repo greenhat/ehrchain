@@ -24,8 +24,8 @@ Patients use lightweight node (as a mobile app, etc.) to access their records wi
 ## Run a demo
 See [demo](demo.md)
 
-## Roadmap
-See [roadmap](roadmap.md)
+## Changelog
+See [changelog](CHANGELOG.md)
 
 ## Consensus protocol
 Proof-of-work.
