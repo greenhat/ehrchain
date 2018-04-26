@@ -7,9 +7,9 @@ scalaVersion := "2.12.3"
 
 fork := true
 
-lazy val scorexRootProject = RootProject(uri("https://github.com/greenhat/Scorex.git#master"))
-lazy val scorexTestkitProject = ProjectRef(uri("https://github.com/greenhat/Scorex.git#master"), "testkit")
-lazy val scorexExamplesProject = ProjectRef(uri("https://github.com/greenhat/Scorex.git#master"), "examples")
+lazy val scorexRootProject = RootProject(uri("https://github.com/greenhat/Scorex.git#deploy"))
+lazy val scorexTestkitProject = ProjectRef(uri("https://github.com/greenhat/Scorex.git#deploy"), "testkit")
+lazy val scorexExamplesProject = ProjectRef(uri("https://github.com/greenhat/Scorex.git#deploy"), "examples")
 
 lazy val root = (project in file("."))
   .dependsOn(scorexRootProject)
