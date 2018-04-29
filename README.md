@@ -84,3 +84,6 @@ Each patient's record file is then can be decrypted with the appropriate record 
 
 ## Patient revokes append contract
 Patient creates a revoke append contract transaction where includes a provider which invalidates all active append contracts between this patient and this provider.
+
+## License
+See the [LICENSE](LICENSE.md) file for license rights and limitations (MIT).
