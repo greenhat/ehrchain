@@ -21,12 +21,6 @@ Encrypted record files are stored on each full node as a part of the blockchain.
 
 Patients use lightweight node (as a mobile app, etc.) to access their records without any gateway server, directly from the blockchain. 
 
-## Run a demo
-See [demo](demo.md)
-
-## Changelog
-See [changelog](CHANGELOG.md)
-
 ## Consensus protocol
 Proof-of-work.
 
